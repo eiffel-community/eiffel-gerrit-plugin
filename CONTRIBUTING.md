@@ -33,7 +33,7 @@ When posting a new issue, try to be as precise as possible and phrase your argum
 Also, keep in mind that just as anyone is welcome to propose a change, anyone is welcome to disagree with and criticize that proposal.
 
 ### Closing Issues
-An Issue can be closed by any member of [the repository maintainers' team](https://github.com/orgs/eiffel-community/teams/eiffel-gerrit-maintainers). This can happen in various ways, for varying reasons:
+An Issue can be closed by any member of [the repository maintainers' team](https://github.com/orgs/eiffel-community/teams/eiffel-gerrit-plugin-maintainers). This can happen in various ways, for varying reasons:
 1. Issues without conclusion and no activity for at least 14 days may be closed, as a mere housekeeping activity. For instance, an Issue met with requests for further clarification, but left unanswered by the original author, may simply be removed.
 1. Issues may simply be rejected if found unfeasible or undesirable. In such cases they shall also be responded to, providing a polite and concise explanation as to why the proposal is rejected.
 1. Issues may be closed because they are implemented. Following the successful merging of a pull request addressing an Issue, it will be closed.
@@ -49,7 +49,7 @@ Contributions can be made by anyone using the standard [GitHub Fork and Pull mod
 ### Reviewing and Merging Pull Requests
 We use the Squash and Merge model, which means that all commits in a Pull Request get squashed into a single commit in the target branch. In other words, the revision history will look like a string of single commits corresponding one-to-one with Issues.
 
-Pull requests can be merged by members of the [the repository maintainers' team](https://github.com/orgs/eiffel-community/teams/eiffel-gerrit-maintainers). There is a certain protocol to adhere to, however, as well as expectations on membership.
+Pull requests can be merged by members of the [the repository maintainers' team](https://github.com/orgs/eiffel-community/teams/eiffel-gerrit-plugin-maintainers). There is a certain protocol to adhere to, however, as well as expectations on membership.
 1. All maintainers are expected to make the effort to participate in the review of Pull Requests. Every maintainer may not review everything in detail, but everyone can make the effort to chime in on some. Remember that expedient high quality reviews are crucial to the long term survival of any open source project.
 1. All community members, maintainers or not, are strongly encouraged to participate in reviews even if they do not feel entirely qualified to assess the pull request. Looking at changes and participating in review discussions is one of the best ways to learn, and presents an excellent opportunity to ask questions. And remember, participating in a review is not the same as having to make the final decision.
 1. A Pull Request should be approved by at least two maintainers (including the one doing the merging). For this to function well, the above point on participation is critical.
@@ -64,15 +64,15 @@ To be accepted into the repository, contributions must be licensed under the Apa
 
 The copyright holder is either the individual contributor if they act on their own behalf, or any organization on whose behalf they contribute. When multiple copyright holders have contributed to the same file, the copyright notice shall be appended "and others". The copyright year(s) shall reflect the year(s) of contribution(s) and be updated accordingly when new contributions are made to the file. To exemplify, the copyright notice of an original contribution made by Jane Doe acting on behalf of Ericsson AB may read:
 
-> Copyright 2019 Ericsson AB.  
+> Copyright 2018 Ericsson AB.  
 > For a full list of individual contributors, please see the commit history.
 
 When John Doe, acting on his own behalf, makes a subsequent addition to the same file, the notice will be updated accordingly:
 
-> Copyright 2019 Ericsson AB and others.  
+> Copyright 2018 Ericsson AB and others.  
 > For a full list of individual contributors, please see the commit history.
 
 When John Doe makes a subsequent contribution the following year, the notice will again be updated:
 
-> Copyright 2019-2020 Ericsson AB and others.  
+> Copyright 2018-2019 Ericsson AB and others.  
 > For a full list of individual contributors, please see the commit history.
