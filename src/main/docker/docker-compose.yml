@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  gerrit:
+    image: plugin-test:latest
+    ports:
+      - "8080:8080"
+      - "29418:29418"
+    networks:
+      - host-net
+  # RemRem
+networks:
+  host-net:
+    driver: bridge

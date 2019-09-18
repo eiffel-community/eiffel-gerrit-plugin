@@ -1,0 +1,145 @@
+#! /bin/bash
+
+GERRIT_API_HOST=""
+RABBITMQ_API_HOST=""
+STATUS=0
+
+function invalid_arguments {
+  echo "missing command(s) start | stop | test | only_test | restart | build | rebuild"
+  echo "you may combine any commands in the order you wish to execute them"
+  echo " "
+  echo " start     :: start the docker containers"
+  echo " stop      :: stop the docker containers"
+  echo " test      :: build, start, test and stop docker containers"
+  echo " only_test :: executes the test, docker containers must be running"
+  echo " restart   :: retsarts the docker containers"
+  echo " build     :: will build the docker images to be used"
+  echo " rebuild   :: see --> build"
+  echo " "
+  echo "Example:"
+  echo "./eiffel-gerrit-plugin-script test"
+  echo "      --> Will compile the source code to an executable jar and "
+  echo "          Build the docker file and start the docker-compose"
+  echo "          Execute the tests and then stop the running services"
+
+  exit;
+}
+
+function do_stop {
+  echo "########################################"
+  echo "###### STOPING DOCKER SERVICES #########"
+  echo "########################################"
+  docker-compose -f target/docker-compose.yml down
+}
+
+function do_rebuild {
+  echo "########################################"
+  echo "######### BUILDING JARS ################"
+  echo "########################################"
+
+  mvn clean install package -DskipTests
+
+  mv target/test-classes/docker-compose.yml target/docker-compose.yml
+  mv target/test-classes/Dockerfile target/Dockerfile
+
+  docker build -f target/Dockerfile -t plugin-test target/
+}
+
+function do_start {
+  echo "########################################"
+  echo "###### STARTING DOCKER SERVICES ########"
+  echo "########################################"
+
+  docker-compose -f target/docker-compose.yml up -d
+
+  GERRIT_CONTAINER_ID=$(docker ps | grep target_gerrit | awk '{print $1}')
+  GERRIT_API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $GERRIT_CONTAINER_ID)
+
+  RABBITMQ_CONTAINER_ID=$(docker ps | grep target_rabbitmq | awk '{print $1}')
+  RABBITMQ_API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $RABBITMQ_CONTAINER_ID)
+
+
+  GERRIT_BASE_URL=http://$GERRIT_API_HOST:8080
+
+  printf "WAITING FOR GERRIT TO START WITH URL: "$GERRIT_BASE_URL
+  echo " "
+
+  attempt_counter=0
+  max_attempts=60
+
+  until $(curl --output /dev/null --silent --head --fail $GERRIT_BASE_URL); do
+      if [ ${attempt_counter} -eq ${max_attempts} ];then
+        printf " \e[91m FAILURE! \e[39m"
+        echo " "
+        echo "Gerrit failed to start aborting!"
+        do_stop
+        exit 1
+      fi
+
+      printf '.'
+      attempt_counter=$(($attempt_counter+1))
+      sleep 2
+  done
+  printf " \e[32m SUCCESS! \e[39m"
+  echo " "
+}
+
+function do_test {
+  echo "########################################"
+  echo "########### RUNNING TESTS ##############"
+  echo "########################################"
+
+  GERRIT_CONTAINER_ID=$(docker ps | grep target_gerrit | awk '{print $1}')
+  GERRIT_API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $GERRIT_CONTAINER_ID)
+  RABBITMQ_CONTAINER_ID=$(docker ps | grep target_rabbitmq | awk '{print $1}')
+  RABBITMQ_API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $RABBITMQ_CONTAINER_ID)
+
+  # Installing firefox binary before integration tests
+  mvn exec:exec
+  mvn verify -DskipUTs -Dgerrit.url=$GERRIT_API_HOST -Drabbitmq.url=$RABBITMQ_API_HOST
+  STATUS=$?
+}
+
+function get_logs {
+  docker logs $(docker ps | grep plugin-test | awk '{print $1}')
+}
+
+function do_restart {
+  do_stop
+  do_start
+}
+
+function do_full_test {
+  do_rebuild
+  do_start
+  do_test
+  do_stop
+}
+
+if [ $# -eq 0 ]; then
+  invalid_arguments
+fi
+
+if [[ "start stop test only_test restart rebuild build" =~ .*${1}.* ]];
+then
+  while [ "$1" != "" ]
+  do
+    echo "Executing command: '$1'"
+    case "$1" in
+            start)     do_start;;
+            stop)      do_stop;;
+            test)      do_full_test;;
+            only_test) do_test;;
+            restart)   do_restart;;
+            rebuild)   do_rebuild;;
+            build)     do_rebuild;;
+    esac
+    shift
+  done
+else
+  invalid_arguments
+  STATUS=1
+fi
+
+exit $STATUS
+
