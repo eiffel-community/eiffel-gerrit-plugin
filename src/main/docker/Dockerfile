@@ -1,6 +1,6 @@
 FROM centos:7.5.1804
 
-MAINTAINER Eiffel
+MAINTAINER Eiffel-Community
 
 ARG URL
 

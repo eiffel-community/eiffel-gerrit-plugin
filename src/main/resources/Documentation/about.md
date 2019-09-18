@@ -18,13 +18,13 @@ Example:
 
 Global Configuration:
 
-plugin.eiffel.senderThreadPoolSize
+plugin.eiffel-agen.senderThreadPoolSize
 :   Number of threads to allocate for sending messages. Defaults to 1 if not provided.
 
 Example:
 
 ```
-    [plugin "eiffel"]
+    [plugin "Eiffel-Agen"]
       senderThreadPoolSize = 2
 ```
 

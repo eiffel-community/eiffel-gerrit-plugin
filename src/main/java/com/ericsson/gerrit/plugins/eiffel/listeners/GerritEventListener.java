@@ -32,8 +32,7 @@ import com.google.gerrit.server.events.Event;
 import com.google.inject.Inject;
 
 /**
- * Class to listen for Gerrit events and sent Eiffel messages on
- * ChangeMergedEvent.
+ * Class to listen for Gerrit events to forward to an EventHandler.
  *
  */
 public class GerritEventListener implements EventListener {
