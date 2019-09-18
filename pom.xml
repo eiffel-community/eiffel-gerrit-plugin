@@ -89,7 +89,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Gerrit-Module>com.ericsson.gerrit.plugins.eiffel.Module</Gerrit-Module>
+                            <Gerrit-Module>com.ericsson.gerrit.plugins.eiffel.GerritModule</Gerrit-Module>
 
                             <Implementation-Vendor>Eiffel-Community</Implementation-Vendor>
                             <Implementation-URL></Implementation-URL>

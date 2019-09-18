@@ -27,11 +27,15 @@ import com.google.inject.Scopes;
 import com.google.inject.internal.UniqueAnnotations;
 
 /**
- * This class is needed by Gerrit to load the plug-in and must be named Module AbstractModule
- * implementation in order to register all extensions.
+ * This class that registers the plugin in gerrit.
+ *
+ * The name and path to the class must match the setting for the plugin maven-jar-plugin.
+ *
+ * The path and name is set in the option:
+ * <configuration><archive><manifestEntries><Gerrit-Module>
  *
  */
-public class Module extends AbstractModule {
+public class GerritModule extends AbstractModule {
 
     @Override
     @CoberturaIgnore
@@ -41,21 +45,21 @@ public class Module extends AbstractModule {
                                      .to(MessageQueueHandler.class);
 
         // Example of how to register plugin configuration to the project screen
-        //bind(ProjectConfigEntry.class).annotatedWith(
-        //        Exports.named(EiffelPluginConfiguration.ENABLED))
-        //                              .toInstance(new ProjectConfigEntry("Enable Eiffel messaging",
-        //                                      false));
+        // bind(ProjectConfigEntry.class).annotatedWith(
+        // Exports.named(EiffelPluginConfiguration.ENABLED))
+        // .toInstance(new ProjectConfigEntry("Enable Eiffel messaging",
+        // false));
 
         // Register change listener that will send messages
         DynamicSet.bind(binder(), EventListener.class).to(GerritEventListener.class);
 
         // Example how to define a Send test message button
-        //install(new RestApiModule() {
-        //    @Override
-        //    @CoberturaIgnore
-        //    protected void configure() {
-        //        post(PROJECT_KIND, "eiffel-test-message").to(EiffelTestMessageSender.class);
-        //    }
-        //});
+        // install(new RestApiModule() {
+        // @Override
+        // @CoberturaIgnore
+        // protected void configure() {
+        // post(PROJECT_KIND, "eiffel-test-message").to(EiffelTestMessageSender.class);
+        // }
+        // });
     }
 }

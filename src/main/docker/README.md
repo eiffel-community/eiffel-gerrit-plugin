@@ -1,9 +1,14 @@
-## A: Build Eiffel Gerrit Plugin Docker image based on Eiffel Gerrit Plugin from an Artifactory:
-cd (git root dir)
-docker build -t eiffel-gerrit-plugin:1.0.1 --build-arg URL=https://arm101-eiffel006.rnd.ki.sw.ericsson.se:8443/nexus/...../.../eiffel-gerrit-plugin-1.0.4.jar -f src/main/docker/Dockerfile .
+## A: Build Gerrit and Eiffel Gerrit Plugin based on local source code changes
 
+** Option 1 **
+Use the included help script:
+cd (git root dir)/
+./eiffel-gerrit-plugin-script build start
 
-## B: Build Gerrit and Eiffel Gerrit Plugin based on local source code changes
+For more options in how to use the script, and execute tests you may type:
+./eiffel-gerrit-plugin-script -help
+
+** Option 2 **
 1. Build Eiffel Gerrit Plugin artifact:
 cd (git root dir)
 mvn package -DskipTests
