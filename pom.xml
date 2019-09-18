@@ -4,7 +4,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.eiffel-community</groupId>
+    <groupId>eiffel-community</groupId>
     <artifactId>eiffel-gerrit-plugin</artifactId>
     <packaging>jar</packaging>
     <version>0.0.1-SNAPSHOT</version>
@@ -12,7 +12,7 @@
     <properties>
         <Gerrit-ApiType>plugin</Gerrit-ApiType>
         <Gerrit-ApiVersion>2.14.16</Gerrit-ApiVersion>
-        <Gerrit-PluginName>eiffel</Gerrit-PluginName>
+        <Gerrit-PluginName>Eiffel-Agen</Gerrit-PluginName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skipTests>false</skipTests>
         <skipUTs>${skipTests}</skipUTs>
