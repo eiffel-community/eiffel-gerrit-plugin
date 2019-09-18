@@ -4,7 +4,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>eiffel-community</groupId>
+    <groupId>com.github.eiffel-community</groupId>
     <artifactId>eiffel-gerrit-plugin</artifactId>
     <packaging>jar</packaging>
     <version>0.0.1-SNAPSHOT</version>
@@ -12,7 +12,7 @@
     <properties>
         <Gerrit-ApiType>plugin</Gerrit-ApiType>
         <Gerrit-ApiVersion>2.14.16</Gerrit-ApiVersion>
-        <Gerrit-PluginName>Eiffel-Agen</Gerrit-PluginName>
+        <Gerrit-PluginName>eiffel</Gerrit-PluginName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skipTests>false</skipTests>
         <skipUTs>${skipTests}</skipUTs>
@@ -60,7 +60,6 @@
                 <filtering>true</filtering>
             </testResource>
         </testResources>
-        
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -81,7 +80,6 @@
                             </sources>
                         </configuration>
                     </execution>
-
                     <execution>
                         <id>add-docker-source</id>
                         <phase>process-resources</phase>
@@ -93,7 +91,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -101,13 +98,12 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Gerrit-Module>com.ericsson.gerrit.plugins.eiffel.GerritModule</Gerrit-Module>
+                            <Gerrit-Module>com.ericsson.gerrit.plugins.eiffel.Module</Gerrit-Module>
 
                             <Implementation-Vendor>Eiffel-Community</Implementation-Vendor>
                             <Implementation-URL></Implementation-URL>
 
-                            <Implementation-Title>Plugin
-                                ${Gerrit-PluginName}</Implementation-Title>
+                            <Implementation-Title>Plugin ${Gerrit-PluginName}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
 
                             <Gerrit-ApiType>${Gerrit-ApiType}</Gerrit-ApiType>
@@ -117,7 +113,6 @@
                     </archive>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -128,7 +123,6 @@
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -142,7 +136,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -156,7 +149,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cobertura-maven-plugin</artifactId>
@@ -174,7 +166,6 @@
                     <check />
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

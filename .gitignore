@@ -16,10 +16,7 @@ log/
 target/
 bin/
 dependency-reduced-pom.xml
-.factorypath
 
 # Others
 derby.log
 work/
-/.apt_generated/
-/.apt_generated_tests/

@@ -1,6 +1,10 @@
 #! /bin/bash
 
 GERRIT_API_HOST=""
+<<<<<<< HEAD
+=======
+RABBITMQ_API_HOST=""
+>>>>>>> Implement first structure for the eiffel-gerrit-plugin with needed classes
 STATUS=0
 
 function invalid_arguments {
@@ -26,14 +30,9 @@ function invalid_arguments {
 
 function do_stop {
   echo "########################################"
-  echo "###### STOPPING DOCKER SERVICES ########"
+  echo "###### STOPING DOCKER SERVICES #########"
   echo "########################################"
   docker-compose -f target/docker-compose.yml down
-  
-  if [ $? -eq 1 ]; then
-    echo "Failed to stop docker containers!"
-    exit 1  
-  fi
 }
 
 function do_rebuild {
@@ -47,11 +46,6 @@ function do_rebuild {
   mv target/test-classes/Dockerfile target/Dockerfile
 
   docker build -f target/Dockerfile -t plugin-test target/
-  
-  if [ $? -eq 1 ]; then
-    echo "Failed to build docker file!"
-    exit 1  
-  fi 
 }
 
 function do_start {
@@ -63,6 +57,10 @@ function do_start {
 
   GERRIT_CONTAINER_ID=$(docker ps | grep target_gerrit | awk '{print $1}')
   GERRIT_API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $GERRIT_CONTAINER_ID)
+
+  RABBITMQ_CONTAINER_ID=$(docker ps | grep target_rabbitmq | awk '{print $1}')
+  RABBITMQ_API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $RABBITMQ_CONTAINER_ID)
+
 
   GERRIT_BASE_URL=http://$GERRIT_API_HOST:8080
 
@@ -76,7 +74,7 @@ function do_start {
       if [ ${attempt_counter} -eq ${max_attempts} ];then
         printf " \e[91m FAILURE! \e[39m"
         echo " "
-        echo "Gerrit failed to start!"
+        echo "Gerrit failed to start aborting!"
         do_stop
         exit 1
       fi
@@ -96,11 +94,12 @@ function do_test {
 
   GERRIT_CONTAINER_ID=$(docker ps | grep target_gerrit | awk '{print $1}')
   GERRIT_API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $GERRIT_CONTAINER_ID)
+  RABBITMQ_CONTAINER_ID=$(docker ps | grep target_rabbitmq | awk '{print $1}')
+  RABBITMQ_API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $RABBITMQ_CONTAINER_ID)
 
   # Installing firefox binary before integration tests
-  # mvn exec:exec
-  
-  mvn verify -DskipUTs -Dgerrit.url=$GERRIT_API_HOST
+  mvn exec:exec
+  mvn verify -DskipUTs -Dgerrit.url=$GERRIT_API_HOST -Drabbitmq.url=$RABBITMQ_API_HOST
   STATUS=$?
 }
 
@@ -119,12 +118,6 @@ function do_full_test {
   do_test
   do_stop
 }
-
-unamestr=`uname`
-if [ "$unamestr" != "Linux" ]; then
-   echo "Unsupported operating system, this script currently only works in Linux!"
-   exit 1
-fi
 
 if [ $# -eq 0 ]; then
   invalid_arguments

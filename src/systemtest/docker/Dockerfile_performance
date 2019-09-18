@@ -1,0 +1,52 @@
+FROM ubuntu:16.04
+MAINTAINER Eiffel-Community
+
+ARG JMETER_VERSION="5.1.1"
+ARG TEST_PLAN="gerrit-plugin-testplan.jmx"
+ARG TEST_RESULT="test-result.jtl"
+
+ENV JMETER_HOME /opt/apache-jmeter-${JMETER_VERSION}
+ENV JMETER_BIN ${JMETER_HOME}/bin
+ENV JMETER_DOWNLOAD_URL https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-${JMETER_VERSION}.tgz
+
+# Install extra packages
+# See https://github.com/gliderlabs/docker-alpine/issues/136#issuecomment-272703023
+ARG TZ=Europe/Stockholm
+ENV TZ=${TZ}
+
+RUN apt -y update \
+    && apt -y install openjdk-8-jre tzdata curl unzip \
+    && rm -rf /var/cache/apk/* \
+    && mkdir -p /tmp/dependencies  \
+    && curl -L --silent ${JMETER_DOWNLOAD_URL} >  /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz  \
+    && mkdir -p /opt  \
+    && tar -xzf /tmp/dependencies/apache-jmeter-${JMETER_VERSION}.tgz -C /opt  \
+    && rm -rf /tmp/dependencies
+
+# TODO: plugins (later)
+# && unzip -oq "/tmp/dependencies/JMeterPlugins-*.zip" -d $JMETER_HOME
+
+RUN echo "\nCookieManager.save.cookies=true" >> ${JMETER_BIN}/user.properties
+
+# Set global PATH such that "jmeter" command is found
+ENV PATH $PATH:$JMETER_BIN
+
+WORKDIR	${JMETER_HOME}
+
+COPY ${TEST_PLAN} ./test-plan.jmx
+#COPY ${TEST_RESULT} ./test-result.jtl
+
+#Jmeter configurations, default values assumes local deployment of containers
+ARG GERRIT_HOST="$(hostname -I | tr \" \" \"\\n\"| head -1)"
+ARG GERRIT_PORT=8080
+ARG RABBITMQ_HOST=rabbitmq
+ARG NUMBER_OF_USERS=10
+ARG LOOP_COUNT=100
+
+ENV GERRIT_HOST=${GERRIT_HOST}
+ENV GERRIT_PORT=${GERRIT_PORT}
+ENV RABBITMQ_HOST=${RABBITMQ_HOST}
+ENV LOOP_COUNT=${LOOP_COUNT}
+ENV NUMBER_OF_USERS=${NUMBER_OF_USERS}
+
+CMD  rm -rf /report/* && jmeter -n -t test-plan.jmx -l test-result.jtl -e -o /report -Jgerrit_host=${GERRIT_HOST} -Jgerrit_port=${GERRIT_PORT} -Jrabbitmq_host=${RABBITMQ_HOST} -Jloop_count=${LOOP_COUNT} -Jnumber_of_users=${NUMBER_OF_USERS}

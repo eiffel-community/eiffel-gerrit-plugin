@@ -1,6 +1,6 @@
 FROM centos:7.5.1804
 
-LABEL maintainer="Eiffel-Community"
+MAINTAINER Eiffel
 
 ARG URL
 
