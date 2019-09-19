@@ -16,6 +16,7 @@ log/
 target/
 bin/
 dependency-reduced-pom.xml
+.factorypath
 
 # Others
 derby.log
