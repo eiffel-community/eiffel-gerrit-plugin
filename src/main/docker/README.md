@@ -33,4 +33,3 @@ replace the docker image for gerrit service with your locally built one.
 Standing in the root directory, run the below command to set up environment:
 
   docker-compose -f src/main/docker/docker-compose.yml up -d
-

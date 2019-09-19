@@ -21,10 +21,8 @@ plugin.eiffel-agen.senderThreadPoolSize
 
 Example:
 
-
     [plugin "Eiffel-Agen"]
         senderThreadPoolSize = 2
-
 
 Configuration
 -------------
