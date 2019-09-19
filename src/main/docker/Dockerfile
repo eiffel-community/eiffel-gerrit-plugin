@@ -1,6 +1,6 @@
 FROM centos:7.5.1804
 
-MAINTAINER Eiffel-Community
+LABEL maintainer="Eiffel-Community"
 
 ARG URL
 
@@ -19,7 +19,7 @@ USER gerrit
 RUN java -jar /var/gerrit/bin/gerrit.war init --batch -d /var/gerrit
 RUN java -jar /var/gerrit/bin/gerrit.war reindex -d /var/gerrit
 
-ADD ${URL} /var/gerrit/plugins/eiffel-plugin.jar
+COPY ${URL} /var/gerrit/plugins/eiffel-plugin.jar
 
 # Allow incoming traffic
 EXPOSE 29418 8080
