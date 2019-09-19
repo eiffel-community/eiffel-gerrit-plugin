@@ -11,7 +11,7 @@ function invalid_arguments {
   echo " stop      :: stop the docker containers"
   echo " test      :: build, start, test and stop docker containers"
   echo " only_test :: executes the test, docker containers must be running"
-  echo " restart   :: retsarts the docker containers"
+  echo " restart   :: restarts the docker containers"
   echo " build     :: will build the docker images to be used"
   echo " rebuild   :: see --> build"
   echo " "
