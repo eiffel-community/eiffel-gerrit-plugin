@@ -90,7 +90,7 @@ function do_test {
 
   # Installing firefox binary before integration tests
   mvn exec:exec
-  mvn verify -DskipUTs -Dgerrit.url=$GERRIT_API_HOST -Drabbitmq.url=$RABBITMQ_API_HOST
+  mvn verify -DskipUTs -Dgerrit.url=$GERRIT_API_HOST
   STATUS=$?
 }
 
