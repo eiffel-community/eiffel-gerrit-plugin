@@ -16,7 +16,7 @@ RUN yum -y install gerrit-2.14.16-1
 RUN yum -y install bash
 
 USER gerrit
-RUN java -jar /var/gerrit/bin/gerrit.war init --batch -d /var/gerrit
+RUN java -jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 /var/gerrit/bin/gerrit.war init --batch -d /var/gerrit
 RUN java -jar /var/gerrit/bin/gerrit.war reindex -d /var/gerrit
 
 ADD ${URL} /var/gerrit/plugins/eiffel-plugin.jar

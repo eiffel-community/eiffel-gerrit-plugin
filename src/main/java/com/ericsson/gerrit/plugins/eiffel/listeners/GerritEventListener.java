@@ -27,8 +27,8 @@ import com.ericsson.gerrit.plugins.eiffel.handlers.MessageQueueHandler;
 import com.google.gerrit.common.EventListener;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.PluginName;
-import com.google.gerrit.server.events.ChangeMergedEvent;
 import com.google.gerrit.server.events.Event;
+import com.google.gerrit.server.events.PatchSetCreatedEvent;
 import com.google.inject.Inject;
 
 /**
@@ -51,7 +51,8 @@ public class GerritEventListener implements EventListener {
 
     @Override
     public void onEvent(final Event event) {
-        if (!(event instanceof ChangeMergedEvent)) {
+        if (event instanceof PatchSetCreatedEvent) {
+            PatchSetCreatedEvent patchsetEvent = (PatchSetCreatedEvent)event;
             // Do not proceed if we got something else than ChangeMergedEvent
             return;
         }
