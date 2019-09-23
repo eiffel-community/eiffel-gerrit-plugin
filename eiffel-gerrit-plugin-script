@@ -76,7 +76,7 @@ function do_start {
       if [ ${attempt_counter} -eq ${max_attempts} ];then
         printf " \e[91m FAILURE! \e[39m"
         echo " "
-        echo "Gerrit failed to start aborting!"
+        echo "Gerrit failed to start!"
         do_stop
         exit 1
       fi
