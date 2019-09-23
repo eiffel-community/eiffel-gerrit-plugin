@@ -23,10 +23,15 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
+import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
+import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
+import com.ericsson.gerrit.plugins.eiffel.events.EiffelEventFactory;
 import com.ericsson.gerrit.plugins.eiffel.handlers.MessageQueueHandler;
 import com.google.gerrit.common.EventListener;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.PluginName;
+import com.google.gerrit.server.events.ChangeMergedEvent;
 import com.google.gerrit.server.events.Event;
 import com.google.gerrit.server.events.PatchSetCreatedEvent;
 import com.google.inject.Inject;
@@ -43,23 +48,26 @@ public class GerritEventListener implements EventListener {
     private final File pluginDir;
 
     @Inject
-    public GerritEventListener(@PluginName final String pluginName, final MessageQueueHandler queue, final @PluginData File pluginDir) {
+    public GerritEventListener(@PluginName final String pluginName, final MessageQueueHandler queue,
+            final @PluginData File pluginDir) {
         this.pluginName = pluginName;
         this.pool = queue.getPool();
         this.pluginDir = pluginDir;
     }
 
     @Override
-    public void onEvent(final Event event) {
-        if (event instanceof PatchSetCreatedEvent) {
-            PatchSetCreatedEvent patchsetEvent = (PatchSetCreatedEvent)event;
-            // Do not proceed if we got something else than ChangeMergedEvent
-            return;
+    public void onEvent(final Event gerritEvent) {
+        EiffelEvent eiffelEvent = EiffelEventFactory.create(gerritEvent);
+        if(eiffelEvent != null) {
+            try {
+                eiffelEvent.send();
+            } catch (Exception e) {
+                LOGGER.error("Failed to send Eiffel Event!", e);
+            }
         }
 
         LOGGER.info("pluginDir: {}", pluginDir);
         LOGGER.info("pool: {}", pool);
         LOGGER.info("pluginName: {}", pluginName);
-
     }
 }
