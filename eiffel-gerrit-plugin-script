@@ -26,9 +26,14 @@ function invalid_arguments {
 
 function do_stop {
   echo "########################################"
-  echo "###### STOPING DOCKER SERVICES #########"
+  echo "###### STOPPING DOCKER SERVICES ########"
   echo "########################################"
   docker-compose -f target/docker-compose.yml down
+  
+  if [ $? -eq 1 ]; then
+    echo "Failed to stop docker containers!"
+    exit 1  
+  fi
 }
 
 function do_rebuild {
@@ -42,6 +47,11 @@ function do_rebuild {
   mv target/test-classes/Dockerfile target/Dockerfile
 
   docker build -f target/Dockerfile -t plugin-test target/
+  
+  if [ $? -eq 1 ]; then
+    echo "Failed to build docker file!"
+    exit 1  
+  fi 
 }
 
 function do_start {
@@ -88,7 +98,8 @@ function do_test {
   GERRIT_API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $GERRIT_CONTAINER_ID)
 
   # Installing firefox binary before integration tests
-  mvn exec:exec
+  # mvn exec:exec
+  
   mvn verify -DskipUTs -Dgerrit.url=$GERRIT_API_HOST
   STATUS=$?
 }
@@ -108,6 +119,12 @@ function do_full_test {
   do_test
   do_stop
 }
+
+unamestr=`uname`
+if [ "$unamestr" != "Linux" ]; then
+   echo "Unsupported operating system, this script currently only works in Linux!"
+   exit 1
+fi
 
 if [ $# -eq 0 ]; then
   invalid_arguments
