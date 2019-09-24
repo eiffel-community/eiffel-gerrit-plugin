@@ -8,11 +8,51 @@ Parameters
 
 Project Configuration:
 
-TODO: Add Configuration parameters and instructions.
+eiffel-agen.enabled
+:   Plugin state. if set to `true`, send message Eiffel message for every commit submitted for this repository.
+    Plugin considered disabled if this option is not defined or set to `false`.
+
+eiffel-agen.filter
+:   Allow users to defined a white list of branches, i.e. messages will be sent only for a commits submitted on specified branches, all other submits will be ignored.
+    Accepts Java regex's separated by spaces. If not defined, send messages for commits submitted on all branches.
+
+eiffel-agen.flow-context
+:   Optional, but expects a UUID of a EiffelFlowContextDefinedEvent if provided.
+
+eiffel-agen.remrem-generate-url
+:   URL of REMReM generate service.
+
+eiffel-agen.remrem-publish-url
+:   URL of REMReM publish service.
+
+eiffel-agen.remrem-username
+:   Credentials towards REMReM to authenticate a user.
+
+eiffel-agen.remrem-password
+:   Credentials towards REMReM to authenticate a user
 
 Example:
 
-    TODO: Add Plugin configuration examples
+    ```
+    [plugin "eiffel-agen"]
+      enabled = true
+      filter = master
+      flow-context = <UUID of EiffelFlowContextDefinedEvent>
+      remrem-generate-url = <URL of REMReM generate service>
+      remrem-publish-url = <URL of REMReM publish service>
+      remrem-username = <REMReM Username to authenticate>
+      remrem-password = <Password for the above user>
+
+
+    [plugin "eiffel-agen"]
+      enabled = true
+      filter = master
+      flow-context = aaaaaaaa-bbbb-5ccc-8ddd-eeeeeeeeeee0
+      remrem-generate-url = https://localhost:8080/generate
+      remrem-publish-url = https://localhost:8080/publish
+      remrem-username = dummyuser
+      remrem-password = ********
+```
 
 Global Configuration:
 
