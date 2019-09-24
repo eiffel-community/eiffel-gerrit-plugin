@@ -27,7 +27,7 @@ jobs:
     - stage: test
       name: unitAndFunctionalTests
       script:
-        - mvn clean install
+        - mvn test
     - stage: test
       name: integrationTests
       script: skip
