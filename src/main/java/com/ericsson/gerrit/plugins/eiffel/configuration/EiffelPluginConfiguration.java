@@ -42,13 +42,13 @@ public class EiffelPluginConfiguration {
     public static final String FLOW_CONTEXT = "flow-context";
     
     // Fields to keep actual configuration
-    private final String cfgRemremGenerateURL;
-    private final String cfgRemremPublishURL;
-    private final String cfgRemremUsername;
-    private final String cfgRemremPassword;
-    private final String cfgFilter;
-    private final boolean cfgEnabled;
-    private final String cfgFlowContext;
+    private final String remremGenerateURL;
+    private final String remremPublishURL;
+    private final String remremUsername;
+    private final String remremPassword;
+    private final String filter;
+    private final boolean enabled;
+    private final String flowContext;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EiffelPluginConfiguration.class);
 
@@ -64,70 +64,80 @@ public class EiffelPluginConfiguration {
             throw new ExceptionInInitializerError(String.format("Can't read %s plugin configuration for project %s: %s",
                     pluginName, project.toString(), e.getMessage()));
         }
-        
         // Read plugin configuration
-        this.cfgEnabled = pluginConfig.getBoolean(ENABLED, false);
-        this.cfgFilter = pluginConfig.getString(FILTER);
-        this.cfgRemremGenerateURL = pluginConfig.getString(REMREM_GENERATE_URL);
-        this.cfgRemremPublishURL = pluginConfig.getString(REMREM_PUBLISH_URL);
-        this.cfgRemremUsername = pluginConfig.getString(REMREM_USERNAME);
-        this.cfgRemremPassword = pluginConfig.getString(REMREM_PASSWORD);
-        
+        this.enabled = pluginConfig.getBoolean(ENABLED, false);
+        this.filter = pluginConfig.getString(FILTER);
+        this.remremGenerateURL = pluginConfig.getString(REMREM_GENERATE_URL);
+        this.remremPublishURL = pluginConfig.getString(REMREM_PUBLISH_URL);
+        this.remremUsername = pluginConfig.getString(REMREM_USERNAME);
+        this.remremPassword = pluginConfig.getString(REMREM_PASSWORD);
         //flow context is optional
-        this.cfgFlowContext = pluginConfig.getString(FLOW_CONTEXT);
-        
+        this.flowContext = pluginConfig.getString(FLOW_CONTEXT);
+
         // No point to check other config parameters if plugin is disabled
-        if (!this.cfgEnabled) {
+        boolean isValidated = validatePluginConfig(pluginName, project);
+        if (!isValidated) {
             return;
+        }
+        LOGGER.info("Loaded plugin configuration: {}", pluginConfig.toString());
+    }
+
+    /**
+     * This method validates the Eiffel Configurations.
+     * @param pluginName
+     * @param project
+     */
+    private boolean validatePluginConfig(final String pluginName, final NameKey project) {
+        if (!this.enabled) {
+            return false;
         }
         
         // Make sure that REMReM configuration is defined, otherwise we won't be able to send messages.
-        if (this.cfgRemremGenerateURL == null) {
+        if (this.remremGenerateURL == null) {
             throw new ExceptionInInitializerError(
                     String.format("Can't read %s plugin configuration for project %s: REMReM Generate URL is null", pluginName,
                             project.toString()));
-        } else if (this.cfgRemremPublishURL == null) {
+        } else if (this.remremPublishURL == null) {
             throw new ExceptionInInitializerError(
                     String.format("Can't read %s plugin configuration for project %s: REMReM Publish URL is null", pluginName,
                             project.toString()));
-        } else if (this.cfgRemremUsername == null) {
+        } else if (this.remremUsername == null) {
             throw new ExceptionInInitializerError(
                     String.format("Can't read %s plugin configuration for project %s: REMReM Username is null", pluginName,
                             project.toString()));
-        } else if (this.cfgRemremPassword == null) {
+        } else if (this.remremPassword == null) {
             throw new ExceptionInInitializerError(
                     String.format("Can't read %s plugin configuration for project %s: REMReM Password is null", pluginName,
                             project.toString()));
         }
-
-        LOGGER.info("Loaded plugin configuration: {}", pluginConfig.toString());
+        return true;
     }
 
-    public String getCfgRemremGenerateURL() {
-        return cfgRemremGenerateURL;
+    public String getRemremGenerateURL() {
+        return remremGenerateURL;
     }
 
-    public String getCfgRemremPublishURL() {
-        return cfgRemremPublishURL;
+    public String getRemremPublishURL() {
+        return remremPublishURL;
     }
 
-    public String getCfgRemremUsername() {
-        return cfgRemremUsername;
+    public String getRemremUsername() {
+        return remremUsername;
     }
 
-    public String getCfgRemremPassword() {
-        return cfgRemremPassword;
+    public String getRemremPassword() {
+        return remremPassword;
     }
 
-    public String getCfgFilter() {
-        return cfgFilter;
+    public String getFilter() {
+        return filter;
     }
 
-    public boolean isCfgEnabled() {
-        return cfgEnabled;
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    public String getCfgFlowContext() {
-        return cfgFlowContext;
+    public String getFlowContext() {
+        return flowContext;
     }
 }

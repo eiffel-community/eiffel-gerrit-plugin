@@ -7,8 +7,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assert.assertEquals;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.google.gerrit.reviewdb.client.Project.NameKey;
 import com.google.gerrit.server.config.PluginConfig;
@@ -97,55 +96,49 @@ public class EiffelPluginConfigurationTest {
 
         EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
                 pluginConfigFactory);
-        assertThat(pluginConfig.isCfgEnabled() == false).isTrue();
-    }
-
-    @Test
-    public void testEiffelPluginConfiguration() throws NoSuchProjectException {
-        assertThatCode(() -> new EiffelPluginConfiguration(PLUGIN_NAME, nameKey, pluginConfigFactory))
-                .doesNotThrowAnyException();
+        assertEquals(pluginConfig.isEnabled(), false);
     }
 
     @Test
     public void testEiffelPluginConfigurationRemremGenerateURL() throws NoSuchProjectException {
         EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
                 pluginConfigFactory);
-        assertThat(pluginConfig.getCfgRemremGenerateURL() == REMREM_GENERATE_URL).isTrue();
+        assertEquals(pluginConfig.getRemremGenerateURL(), REMREM_GENERATE_URL);
     }
 
     @Test
     public void testEiffelPluginConfigurationRemremPublishURL() throws NoSuchProjectException {
         EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
                 pluginConfigFactory);
-        assertThat(pluginConfig.getCfgRemremPublishURL() == REMREM_PUBLISH_URL).isTrue();
+        assertEquals(pluginConfig.getRemremPublishURL(), REMREM_PUBLISH_URL);
     }
 
     @Test
     public void testEiffelPluginConfigurationRemremUsername() throws NoSuchProjectException {
         EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
                 pluginConfigFactory);
-        assertThat(pluginConfig.getCfgRemremUsername() == REMREM_USERNAME).isTrue();
+        assertEquals(pluginConfig.getRemremUsername(), REMREM_USERNAME);
     }
 
     @Test
     public void testEiffelPluginConfigurationFilter() throws NoSuchProjectException {
         EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
                 pluginConfigFactory);
-        assertThat(pluginConfig.getCfgFilter() == FILTER).isTrue();
+        assertEquals(pluginConfig.getFilter(), FILTER);
     }
 
     @Test
     public void testEiffelPluginConfigurationtFlowContext() throws NoSuchProjectException {
         EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
                 pluginConfigFactory);
-        assertThat(pluginConfig.getCfgFlowContext() == FLOW_CONTEXT).isTrue();
+        assertEquals(pluginConfig.getFlowContext(), FLOW_CONTEXT);
     }
 
     @Test
     public void testEiffelPluginConfigurationEnabled() throws NoSuchProjectException {
         EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
                 pluginConfigFactory);
-        assertThat(pluginConfig.isCfgEnabled() == ENABLED_TRUE).isTrue();
+        assertEquals(pluginConfig.isEnabled(), ENABLED_TRUE);
     }
 
 }
