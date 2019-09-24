@@ -48,21 +48,20 @@ public class GerritModule extends AbstractModule {
                                      .to(MessageQueueHandler.class);
 
         // Example of how to register plugin configuration to the project screen
-         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.ENABLED))
-         .toInstance(new ProjectConfigEntry("Enable Eiffel messaging",
-         false));
-         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.FILTER))
-         .toInstance(new ProjectConfigEntry("Filter branch", ""));
-         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.FLOW_CONTEXT))
-         .toInstance(new ProjectConfigEntry("Flow Context", ""));
-         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_GENERATE_URL))
-         .toInstance(new ProjectConfigEntry("REMReM Generate URL", ""));
-         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_PUBLISH_URL))
-         .toInstance(new ProjectConfigEntry("REMReM Publish URL", ""));
-         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_USERNAME))
-         .toInstance(new ProjectConfigEntry("REMReM Username", ""));
-         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_PASSWORD))
-         .toInstance(new ProjectConfigEntry("REMReM Password", ""));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.ENABLED))
+                .toInstance(new ProjectConfigEntry("Enable Eiffel messaging", false));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.FILTER))
+                .toInstance(new ProjectConfigEntry("Filter branch", ""));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.FLOW_CONTEXT))
+                .toInstance(new ProjectConfigEntry("Flow Context", ""));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_GENERATE_URL))
+                .toInstance(new ProjectConfigEntry("REMReM Generate URL", ""));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_PUBLISH_URL))
+                .toInstance(new ProjectConfigEntry("REMReM Publish URL", ""));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_USERNAME))
+                .toInstance(new ProjectConfigEntry("REMReM Username", ""));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_PASSWORD))
+                .toInstance(new ProjectConfigEntry("REMReM Password", ""));
         // Register change listener that will send messages
         DynamicSet.bind(binder(), EventListener.class).to(GerritEventListener.class);
 
