@@ -18,6 +18,8 @@
 <img src="./images/eiffel-gerrit-plugin-logo.png" alt="Eiffel Gerrit Plugin" width="350"/>
 
 [![Build Status](https://travis-ci.org/eiffel-community/eiffel-gerrit-plugin.svg?branch=master)](https://travis-ci.org/eiffel-community/eiffel-gerrit-plugin)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a6fe659579ef4ec2af44cf52fe45629d)](https://www.codacy.com/manual/eiffel-gerrit-plugin-maintainers/eiffel-gerrit-plugin?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=eiffel-community/eiffel-gerrit-plugin&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/a6fe659579ef4ec2af44cf52fe45629d)](https://www.codacy.com/manual/eiffel-gerrit-plugin-maintainers/eiffel-gerrit-plugin?utm_source=github.com&utm_medium=referral&utm_content=eiffel-community/eiffel-gerrit-plugin&utm_campaign=Badge_Coverage)
 
 # Eiffel Gerrit plugin
 
