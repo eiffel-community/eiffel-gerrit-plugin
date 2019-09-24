@@ -17,6 +17,8 @@
 
 <img src="./images/eiffel-gerrit-plugin-logo.png" alt="Eiffel Gerrit Plugin" width="350"/>
 
+[![Build Status](https://travis-ci.org/eiffel-community/eiffel-gerrit-plugin.svg?branch=master)](https://travis-ci.org/eiffel-community/eiffel-gerrit-plugin)
+
 # Eiffel Gerrit plugin
 
 The Eiffel Gerrit plugin listens on the changes in Gerrit and sends out Eiffel events.
