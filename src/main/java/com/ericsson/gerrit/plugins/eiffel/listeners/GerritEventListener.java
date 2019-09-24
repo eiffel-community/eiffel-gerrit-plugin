@@ -23,17 +23,12 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
-import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
-import com.ericsson.gerrit.plugins.eiffel.events.EiffelEventFactory;
 import com.ericsson.gerrit.plugins.eiffel.handlers.MessageQueueHandler;
 import com.google.gerrit.common.EventListener;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.PluginName;
-import com.google.gerrit.server.events.ChangeMergedEvent;
 import com.google.gerrit.server.events.Event;
-import com.google.gerrit.server.events.PatchSetCreatedEvent;
 import com.google.inject.Inject;
 
 /**
@@ -57,15 +52,6 @@ public class GerritEventListener implements EventListener {
 
     @Override
     public void onEvent(final Event gerritEvent) {
-        EiffelEvent eiffelEvent = EiffelEventFactory.create(gerritEvent);
-        if(eiffelEvent != null) {
-            try {
-                eiffelEvent.send();
-            } catch (Exception e) {
-                LOGGER.error("Failed to send Eiffel Event!", e);
-            }
-        }
-
         LOGGER.info("pluginDir: {}", pluginDir);
         LOGGER.info("pool: {}", pool);
         LOGGER.info("pluginName: {}", pluginName);
