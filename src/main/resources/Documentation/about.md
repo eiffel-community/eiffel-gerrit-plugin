@@ -33,7 +33,6 @@ eiffel-agen.remrem-password
 
 Example:
 
-    ```
     [plugin "eiffel-agen"]
       enabled = true
       filter = master
@@ -52,7 +51,6 @@ Example:
       remrem-publish-url = https://localhost:8080/publish
       remrem-username = dummyuser
       remrem-password = ********
-```
 
 Global Configuration:
 
