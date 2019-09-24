@@ -54,8 +54,6 @@ public class GerritModule extends AbstractModule {
                 .toInstance(new ProjectConfigEntry("Filter branch", ""));
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.FLOW_CONTEXT))
                 .toInstance(new ProjectConfigEntry("Flow Context", ""));
-        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_GENERATE_URL))
-                .toInstance(new ProjectConfigEntry("REMReM Generate URL", ""));
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_PUBLISH_URL))
                 .toInstance(new ProjectConfigEntry("REMReM Publish URL", ""));
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_USERNAME))

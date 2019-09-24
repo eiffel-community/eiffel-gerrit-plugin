@@ -19,11 +19,8 @@ eiffel-agen.filter
 eiffel-agen.flow-context
 :   Optional, but expects a UUID of a EiffelFlowContextDefinedEvent if provided.
 
-eiffel-agen.remrem-generate-url
-:   URL of REMReM generate service.
-
 eiffel-agen.remrem-publish-url
-:   URL of REMReM publish service.
+:   URL of REMReM publish service.(More about REMReM publish here: <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
 
 eiffel-agen.remrem-username
 :   Credentials towards REMReM to authenticate a user.
@@ -37,7 +34,6 @@ Example:
       enabled = true
       filter = master
       flow-context = <UUID of EiffelFlowContextDefinedEvent>
-      remrem-generate-url = <URL of REMReM generate service>
       remrem-publish-url = <URL of REMReM publish service>
       remrem-username = <REMReM Username to authenticate>
       remrem-password = <Password for the above user>
@@ -47,7 +43,6 @@ Example:
       enabled = true
       filter = master
       flow-context = aaaaaaaa-bbbb-5ccc-8ddd-eeeeeeeeeee0
-      remrem-generate-url = https://localhost:8080/generate
       remrem-publish-url = https://localhost:8080/publish
       remrem-username = dummyuser
       remrem-password = ********

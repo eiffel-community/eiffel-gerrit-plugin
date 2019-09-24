@@ -35,14 +35,12 @@ public class EiffelPluginConfiguration {
  // Plugin configuration parameters names
     public static final String ENABLED = "enabled";
     public static final String FILTER = "filter";
-    public static final String REMREM_GENERATE_URL = "remrem-generate-url";
     public static final String REMREM_PUBLISH_URL = "remrem-publish-url";
     public static final String REMREM_USERNAME = "remrem-username";
     public static final String REMREM_PASSWORD = "remrem-password";
     public static final String FLOW_CONTEXT = "flow-context";
     
     // Fields to keep actual configuration
-    private final String remremGenerateURL;
     private final String remremPublishURL;
     private final String remremUsername;
     private final String remremPassword;
@@ -67,7 +65,6 @@ public class EiffelPluginConfiguration {
         // Read plugin configuration
         this.enabled = pluginConfig.getBoolean(ENABLED, false);
         this.filter = pluginConfig.getString(FILTER);
-        this.remremGenerateURL = pluginConfig.getString(REMREM_GENERATE_URL);
         this.remremPublishURL = pluginConfig.getString(REMREM_PUBLISH_URL);
         this.remremUsername = pluginConfig.getString(REMREM_USERNAME);
         this.remremPassword = pluginConfig.getString(REMREM_PASSWORD);
@@ -93,13 +90,9 @@ public class EiffelPluginConfiguration {
         }
         
         // Make sure that REMReM configuration is defined, otherwise we won't be able to send messages.
-        if (this.remremGenerateURL == null) {
+        if (this.remremPublishURL == null) {
             throw new ExceptionInInitializerError(
                     String.format("Can't read %s plugin configuration for project %s: REMReM Generate URL is null", pluginName,
-                            project.toString()));
-        } else if (this.remremPublishURL == null) {
-            throw new ExceptionInInitializerError(
-                    String.format("Can't read %s plugin configuration for project %s: REMReM Publish URL is null", pluginName,
                             project.toString()));
         } else if (this.remremUsername == null) {
             throw new ExceptionInInitializerError(
@@ -111,10 +104,6 @@ public class EiffelPluginConfiguration {
                             project.toString()));
         }
         return true;
-    }
-
-    public String getRemremGenerateURL() {
-        return remremGenerateURL;
     }
 
     public String getRemremPublishURL() {
