@@ -18,6 +18,7 @@ eiffel-agen.filter
 
 eiffel-agen.flow-context
 :   Optional, but expects a UUID of a EiffelFlowContextDefinedEvent if provided.
+    Can accept List of UUID's seperated by `,` that tell which flow it will be part of. (More about Flow Context: <https://github.com/eiffel-community/eiffel/blob/master/eiffel-vocabulary/EiffelSourceChangeCreatedEvent.md#flow_context>) 
 
 eiffel-agen.remrem-publish-url
 :   URL of REMReM publish service.(More about REMReM publish here: <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
