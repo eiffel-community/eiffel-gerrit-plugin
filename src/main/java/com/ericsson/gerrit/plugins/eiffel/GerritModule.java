@@ -58,6 +58,8 @@ public class GerritModule extends AbstractModule {
                 .toInstance(new ProjectConfigEntry("REMReM Publish URL", ""));
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_USERNAME))
                 .toInstance(new ProjectConfigEntry("REMReM Username", ""));
+        
+        // Currently the Gerrit has defined set of types that can be used. The Password is String type today, but will need some changes.
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_PASSWORD))
                 .toInstance(new ProjectConfigEntry("REMReM Password", ""));
         // Register change listener that will send messages

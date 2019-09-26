@@ -72,38 +72,18 @@ public class EiffelPluginConfiguration {
         this.flowContext = pluginConfig.getString(FLOW_CONTEXT);
 
         // No point to check other config parameters if plugin is disabled
-        boolean isValidated = validatePluginConfig(pluginName, project);
-        if (!isValidated) {
-            return;
-        }
-        LOGGER.info("Loaded plugin configuration: {}", pluginConfig.toString());
-    }
-
-    /**
-     * This method validates the Eiffel Configurations.
-     * @param pluginName
-     * @param project
-     */
-    private boolean validatePluginConfig(final String pluginName, final NameKey project) {
         if (!this.enabled) {
-            return false;
+            return;
         }
         
         // Make sure that REMReM configuration is defined, otherwise we won't be able to send messages.
+        // Present we are not making the username and password mandatory, as REMReM has the capability to not use them.
         if (this.remremPublishURL == null) {
             throw new ExceptionInInitializerError(
                     String.format("Can't read %s plugin configuration for project %s: REMReM Generate URL is null", pluginName,
                             project.toString()));
-        } else if (this.remremUsername == null) {
-            throw new ExceptionInInitializerError(
-                    String.format("Can't read %s plugin configuration for project %s: REMReM Username is null", pluginName,
-                            project.toString()));
-        } else if (this.remremPassword == null) {
-            throw new ExceptionInInitializerError(
-                    String.format("Can't read %s plugin configuration for project %s: REMReM Password is null", pluginName,
-                            project.toString()));
-        }
-        return true;
+        } 
+        LOGGER.info("Loaded plugin configuration: {}", pluginConfig.toString());
     }
 
     public String getRemremPublishURL() {

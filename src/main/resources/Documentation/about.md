@@ -24,10 +24,12 @@ eiffel-agen.remrem-publish-url
 :   URL of REMReM publish service.(More about REMReM publish here: <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
 
 eiffel-agen.remrem-username
-:   Credentials towards REMReM to authenticate a user.
+:   Required, if you have this enabled in REMReM Publish configurations.(More about REMReM publish configurations here: <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
+    Credentials towards REMReM to authenticate a user.
 
 eiffel-agen.remrem-password
-:   Credentials towards REMReM to authenticate a user
+:   Required, if you have this enabled in REMReM Publish configurations.(More about REMReM publish configurations here: <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
+    Credentials towards REMReM to authenticate a user
 
 Example:
 
