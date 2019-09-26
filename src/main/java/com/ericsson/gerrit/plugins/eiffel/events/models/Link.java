@@ -19,20 +19,12 @@ package com.ericsson.gerrit.plugins.eiffel.events.models;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class GitIdentifier {
-    @SerializedName("commitId")
+public class Link {
+    @SerializedName("type")
     @Expose
-    public String commitId;
+    public String type;
 
-    @SerializedName("repoUri")
+    @SerializedName("target")
     @Expose
-    public String repoUri;
-
-    @SerializedName("branch")
-    @Expose
-    public String branch;
-
-    @SerializedName("repoName")
-    @Expose
-    public String repoName;
+    public String target;
 }
