@@ -65,22 +65,6 @@ public class EiffelPluginConfigurationTest {
     }
 
     @Test
-    public void testEiffelPluginConfigurationException4() throws NoSuchProjectException {
-        when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_USERNAME)).thenReturn(null);
-        exception.expect(ExceptionInInitializerError.class);
-
-        new EiffelPluginConfiguration(PLUGIN_NAME, nameKey, pluginConfigFactory);
-    }
-
-    @Test
-    public void testEiffelPluginConfigurationException5() throws NoSuchProjectException {
-        when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_PASSWORD)).thenReturn(null);
-        exception.expect(ExceptionInInitializerError.class);
-
-        new EiffelPluginConfiguration(PLUGIN_NAME, nameKey, pluginConfigFactory);
-    }
-
-    @Test
     public void testEiffelPluginConfigurationDisabled() throws NoSuchProjectException {
         when(pluginConfig.getBoolean(EiffelPluginConfiguration.ENABLED, false)).thenReturn(ENABLED_FALSE);
 
