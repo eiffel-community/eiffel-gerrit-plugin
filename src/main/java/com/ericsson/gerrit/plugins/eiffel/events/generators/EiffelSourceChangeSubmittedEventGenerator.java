@@ -34,12 +34,12 @@ public class EiffelSourceChangeSubmittedEventGenerator extends EiffelEventGenera
      */
     public static EiffelSourceChangeSubmittedEvent generate(ChangeMergedEvent changeMergedEvent,
             EiffelPluginConfiguration pluginConfig) {
-        final String projectName = changeMergedEvent.change.get().project;
         final String commitId = changeMergedEvent.newRev;
+        final String projectName = changeMergedEvent.change.get().project;
         final String branch = changeMergedEvent.change.get().branch;
+        final String url = changeMergedEvent.change.get().url;
         final String username = changeMergedEvent.patchSet.get().author.username;
         final String email = changeMergedEvent.patchSet.get().author.email;
-        final String url = changeMergedEvent.change.get().url;
 
         EiffelSourceChangeSubmittedEvent eiffelEvent = new EiffelSourceChangeSubmittedEvent();
         eiffelEvent.msgParams.meta.type = TYPE;

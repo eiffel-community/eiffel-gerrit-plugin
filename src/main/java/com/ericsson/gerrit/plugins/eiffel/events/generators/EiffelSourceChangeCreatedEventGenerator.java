@@ -35,11 +35,11 @@ public class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerato
     public static EiffelSourceChangeCreatedEvent generate(PatchSetCreatedEvent patchSetCreatedEvent,
             EiffelPluginConfiguration pluginConfig) {
         final String projectName = patchSetCreatedEvent.change.get().project;
-        final String commitId = patchSetCreatedEvent.patchSet.get().revision;
         final String branch = patchSetCreatedEvent.change.get().branch;
+        final String url = patchSetCreatedEvent.change.get().url;
+        final String commitId = patchSetCreatedEvent.patchSet.get().revision;
         final String username = patchSetCreatedEvent.patchSet.get().author.username;
         final String email = patchSetCreatedEvent.patchSet.get().author.email;
-        final String url = patchSetCreatedEvent.change.get().url;
 
         EiffelSourceChangeCreatedEvent eiffelEvent = new EiffelSourceChangeCreatedEvent();
         eiffelEvent.msgParams.meta.type = TYPE;
