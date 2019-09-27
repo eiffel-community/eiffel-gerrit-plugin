@@ -38,7 +38,7 @@ jobs:
     - stage: test
       name: integrationTests
       script: skip
-	- stage: report_coverage
+    - stage: report_coverage
       name: report_coverage
       # Generating test coverage report and publishing to Codacy
       script:
