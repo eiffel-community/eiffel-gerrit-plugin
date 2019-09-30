@@ -17,14 +17,17 @@
 
 package com.ericsson.gerrit.plugins.eiffel;
 
+import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.handlers.MessageQueueHandler;
 import com.ericsson.gerrit.plugins.eiffel.listeners.ChangeMergedEventListener;
 import com.google.gerrit.common.EventListener;
+import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import com.google.inject.internal.UniqueAnnotations;
+import com.google.gerrit.server.config.ProjectConfigEntry;
 
 /**
  * This class that registers the plugin in gerrit.
@@ -48,10 +51,20 @@ public class GerritModule extends AbstractModule {
         DynamicSet.bind(binder(), EventListener.class).to(ChangeMergedEventListener.class);
 
         // Example of how to register plugin configuration to the project screen
-        // bind(ProjectConfigEntry.class).annotatedWith(
-        // Exports.named(EiffelPluginConfiguration.ENABLED))
-        // .toInstance(new ProjectConfigEntry("Enable Eiffel messaging",
-        // false));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.ENABLED))
+                .toInstance(new ProjectConfigEntry("Enable Eiffel messaging", false));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.FILTER))
+                .toInstance(new ProjectConfigEntry("Filter branch", ""));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.FLOW_CONTEXT))
+                .toInstance(new ProjectConfigEntry("Flow Context", ""));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_PUBLISH_URL))
+                .toInstance(new ProjectConfigEntry("REMReM Publish URL", ""));
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_USERNAME))
+                .toInstance(new ProjectConfigEntry("REMReM Username", ""));
+
+        // Currently the Gerrit has defined set of types that can be used. The Password is String type today, but will need some changes.
+        bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_PASSWORD))
+                .toInstance(new ProjectConfigEntry("REMReM Password", ""));
 
         // Example how to define a Send test message button
         // install(new RestApiModule() {
