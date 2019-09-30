@@ -18,7 +18,7 @@
 package com.ericsson.gerrit.plugins.eiffel;
 
 import com.ericsson.gerrit.plugins.eiffel.handlers.MessageQueueHandler;
-import com.ericsson.gerrit.plugins.eiffel.listeners.GerritEventListener;
+import com.ericsson.gerrit.plugins.eiffel.listeners.ChangeMergedEventListener;
 import com.google.gerrit.common.EventListener;
 import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.registration.DynamicSet;
@@ -44,14 +44,14 @@ public class GerritModule extends AbstractModule {
         bind(LifecycleListener.class).annotatedWith(UniqueAnnotations.create())
                                      .to(MessageQueueHandler.class);
 
+        // Register change listener that will send messages
+        DynamicSet.bind(binder(), EventListener.class).to(ChangeMergedEventListener.class);
+
         // Example of how to register plugin configuration to the project screen
         // bind(ProjectConfigEntry.class).annotatedWith(
         // Exports.named(EiffelPluginConfiguration.ENABLED))
         // .toInstance(new ProjectConfigEntry("Enable Eiffel messaging",
         // false));
-
-        // Register change listener that will send messages
-        DynamicSet.bind(binder(), EventListener.class).to(GerritEventListener.class);
 
         // Example how to define a Send test message button
         // install(new RestApiModule() {
