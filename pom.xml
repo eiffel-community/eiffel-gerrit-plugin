@@ -110,16 +110,6 @@
                             </sources>
                         </configuration>
                     </execution>
-
-                    <execution>
-                        <id>add-docker-source</id>
-                        <phase>process-resources</phase>
-                        <configuration>
-                            <sources>
-                                <source>src/main/docker</source>
-                            </sources>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
 
