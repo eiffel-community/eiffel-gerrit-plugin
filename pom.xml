@@ -15,8 +15,8 @@
         <Gerrit-PluginName>Eiffel-Agen</Gerrit-PluginName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skipTests>false</skipTests>
-        <skipUTs>${skipTests}</skipUTs>
         <skipITs>${skipTests}</skipITs>
+        <skipUTs>${skipTests}</skipUTs>
         <!-- URL is input variable for Eiffel Gerrit Plugin artifact path 
             to Dockerfile -->
         <URL>${project.artifactId}-${project.version}.jar</URL>
@@ -210,7 +210,30 @@
                 <configuration>
                     <skipTests>${skipUTs}</skipTests>
                     <excludes>
-                        <exclude>**/*IT.java</exclude>
+                        <exclude>**/integrationtest/*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.22.0</version>
+                <executions>
+                    <execution>
+                        <id>integration-test</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <phase>integration-test</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skipTests>${skipTests}</skipTests>
+                    <skipITs>${skipITs}</skipITs>
+                    <excludes>
+                        <exclude>**/test/*</exclude>
                     </excludes>
                 </configuration>
             </plugin>
