@@ -18,9 +18,16 @@ before_install:
   - java -version
   - uname -a
   - chmod +x pom.xml
+  # Fetching converter for converting coverage report to Codacy format
+  - sudo apt-get install jq
+  - curl -LSs $(curl -LSs https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r '.assets | map({content_type, browser_download_url} | select(.content_type | contains("application/java-archive"))) | .[0].browser_download_url') -o codacy-coverage-reporter-assembly.jar
 
 stages:
   - test
+  - name: report_coverage
+  # We can only run the coverage report due to security restrictions see
+  # https://docs.travis-ci.com/user/pull-requests/#pull-requests-and-security-restrictions
+    if: type != pull_request
 
 jobs:
   include:
@@ -31,3 +38,9 @@ jobs:
     - stage: test
       name: integrationTests
       script: skip
+    - stage: report_coverage
+      name: report_coverage
+      # Generating test coverage report and publishing to Codacy
+      script:
+        - mvn cobertura:cobertura -B
+        - java -jar codacy-coverage-reporter-assembly.jar report -l Java -r target/site/cobertura/coverage.xml
