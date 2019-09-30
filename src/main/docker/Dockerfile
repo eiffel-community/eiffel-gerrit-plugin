@@ -19,7 +19,7 @@ USER gerrit
 RUN java -jar /var/gerrit/bin/gerrit.war init --batch -d /var/gerrit
 RUN java -jar /var/gerrit/bin/gerrit.war reindex -d /var/gerrit
 
-copy ${PLUGIN_LOCATION} /var/gerrit/plugins/eiffel-plugin.jar
+COPY ${PLUGIN_LOCATION} /var/gerrit/plugins/eiffel-plugin.jar
 
 # Allow incoming traffic
 EXPOSE 29418 8080
