@@ -31,6 +31,22 @@ import com.google.gerrit.server.project.NoSuchProjectException;
  *
  */
 public class EiffelPluginConfiguration {
+    
+ // Plugin configuration parameters names
+    public static final String ENABLED = "enabled";
+    public static final String FILTER = "filter";
+    public static final String REMREM_PUBLISH_URL = "remrem-publish-url";
+    public static final String REMREM_USERNAME = "remrem-username";
+    public static final String REMREM_PASSWORD = "remrem-password";
+    public static final String FLOW_CONTEXT = "flow-context";
+    
+    // Fields to keep actual configuration
+    private final String remremPublishURL;
+    private final String remremUsername;
+    private final String remremPassword;
+    private final String filter;
+    private final boolean enabled;
+    private final String flowContext;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EiffelPluginConfiguration.class);
 
@@ -46,7 +62,51 @@ public class EiffelPluginConfiguration {
             throw new ExceptionInInitializerError(String.format("Can't read %s plugin configuration for project %s: %s",
                     pluginName, project.toString(), e.getMessage()));
         }
+        // Read plugin configuration
+        this.enabled = pluginConfig.getBoolean(ENABLED, false);
+        this.filter = pluginConfig.getString(FILTER);
+        this.remremPublishURL = pluginConfig.getString(REMREM_PUBLISH_URL);
+        this.remremUsername = pluginConfig.getString(REMREM_USERNAME);
+        this.remremPassword = pluginConfig.getString(REMREM_PASSWORD);
+        //flow context is optional
+        this.flowContext = pluginConfig.getString(FLOW_CONTEXT);
 
+        // No point to check other config parameters if plugin is disabled
+        if (!this.enabled) {
+            return;
+        }
+        
+        // Make sure that REMReM configuration is defined, otherwise we won't be able to send messages.
+        // Present we are not making the username and password mandatory, as REMReM has the capability to not use them.
+        if (this.remremPublishURL == null) {
+            throw new ExceptionInInitializerError(
+                    String.format("Can't read %s plugin configuration for project %s: REMReM Generate URL is null", pluginName,
+                            project.toString()));
+        } 
         LOGGER.info("Loaded plugin configuration: {}", pluginConfig.toString());
+    }
+
+    public String getRemremPublishURL() {
+        return remremPublishURL;
+    }
+
+    public String getRemremUsername() {
+        return remremUsername;
+    }
+
+    public String getRemremPassword() {
+        return remremPassword;
+    }
+
+    public String getFilter() {
+        return filter;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public String getFlowContext() {
+        return flowContext;
     }
 }
