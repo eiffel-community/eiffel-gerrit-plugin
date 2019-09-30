@@ -63,7 +63,7 @@ public class EiffelEventGeneratorTest {
     private AccountAttribute accountAttribute;
 
     @Test
-    public void EiffelSourceChangeSubmittedEventGeneratorTest() {
+    public void eiffelSourceChangeSubmittedEventGeneratorTest() {
         setUpMocks();
         populateChangeMergedEvent();
 
@@ -74,7 +74,7 @@ public class EiffelEventGeneratorTest {
     }
 
     @Test
-    public void EiffelSourceChangeCreatedEventGeneratorTest() {
+    public void eiffelSourceChangeCreatedEventGeneratorTest() {
         setUpMocks();
         populatePatchSetCreatedEvent();
 
@@ -85,7 +85,7 @@ public class EiffelEventGeneratorTest {
     }
 
     @Test
-    public void EiffelEventGeneratorHostNameExceptionTest() {
+    public void eiffelEventGeneratorHostNameExceptionTest() {
         setUpHostNameExceptionMock();
 
         String hostName = EiffelEventGenerator.determineHostName();
@@ -93,7 +93,7 @@ public class EiffelEventGeneratorTest {
     }
 
     @Test
-    public void EiffelEventGeneratorRepoUriExceptionTest() {
+    public void eiffelEventGeneratorRepoUriExceptionTest() {
         setUpRepoUriExceptionMocks();
 
         String repoURI = EiffelEventGenerator.createRepoURI(URL, PROJECT);
@@ -101,7 +101,7 @@ public class EiffelEventGeneratorTest {
     }
 
     @Test
-    public void EiffelEventGeneratorSshBaseUrlExceptionTest() {
+    public void eiffelEventGeneratorSshBaseUrlExceptionTest() {
         setUpSshBaseUrlExceptionMocks();
 
         String repoURI = EiffelEventGenerator.createRepoURI(URL, PROJECT);
