@@ -68,8 +68,9 @@ public class ChangeMergedEventListener extends AbstractEventListener {
     @Override
     protected void prepareAndSendEiffelEvent(Event gerritEvent, EiffelPluginConfiguration pluginConfig) {
         ChangeMergedEvent changeMergedEvent = (ChangeMergedEvent) gerritEvent;
-        LOGGER.info(
-                "ChangeMergedEvent recieved from Gerrit, preparing to send a SourceChangeSubmitted eiffel event.");
+        LOGGER.info("ChangeMergedEvent recieved from Gerrit, "
+                + "preparing to send a SourceChangeSubmitted eiffel event.\n{}",
+                changeMergedEvent);
     }
 
 }

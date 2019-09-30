@@ -69,7 +69,8 @@ public class PatchsetCreatedEventListener extends AbstractEventListener {
             EiffelPluginConfiguration pluginConfig) {
         PatchSetCreatedEvent patchSetCreatedEvent = (PatchSetCreatedEvent) gerritEvent;
         LOGGER.info("PatchSetCreatedEvent recieved from Gerrit, "
-                + "preparing to send a SourceChangeCreated eiffel event.");
+                + "preparing to send a SourceChangeCreated eiffel event.\n{}",
+                patchSetCreatedEvent);
 
     }
 

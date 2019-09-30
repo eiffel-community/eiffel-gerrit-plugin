@@ -24,12 +24,9 @@ import org.slf4j.LoggerFactory;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.google.gerrit.common.EventListener;
 import com.google.gerrit.reviewdb.client.Project;
-import com.google.gerrit.reviewdb.client.Project.NameKey;
 import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.events.ChangeEvent;
 import com.google.gerrit.server.events.Event;
-import com.google.gerrit.server.events.PatchSetCreatedEvent;
-import com.google.gerrit.server.events.PatchSetEvent;
 import com.google.inject.Inject;
 
 public abstract class AbstractEventListener implements EventListener {
@@ -58,17 +55,15 @@ public abstract class AbstractEventListener implements EventListener {
             return false;
         }
 
-        // final String filter = pluginConfig.getFilter();
         ChangeEvent changeEvent = (ChangeEvent) gerritEvent;
         final String project = changeEvent.change.get().project;
         final String branch = changeEvent.change.get().branch;
-        final String filter = "";
+        final String filter = pluginConfig.getFilter();
         if (isFilteredOut(branch, filter, project)) {
             return false;
         }
 
         return true;
-
     }
 
     protected abstract boolean isExpectedGerritEvent(Event gerritEvent);
@@ -85,9 +80,7 @@ public abstract class AbstractEventListener implements EventListener {
     }
 
     private boolean isPluginEnabled(EiffelPluginConfiguration pluginConfig) {
-
-        if (false) {
-            // if (!pluginConfig.isEnabled()) {
+        if (!pluginConfig.isEnabled()) {
             LOGGER.debug("Eiffel plugin is disabled for this project.\n"
                     + "Please refer to Eiffel plugin documentation to find out how to configure and enable plugin\n"
                     + "{}plugins/{}/Documentation/index.html", gerritUrl, pluginName);
