@@ -7,12 +7,12 @@
     <groupId>eiffel-community</groupId>
     <artifactId>eiffel-gerrit-plugin</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
 
     <properties>
         <Gerrit-ApiType>plugin</Gerrit-ApiType>
         <Gerrit-ApiVersion>2.14.16</Gerrit-ApiVersion>
-        <Gerrit-PluginName>Eiffel-Agen</Gerrit-PluginName>
+        <Gerrit-PluginName>Eiffel-Integration</Gerrit-PluginName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skipTests>false</skipTests>
         <skipUTs>${skipTests}</skipUTs>
@@ -50,8 +50,8 @@
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.26</version>
             <scope>test</scope>
-        </dependency>
-        
+        </dependency>        
+
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
