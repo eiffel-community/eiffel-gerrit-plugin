@@ -1,6 +1,6 @@
 package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
@@ -22,6 +22,7 @@ import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguratio
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
 import com.google.common.base.Supplier;
+import com.google.gerrit.reviewdb.client.Change.Key;
 import com.google.gerrit.server.data.AccountAttribute;
 import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
@@ -41,15 +42,16 @@ public class EiffelEventGeneratorTest {
     private static final String SCC_EVENT = "EiffelSourceChangeCreatedEvent";
     private static final String SCC_VERSION = "4.0.0";
     private static final String COMMIT_ID = "00000000-0000-0000-0000-000000000000";
+    private static final String CHANGE_ID = "I13400c37d648c2eedd9eaa24c136bc6d98e9a791";
     private static final String SOURCE_NAME = "Eiffel Gerrit Plugin";
     private static final String PROJECT = "my-project";
     private static final String BRANCH = "my-branch";
     private static final String URL = "http://my-url.com";
     private static final String USERNAME = "my-user";
     private static final String EMAIL = "my@email.com";
-    private static final String UNKNOWN = "unknown";
+    private static final int SIZE_INSERTIONS = 1;
+    private static final int SIZE_DELETIONS = 1;
     private static final int DEFAULT_PORT = 29418;
-    private static final String DEFAULT_HOST = "ssh://gerritmirror:" + DEFAULT_PORT;
 
     private Gson gson = new Gson();
 
@@ -61,6 +63,7 @@ public class EiffelEventGeneratorTest {
     private ChangeAttribute changeAttribute;
     private PatchSetAttribute patchSetAttribute;
     private AccountAttribute accountAttribute;
+    private Key changeKey;
 
     @Test
     public void eiffelSourceChangeSubmittedEventGeneratorTest() {
@@ -89,7 +92,7 @@ public class EiffelEventGeneratorTest {
         setUpHostNameExceptionMock();
 
         String hostName = EiffelEventGenerator.determineHostName();
-        assertTrue(hostName.equals(UNKNOWN));
+        assertEquals("Host name should have been set to null", null, hostName);
     }
 
     @Test
@@ -97,7 +100,7 @@ public class EiffelEventGeneratorTest {
         setUpRepoUriExceptionMocks();
 
         String repoURI = EiffelEventGenerator.createRepoURI(URL, PROJECT);
-        assertTrue(repoURI.equals(UNKNOWN));
+        assertEquals("Repo URI should have been set to null", null, repoURI);
     }
 
     @Test
@@ -105,7 +108,7 @@ public class EiffelEventGeneratorTest {
         setUpSshBaseUrlExceptionMocks();
 
         String repoURI = EiffelEventGenerator.createRepoURI(URL, PROJECT);
-        assertTrue(repoURI.equals(DEFAULT_HOST));
+        assertEquals("Repo URI should have been set to null", null, repoURI);
     }
 
     @SuppressWarnings("unchecked")
@@ -118,9 +121,11 @@ public class EiffelEventGeneratorTest {
         supplierPatchSetAttribute = (Supplier<PatchSetAttribute>) mock(Supplier.class);
         patchSetAttribute = mock(PatchSetAttribute.class);
         accountAttribute = mock(AccountAttribute.class);
+        changeKey = mock(Key.class);
 
         when(supplierChangeAttribute.get()).thenReturn(changeAttribute);
         when(supplierPatchSetAttribute.get()).thenReturn(patchSetAttribute);
+        when(changeKey.toString()).thenReturn(CHANGE_ID);
     }
 
     private void setUpHostNameExceptionMock() {
@@ -150,27 +155,30 @@ public class EiffelEventGeneratorTest {
     }
 
     private void populateChangeMergedEvent() {
-        changeMergedEvent.newRev = "00000000-0000-0000-0000-000000000000";
+        changeMergedEvent.newRev = COMMIT_ID;
         changeMergedEvent.change = supplierChangeAttribute;
-        changeAttribute.project = "my-project";
-        changeAttribute.branch = "my-branch";
-        changeAttribute.url = "http://my-url.com";
+        changeAttribute.project = PROJECT;
+        changeAttribute.branch = BRANCH;
+        changeAttribute.url = URL;
         changeMergedEvent.patchSet = supplierPatchSetAttribute;
         patchSetAttribute.author = accountAttribute;
-        accountAttribute.username = "my-user";
-        accountAttribute.email = "my@email.com";
+        accountAttribute.username = USERNAME;
+        accountAttribute.email = EMAIL;
     }
 
     private void populatePatchSetCreatedEvent() {
         patchSetCreatedEvent.change = supplierChangeAttribute;
-        changeAttribute.project = "my-project";
-        changeAttribute.branch = "my-branch";
-        changeAttribute.url = "http://my-url.com";
+        patchSetCreatedEvent.changeKey = changeKey;
+        changeAttribute.project = PROJECT;
+        changeAttribute.branch = BRANCH;
+        changeAttribute.url = URL;
         patchSetCreatedEvent.patchSet = supplierPatchSetAttribute;
-        patchSetAttribute.revision = "00000000-0000-0000-0000-000000000000";
+        patchSetAttribute.revision = COMMIT_ID;
         patchSetAttribute.author = accountAttribute;
-        accountAttribute.username = "my-user";
-        accountAttribute.email = "my@email.com";
+        patchSetAttribute.sizeInsertions = SIZE_INSERTIONS;
+        patchSetAttribute.sizeDeletions = SIZE_DELETIONS;
+        accountAttribute.username = USERNAME;
+        accountAttribute.email = EMAIL;
     }
 
     private void verifyEiffelSourceChangeSubmittedEvent(
@@ -184,15 +192,16 @@ public class EiffelEventGeneratorTest {
         JsonObject submitter = data.getAsJsonObject("submitter");
         JsonObject gitIdentifier = data.getAsJsonObject("gitIdentifier");
 
-        assertTrue(meta.get("type").getAsString().equals(SCS_EVENT));
-        assertTrue(meta.get("version").getAsString().equals(SCS_VERSION));
-        assertTrue(source.get("name").getAsString().equals(SOURCE_NAME));
-        assertTrue(source.get("uri").getAsString().equals(URL));
-        assertTrue(submitter.get("name").getAsString().equals(USERNAME));
-        assertTrue(submitter.get("email").getAsString().equals(EMAIL));
-        assertTrue(gitIdentifier.get("commitId").getAsString().equals(COMMIT_ID));
-        assertTrue(gitIdentifier.get("branch").getAsString().equals(BRANCH));
-        assertTrue(gitIdentifier.get("repoName").getAsString().equals(PROJECT));
+        String errorMessage = "Eiffel event did not generate properly";
+        assertEquals(errorMessage, SCS_EVENT, meta.get("type").getAsString());
+        assertEquals(errorMessage, SCS_VERSION, meta.get("version").getAsString());
+        assertEquals(errorMessage, SOURCE_NAME, source.get("name").getAsString());
+        assertEquals(errorMessage, URL, source.get("uri").getAsString());
+        assertEquals(errorMessage, USERNAME, submitter.get("name").getAsString());
+        assertEquals(errorMessage, EMAIL, submitter.get("email").getAsString());
+        assertEquals(errorMessage, COMMIT_ID, gitIdentifier.get("commitId").getAsString());
+        assertEquals(errorMessage, BRANCH, gitIdentifier.get("branch").getAsString());
+        assertEquals(errorMessage, PROJECT, gitIdentifier.get("repoName").getAsString());
     }
 
     private void verifyEiffelSourceChangeCreatedEvent(
@@ -205,15 +214,21 @@ public class EiffelEventGeneratorTest {
         JsonObject data = eiffelEventJson.getAsJsonObject("eventParams").getAsJsonObject("data");
         JsonObject author = data.getAsJsonObject("author");
         JsonObject gitIdentifier = data.getAsJsonObject("gitIdentifier");
+        JsonObject change = data.getAsJsonObject("change");
 
-        assertTrue(meta.get("type").getAsString().equals(SCC_EVENT));
-        assertTrue(meta.get("version").getAsString().equals(SCC_VERSION));
-        assertTrue(source.get("name").getAsString().equals(SOURCE_NAME));
-        assertTrue(source.get("uri").getAsString().equals(URL));
-        assertTrue(author.get("name").getAsString().equals(USERNAME));
-        assertTrue(author.get("email").getAsString().equals(EMAIL));
-        assertTrue(gitIdentifier.get("commitId").getAsString().equals(COMMIT_ID));
-        assertTrue(gitIdentifier.get("branch").getAsString().equals(BRANCH));
-        assertTrue(gitIdentifier.get("repoName").getAsString().equals(PROJECT));
+        String errorMessage = "Eiffel event did not generate properly";
+        assertEquals(errorMessage, SCC_EVENT, meta.get("type").getAsString());
+        assertEquals(errorMessage, SCC_VERSION, meta.get("version").getAsString());
+        assertEquals(errorMessage, SOURCE_NAME, source.get("name").getAsString());
+        assertEquals(errorMessage, URL, source.get("uri").getAsString());
+        assertEquals(errorMessage, USERNAME, author.get("name").getAsString());
+        assertEquals(errorMessage, EMAIL, author.get("email").getAsString());
+        assertEquals(errorMessage, COMMIT_ID, gitIdentifier.get("commitId").getAsString());
+        assertEquals(errorMessage, BRANCH, gitIdentifier.get("branch").getAsString());
+        assertEquals(errorMessage, PROJECT, gitIdentifier.get("repoName").getAsString());
+        assertEquals(errorMessage, URL, change.get("details").getAsString());
+        assertEquals(errorMessage, CHANGE_ID, change.get("id").getAsString());
+        assertEquals(errorMessage, SIZE_INSERTIONS, change.get("insertions").getAsInt());
+        assertEquals(errorMessage, SIZE_DELETIONS, change.get("deletions").getAsInt());
     }
 }
