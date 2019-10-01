@@ -29,9 +29,15 @@ import com.google.gerrit.server.events.ChangeEvent;
 import com.google.gerrit.server.events.Event;
 import com.google.inject.Inject;
 
+/**
+ * Abstract class implemented by the Gerrit event listeners, enforces needed listener methods and
+ * contains some helper methods to determine if Eiffel event sending is activated for the project
+ * the Gerrit event was sent by.
+ *
+ */
 public abstract class AbstractEventListener implements EventListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChangeMergedEventListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEventListener.class);
 
     @Inject
     private com.google.gerrit.server.config.PluginConfigFactory pluginConfigFactory;
@@ -41,29 +47,50 @@ public abstract class AbstractEventListener implements EventListener {
     private String gerritUrl;
 
     protected final String pluginName;
-    protected final File plugindir;
+    protected final File pluginDir;
 
     public AbstractEventListener(final String pluginName, final File pluginDir) {
         this.pluginName = pluginName;
-        this.plugindir = pluginDir;
+        this.pluginDir = pluginDir;
     }
 
-    public boolean isEventSendingEnabled(final Event gerritEvent,
+    /**
+     * Based on project name from the gerrit event, creates a project specific
+     * EiffelPluginConfiguration.
+     *
+     * @param gerritEvent
+     * @return EiffelPluginConfiguration
+     */
+    public EiffelPluginConfiguration createPluginConfig(final Event gerritEvent) {
+        ChangeEvent changeEvent = (ChangeEvent) gerritEvent;
+        final Project.NameKey projectNameKey = changeEvent.getProjectNameKey();
+        final EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(pluginName,
+                projectNameKey, pluginConfigFactory);
+        pluginConfig.setPluginDir(pluginDir);
+        return pluginConfig;
+    }
+
+    /**
+     * Returns a boolean indicating if Eiffel event sending is enabled for this project and branch.
+     *
+     * @param gerritEvent
+     * @param pluginConfig
+     * @return boolean
+     */
+    public boolean isEiffelEventSendingEnabled(final Event gerritEvent,
             final EiffelPluginConfiguration pluginConfig) {
 
-        if (!isPluginEnabled(pluginConfig)) {
+        final ChangeEvent changeEvent = (ChangeEvent) gerritEvent;
+        final String project = changeEvent.change.get().project;
+        if (!isPluginEnabled(pluginConfig, project)) {
             return false;
         }
 
-        ChangeEvent changeEvent = (ChangeEvent) gerritEvent;
-        final String project = changeEvent.change.get().project;
         final String branch = changeEvent.change.get().branch;
         final String filter = pluginConfig.getFilter();
-        if (isFilteredOut(branch, filter, project)) {
-            return false;
-        }
-
-        return true;
+        boolean eiffelEventsShouldBeSent = isBranchNameInProjectFilterConfig(branch, filter,
+                project);
+        return eiffelEventsShouldBeSent;
     }
 
     protected abstract boolean isExpectedGerritEvent(Event gerritEvent);
@@ -71,39 +98,34 @@ public abstract class AbstractEventListener implements EventListener {
     protected abstract void prepareAndSendEiffelEvent(Event gerritEvent,
             EiffelPluginConfiguration pluginConfig);
 
-    protected EiffelPluginConfiguration createPluginConfig(Event gerritEvent) {
-        ChangeEvent changeEvent = (ChangeEvent) gerritEvent;
-        final Project.NameKey projectNameKey = changeEvent.getProjectNameKey();
-        final EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(pluginName,
-                projectNameKey, pluginConfigFactory);
-        return pluginConfig;
-    }
-
-    private boolean isPluginEnabled(EiffelPluginConfiguration pluginConfig) {
+    private boolean isPluginEnabled(final EiffelPluginConfiguration pluginConfig,
+            final String project) {
         if (!pluginConfig.isEnabled()) {
-            LOGGER.debug("Eiffel plugin is disabled for this project.\n"
+            LOGGER.debug("Eiffel plugin is disabled for project '{}'.\n"
                     + "Please refer to Eiffel plugin documentation to find out how to configure and enable plugin\n"
-                    + "{}plugins/{}/Documentation/index.html", gerritUrl, pluginName);
+                    + "{}plugins/{}/Documentation/index.html", project, gerritUrl, pluginName);
             return false;
         }
 
         return true;
     }
 
-    private boolean isFilteredOut(String branch, String filter, String project) {
-        boolean branchIsFilteredOut = true;
+    private boolean isBranchNameInProjectFilterConfig(final String branch, final String filter,
+            final String project) {
         if (filter == null || filter.isEmpty()) {
-            branchIsFilteredOut = false;
+            return true;
         }
 
-        for (final String regExString : filter.split("\\s+")) {
+        final String[] filterList = filter.replace(",", "").split("\\s+");
+        for (final String regExString : filterList) {
             if (branch.matches(regExString)) {
-                branchIsFilteredOut = false;
+                return true;
             }
         }
 
-        LOGGER.debug("Branch {} for project {} doesn't much any of filters '{}', skip sending",
+        LOGGER.debug(
+                "Branch '{}' does not match any configured filter for project '{}'.\nFilter: {}",
                 branch, project, filter);
-        return branchIsFilteredOut;
+        return false;
     }
 }

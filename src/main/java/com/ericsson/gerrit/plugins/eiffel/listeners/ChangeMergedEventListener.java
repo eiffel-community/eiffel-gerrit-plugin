@@ -37,13 +37,13 @@ import com.google.inject.Inject;
  */
 public class ChangeMergedEventListener extends AbstractEventListener {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChangeMergedEventListener.class);
+
     @Inject
     public ChangeMergedEventListener(@PluginName final String pluginName,
             final @PluginData File pluginDir) {
         super(pluginName, pluginDir);
     }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChangeMergedEventListener.class);
 
     @Override
     public void onEvent(final Event gerritEvent) {
@@ -52,12 +52,11 @@ public class ChangeMergedEventListener extends AbstractEventListener {
         }
 
         final EiffelPluginConfiguration pluginConfig = createPluginConfig(gerritEvent);
-        if(!isEventSendingEnabled(gerritEvent, pluginConfig)) {
+        if(!isEiffelEventSendingEnabled(gerritEvent, pluginConfig)) {
             return;
         }
 
         prepareAndSendEiffelEvent(gerritEvent, pluginConfig);
-
     }
 
     @Override

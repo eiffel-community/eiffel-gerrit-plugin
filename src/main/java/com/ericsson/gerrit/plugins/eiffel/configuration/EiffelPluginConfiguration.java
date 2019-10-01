@@ -17,6 +17,8 @@
 
 package com.ericsson.gerrit.plugins.eiffel.configuration;
 
+import java.io.File;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +33,9 @@ import com.google.gerrit.server.project.NoSuchProjectException;
  *
  */
 public class EiffelPluginConfiguration {
-    
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EiffelPluginConfiguration.class);
+
  // Plugin configuration parameters names
     public static final String ENABLED = "enabled";
     public static final String FILTER = "filter";
@@ -39,7 +43,7 @@ public class EiffelPluginConfiguration {
     public static final String REMREM_USERNAME = "remrem-username";
     public static final String REMREM_PASSWORD = "remrem-password";
     public static final String FLOW_CONTEXT = "flow-context";
-    
+
     // Fields to keep actual configuration
     private final String remremPublishURL;
     private final String remremUsername;
@@ -47,8 +51,7 @@ public class EiffelPluginConfiguration {
     private final String filter;
     private final boolean enabled;
     private final String flowContext;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(EiffelPluginConfiguration.class);
+    private File pluginDir;
 
     public EiffelPluginConfiguration(final String pluginName, final NameKey project,
                                      final PluginConfigFactory pluginConfigFactory) {
@@ -75,14 +78,14 @@ public class EiffelPluginConfiguration {
         if (!this.enabled) {
             return;
         }
-        
+
         // Make sure that REMReM configuration is defined, otherwise we won't be able to send messages.
         // Present we are not making the username and password mandatory, as REMReM has the capability to not use them.
         if (this.remremPublishURL == null) {
             throw new ExceptionInInitializerError(
                     String.format("Can't read %s plugin configuration for project %s: REMReM Generate URL is null", pluginName,
                             project.toString()));
-        } 
+        }
         LOGGER.info("Loaded plugin configuration: {}", pluginConfig.toString());
     }
 
@@ -108,5 +111,13 @@ public class EiffelPluginConfiguration {
 
     public String getFlowContext() {
         return flowContext;
+    }
+
+    public File getPluginDir(File pluginDir) {
+        return this.pluginDir;
+    }
+
+    public void setPluginDir(File pluginDir) {
+        this.pluginDir = pluginDir;
     }
 }

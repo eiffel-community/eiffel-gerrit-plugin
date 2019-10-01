@@ -58,6 +58,17 @@ public class TestAbstractEventListener {
     }
 
     @Test
+    public void testVerifyPluginEnabledForMyBranchUsingMultipleFilter() throws Throwable {
+        boolean enabled;
+        when(pluginConfig.isEnabled()).thenReturn(true);
+        when(pluginConfig.getFilter()).thenReturn("nope, nupe, my-branch, nepp, nupp");
+
+        enabled = listenerTestMock.verifyPluginEnabled(changeMergedEvent, pluginConfig);
+        assertTrue("Plugin should be enabled config filter and branch from GerritEvent match.",
+                enabled);
+    }
+
+    @Test
     public void testVerifyPluginDisableForAnotherBranch() throws Throwable {
         boolean enabled;
         when(pluginConfig.isEnabled()).thenReturn(true);
@@ -125,7 +136,7 @@ class ListenerTestMock extends AbstractEventListener {
      * @return
      */
     public boolean verifyPluginEnabled(Event gerritEvent, EiffelPluginConfiguration pluginConfig) {
-        return isEventSendingEnabled(gerritEvent, pluginConfig);
+        return isEiffelEventSendingEnabled(gerritEvent, pluginConfig);
     }
 
     /**
@@ -133,7 +144,7 @@ class ListenerTestMock extends AbstractEventListener {
      */
     @Override
     public void onEvent(Event event) {
-
+        // Not used in test
     }
 
     /**
@@ -141,6 +152,7 @@ class ListenerTestMock extends AbstractEventListener {
      */
     @Override
     protected boolean isExpectedGerritEvent(Event gerritEvent) {
+        // Not used in test
         return false;
     }
 
@@ -150,6 +162,7 @@ class ListenerTestMock extends AbstractEventListener {
     @Override
     protected void prepareAndSendEiffelEvent(Event gerritEvent,
             EiffelPluginConfiguration pluginConfig) {
+        // Not used in test
     }
 
 }

@@ -36,14 +36,14 @@ import com.google.inject.Inject;
  */
 public class PatchsetCreatedEventListener extends AbstractEventListener {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(
+            PatchsetCreatedEventListener.class);
+
     @Inject
     public PatchsetCreatedEventListener(@PluginName final String pluginName,
             final @PluginData File pluginDir) {
         super(pluginName, pluginDir);
     }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(
-            PatchsetCreatedEventListener.class);
 
     @Override
     public void onEvent(final Event gerritEvent) {
@@ -52,7 +52,7 @@ public class PatchsetCreatedEventListener extends AbstractEventListener {
         }
 
         final EiffelPluginConfiguration pluginConfig = createPluginConfig(gerritEvent);
-        if (!isEventSendingEnabled(gerritEvent, pluginConfig)) {
+        if (!isEiffelEventSendingEnabled(gerritEvent, pluginConfig)) {
             return;
         }
 
