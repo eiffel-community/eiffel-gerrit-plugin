@@ -116,7 +116,7 @@ public abstract class AbstractEventListener implements EventListener {
             return true;
         }
 
-        final String[] filterList = filter.replace(",", "").split("\\s+");
+        final String[] filterList = filter.split("\\s+");
         for (final String regExString : filterList) {
             if (branch.matches(regExString)) {
                 return true;

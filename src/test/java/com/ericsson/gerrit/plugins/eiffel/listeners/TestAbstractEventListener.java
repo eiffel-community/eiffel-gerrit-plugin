@@ -61,7 +61,18 @@ public class TestAbstractEventListener {
     public void testVerifyPluginEnabledForMyBranchUsingMultipleFilter() throws Throwable {
         boolean enabled;
         when(pluginConfig.isEnabled()).thenReturn(true);
-        when(pluginConfig.getFilter()).thenReturn("nope, nupe, my-branch, nepp, nupp");
+        when(pluginConfig.getFilter()).thenReturn("nope nupe my-branch nepp nupp");
+
+        enabled = listenerTestMock.verifyPluginEnabled(changeMergedEvent, pluginConfig);
+        assertTrue("Plugin should be enabled config filter and branch from GerritEvent match.",
+                enabled);
+    }
+
+    @Test
+    public void testVerifyPluginEnabledForMyBranchUsingMultipleFilterAndRegex() throws Throwable {
+        boolean enabled;
+        when(pluginConfig.isEnabled()).thenReturn(true);
+        when(pluginConfig.getFilter()).thenReturn("nope nupe (my-).* nepp nupp");
 
         enabled = listenerTestMock.verifyPluginEnabled(changeMergedEvent, pluginConfig);
         assertTrue("Plugin should be enabled config filter and branch from GerritEvent match.",
