@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class EiffelSourceChangeSubmittedEventEventParams {
+public class EiffelSourceChangeSubmittedEventParams {
     @SerializedName("data")
     @Expose
     public EiffelSourceChangeSubmittedEventData data = new EiffelSourceChangeSubmittedEventData();
