@@ -20,6 +20,7 @@ package com.ericsson.gerrit.plugins.eiffel;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.handlers.MessageQueueHandler;
 import com.ericsson.gerrit.plugins.eiffel.listeners.ChangeMergedEventListener;
+import com.ericsson.gerrit.plugins.eiffel.listeners.PatchsetCreatedEventListener;
 import com.google.gerrit.common.EventListener;
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.events.LifecycleListener;
@@ -49,6 +50,7 @@ public class GerritModule extends AbstractModule {
 
         // Register change listener that will send messages
         DynamicSet.bind(binder(), EventListener.class).to(ChangeMergedEventListener.class);
+        DynamicSet.bind(binder(), EventListener.class).to(PatchsetCreatedEventListener.class);
 
         // Example of how to register plugin configuration to the project screen
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.ENABLED))
