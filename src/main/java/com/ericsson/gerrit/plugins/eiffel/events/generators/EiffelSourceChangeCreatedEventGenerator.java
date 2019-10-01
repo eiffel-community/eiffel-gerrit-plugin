@@ -21,8 +21,10 @@ import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.google.gerrit.server.events.PatchSetCreatedEvent;
 
 public class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerator {
+
     private static final String TYPE = "EiffelSourceChangeCreatedEvent";
     private static final String VERSION = "4.0.0";
+    private static final String TRACKER = "Gerrit";
 
     /**
      * Extracts information from the PatchSetCreatedEvent and generates an
@@ -40,6 +42,9 @@ public class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerato
         final String commitId = patchSetCreatedEvent.patchSet.get().revision;
         final String username = patchSetCreatedEvent.patchSet.get().author.username;
         final String email = patchSetCreatedEvent.patchSet.get().author.email;
+        final int insertions = patchSetCreatedEvent.patchSet.get().sizeInsertions;
+        final int deletions = patchSetCreatedEvent.patchSet.get().sizeDeletions;
+        final String changeId = patchSetCreatedEvent.changeKey.toString();
 
         EiffelSourceChangeCreatedEvent eiffelEvent = new EiffelSourceChangeCreatedEvent();
         eiffelEvent.msgParams.meta.type = TYPE;
@@ -51,6 +56,12 @@ public class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerato
         eiffelEvent.eventParams.data.author.name = username;
         eiffelEvent.eventParams.data.author.email = email;
 
+        eiffelEvent.eventParams.data.change.id = changeId;
+        eiffelEvent.eventParams.data.change.tracker = TRACKER;
+        eiffelEvent.eventParams.data.change.details = url;
+        eiffelEvent.eventParams.data.change.deletions = deletions;
+        eiffelEvent.eventParams.data.change.insertions = insertions;
+
         eiffelEvent.eventParams.data.gitIdentifier.commitId = commitId;
         eiffelEvent.eventParams.data.gitIdentifier.repoUri = createRepoURI(url, projectName);
         eiffelEvent.eventParams.data.gitIdentifier.branch = branch;
@@ -60,6 +71,10 @@ public class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerato
         // String latestEiffelSourceChangeCreatedEventId =
         // getLatestEiffelSourceChangeCreatedEventId();
         // setPreviousVersionLink(latestEiffelSourceChangeCreatedEventId);
+
+        // String latestEiffelSourceChangeSubmittedEventId =
+        // getLatestEiffelSourceChangeSubmittedEventId();
+        // setBaseLink(latestEiffelSourceChangeSubmittedEventId);
 
         return eiffelEvent;
     }

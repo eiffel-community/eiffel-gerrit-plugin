@@ -25,33 +25,32 @@ public class EiffelEventGenerator {
     protected static final String META_SOURCE_NAME = "Eiffel Gerrit Plugin";
 
     private static final int DEFAULT_SSH_PORT = 29418;
-    private static final String DEFAULT_GERRIT_BASE_URL = "ssh://gerritmirror:" + DEFAULT_SSH_PORT;
 
     protected static String determineHostName() {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (final UnknownHostException e) {
-            return "unknown";
+            return null;
         }
     }
 
     protected static String createRepoURI(String url, String projectName) {
         try {
             URI changeUri = new URI(url);
+            String hostName = changeUri.getHost();
+            if (hostName == null || hostName.isEmpty()) {
+                return null;
+            }
             String sshBaseUrl = getSshBaseUrl(changeUri.getHost());
             return sshBaseUrl;
-        } catch (URISyntaxException e) {
-            return "unknown";
+        } catch (Exception e) {
+            return null;
         }
     }
 
-    private static String getSshBaseUrl(String host) {
+    private static String getSshBaseUrl(String host) throws URISyntaxException {
         URI uri;
-        try {
-            uri = new URI("ssh", null, host, DEFAULT_SSH_PORT, "/", null, null);
-            return uri.toString();
-        } catch (URISyntaxException e) {
-            return DEFAULT_GERRIT_BASE_URL;
-        }
+        uri = new URI("ssh", null, host, DEFAULT_SSH_PORT, "/", null, null);
+        return uri.toString();
     }
 }

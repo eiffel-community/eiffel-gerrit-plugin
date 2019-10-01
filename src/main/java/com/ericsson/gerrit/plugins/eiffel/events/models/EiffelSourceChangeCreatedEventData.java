@@ -26,6 +26,10 @@ public class EiffelSourceChangeCreatedEventData {
     @Expose
     public Author author = new Author();
 
+    @SerializedName("change")
+    @Expose
+    public Change change = new Change();
+
     @SerializedName("gitIdentifier")
     @Expose
     public GitIdentifier gitIdentifier = new GitIdentifier();

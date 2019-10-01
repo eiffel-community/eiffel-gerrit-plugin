@@ -26,7 +26,7 @@ import com.google.gson.annotations.SerializedName;
  * information from the patchset-created gerrit event.
  *
  */
-public class EiffelSourceChangeCreatedEvent {
+public class EiffelSourceChangeCreatedEvent implements EiffelEvent {
     @SerializedName("msgParams")
     @Expose
     public MsgParams msgParams = new MsgParams();;
