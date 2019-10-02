@@ -18,6 +18,7 @@ package com.ericsson.gerrit.plugins.eiffel.listeners;
 
 import java.io.File;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +48,29 @@ public abstract class AbstractEventListener implements EventListener {
     private String gerritUrl;
 
     protected final String pluginName;
-    protected final File pluginDir;
+    protected final File pluginDirectoryPath;
 
-    public AbstractEventListener(final String pluginName, final File pluginDir) {
+    public AbstractEventListener(final String pluginName, final File pluginDirectoryPath) {
         this.pluginName = pluginName;
-        this.pluginDir = pluginDir;
+        this.pluginDirectoryPath = pluginDirectoryPath;
+    }
+
+    @Override
+    public void onEvent(final Event gerritEvent) {
+        LOGGER.info("######################### 1111111111");
+        if (!isExpectedGerritEvent(gerritEvent)) {
+            return;
+        }
+        LOGGER.info("######################### 22222222222222");
+
+        final EiffelPluginConfiguration pluginConfig = createPluginConfig(gerritEvent);
+        if (!isEiffelEventSendingEnabled(gerritEvent, pluginConfig)) {
+            return;
+        }
+
+        LOGGER.info("######################### 333333333333");
+        prepareAndSendEiffelEvent(gerritEvent, pluginConfig);
+        LOGGER.info("######################### 44444444444");
     }
 
     /**
@@ -66,7 +85,7 @@ public abstract class AbstractEventListener implements EventListener {
         final Project.NameKey projectNameKey = changeEvent.getProjectNameKey();
         final EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(pluginName,
                 projectNameKey, pluginConfigFactory);
-        pluginConfig.setPluginDir(pluginDir);
+        pluginConfig.setPluginDirectoryPath(pluginDirectoryPath);
         return pluginConfig;
     }
 
@@ -77,7 +96,7 @@ public abstract class AbstractEventListener implements EventListener {
      * @param pluginConfig
      * @return boolean
      */
-    public boolean isEiffelEventSendingEnabled(final Event gerritEvent,
+    protected boolean isEiffelEventSendingEnabled(final Event gerritEvent,
             final EiffelPluginConfiguration pluginConfig) {
 
         final ChangeEvent changeEvent = (ChangeEvent) gerritEvent;
@@ -88,9 +107,12 @@ public abstract class AbstractEventListener implements EventListener {
 
         final String branch = changeEvent.change.get().branch;
         final String filter = pluginConfig.getFilter();
-        boolean eiffelEventsShouldBeSent = isBranchNameInProjectFilterConfig(branch, filter,
-                project);
-        return eiffelEventsShouldBeSent;
+        boolean isFilterSet = StringUtils.isEmpty(filter);
+        if (isFilterSet && !isBranchNameInConfiguredFilter(branch,
+                filter, project)) {
+            return false;
+        }
+        return true;
     }
 
     protected abstract boolean isExpectedGerritEvent(Event gerritEvent);
@@ -110,12 +132,8 @@ public abstract class AbstractEventListener implements EventListener {
         return true;
     }
 
-    private boolean isBranchNameInProjectFilterConfig(final String branch, final String filter,
+    private boolean isBranchNameInConfiguredFilter(final String branch, final String filter,
             final String project) {
-        if (filter == null || filter.isEmpty()) {
-            return true;
-        }
-
         final String[] filterList = filter.split("\\s+");
         for (final String regExString : filterList) {
             if (branch.matches(regExString)) {

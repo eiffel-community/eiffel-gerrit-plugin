@@ -46,20 +46,6 @@ public class ChangeMergedEventListener extends AbstractEventListener {
     }
 
     @Override
-    public void onEvent(final Event gerritEvent) {
-        if (!isExpectedGerritEvent(gerritEvent)) {
-            return;
-        }
-
-        final EiffelPluginConfiguration pluginConfig = createPluginConfig(gerritEvent);
-        if(!isEiffelEventSendingEnabled(gerritEvent, pluginConfig)) {
-            return;
-        }
-
-        prepareAndSendEiffelEvent(gerritEvent, pluginConfig);
-    }
-
-    @Override
     protected boolean isExpectedGerritEvent(Event gerritEvent) {
         return gerritEvent instanceof ChangeMergedEvent;
     }

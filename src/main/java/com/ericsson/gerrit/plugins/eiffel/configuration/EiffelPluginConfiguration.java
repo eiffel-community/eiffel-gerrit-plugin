@@ -28,15 +28,14 @@ import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.project.NoSuchProjectException;
 
 /**
- * Class to keep plugin configuration parameters names and handle plugin
- * configuration
+ * Class to keep plugin configuration parameters names and handle plugin configuration
  *
  */
 public class EiffelPluginConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EiffelPluginConfiguration.class);
 
- // Plugin configuration parameters names
+    // Plugin configuration parameters names
     public static final String ENABLED = "enabled";
     public static final String FILTER = "filter";
     public static final String REMREM_PUBLISH_URL = "remrem-publish-url";
@@ -51,10 +50,10 @@ public class EiffelPluginConfiguration {
     private final String filter;
     private final boolean enabled;
     private final String flowContext;
-    private File pluginDir;
+    private File pluginDirectoryPath;
 
     public EiffelPluginConfiguration(final String pluginName, final NameKey project,
-                                     final PluginConfigFactory pluginConfigFactory) {
+            final PluginConfigFactory pluginConfigFactory) {
 
         PluginConfig pluginConfig;
 
@@ -62,8 +61,9 @@ public class EiffelPluginConfiguration {
             pluginConfig = pluginConfigFactory.getFromProjectConfig(project, pluginName);
         } catch (NoSuchProjectException e) {
             LOGGER.error("Could not initiate, error: {} \n{}", e.getMessage(), e);
-            throw new ExceptionInInitializerError(String.format("Can't read %s plugin configuration for project %s: %s",
-                    pluginName, project.toString(), e.getMessage()));
+            throw new ExceptionInInitializerError(
+                    String.format("Can't read %s plugin configuration for project %s: %s",
+                            pluginName, project.toString(), e.getMessage()));
         }
         // Read plugin configuration
         this.enabled = pluginConfig.getBoolean(ENABLED, false);
@@ -71,7 +71,7 @@ public class EiffelPluginConfiguration {
         this.remremPublishURL = pluginConfig.getString(REMREM_PUBLISH_URL);
         this.remremUsername = pluginConfig.getString(REMREM_USERNAME);
         this.remremPassword = pluginConfig.getString(REMREM_PASSWORD);
-        //flow context is optional
+        // flow context is optional
         this.flowContext = pluginConfig.getString(FLOW_CONTEXT);
 
         // No point to check other config parameters if plugin is disabled
@@ -79,11 +79,15 @@ public class EiffelPluginConfiguration {
             return;
         }
 
-        // Make sure that REMReM configuration is defined, otherwise we won't be able to send messages.
-        // Present we are not making the username and password mandatory, as REMReM has the capability to not use them.
+        // Make sure that REMReM configuration is defined, otherwise we won't be able to send
+        // messages.
+        // Present we are not making the username and password mandatory, as REMReM has the
+        // capability to not use them.
         if (this.remremPublishURL == null) {
             throw new ExceptionInInitializerError(
-                    String.format("Can't read %s plugin configuration for project %s: REMReM Generate URL is null", pluginName,
+                    String.format(
+                            "Can't read %s plugin configuration for project %s: REMReM Generate URL is null",
+                            pluginName,
                             project.toString()));
         }
         LOGGER.info("Loaded plugin configuration: {}", pluginConfig.toString());
@@ -113,11 +117,21 @@ public class EiffelPluginConfiguration {
         return flowContext;
     }
 
-    public File getPluginDir(File pluginDir) {
-        return this.pluginDir;
+    /**
+     * The location in the system where the plugin may store plugin specific files.
+     *
+     * @return File
+     */
+    public File getPluginDirectoryPath() {
+        return this.pluginDirectoryPath;
     }
 
-    public void setPluginDir(File pluginDir) {
-        this.pluginDir = pluginDir;
+    /**
+     * Set the location in the system where the plugin may store plugin specific files.
+     *
+     * @param pluginDirectoryPath
+     */
+    public void setPluginDirectoryPath(File pluginDirectoryPath) {
+        this.pluginDirectoryPath = pluginDirectoryPath;
     }
 }

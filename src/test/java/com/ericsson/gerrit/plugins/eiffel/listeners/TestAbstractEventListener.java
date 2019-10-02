@@ -101,6 +101,37 @@ public class TestAbstractEventListener {
         assertTrue("Plugin should be enabled when config filter is empty.", enabled);
     }
 
+    @Test
+    public void testPrepareAndSendEiffelEventNotCalledWhenPluginDisabled() throws Throwable {
+        boolean methodWasCalled;
+        when(pluginConfig.isEnabled()).thenReturn(false);
+
+        methodWasCalled = listenerTestMock.isPrepareAndSendEiffelEventMethodCalled();
+        assertFalse("Plugin should be enabled when config filter is empty.", methodWasCalled);
+    }
+
+    @Test
+    public void testPrepareAndSendEiffelEventNotCalledWhenInvalidFilter() throws Throwable {
+        boolean methodWasCalled;
+        when(pluginConfig.isEnabled()).thenReturn(true);
+        when(pluginConfig.getFilter()).thenReturn("not-valid-branch");
+
+        listenerTestMock.onEvent(changeMergedEvent);
+        methodWasCalled = listenerTestMock.isPrepareAndSendEiffelEventMethodCalled();
+        assertFalse("Plugin should be enabled when config filter is empty.", methodWasCalled);
+    }
+
+    @Test
+    public void testPrepareAndSendEiffelEventCalledMultipleFilter() throws Throwable {
+        boolean methodWasCalled;
+        when(pluginConfig.isEnabled()).thenReturn(true);
+        when(pluginConfig.getFilter()).thenReturn("nope nupe (my-).* nepp nupp");
+
+        listenerTestMock.onEvent(changeMergedEvent);
+        methodWasCalled = listenerTestMock.isPrepareAndSendEiffelEventMethodCalled();
+        assertTrue("Plugin should be enabled when config filter is empty.", methodWasCalled);
+    }
+
     @SuppressWarnings("unchecked")
     private void setUpMocks() {
         pluginConfig = mock(EiffelPluginConfiguration.class);
@@ -134,8 +165,18 @@ public class TestAbstractEventListener {
  */
 class ListenerTestMock extends AbstractEventListener {
 
+    private boolean isPrepareAndSendEiffelEventMethodCalled = false;
+
     public ListenerTestMock(String pluginName, File pluginDir) {
         super(pluginName, pluginDir);
+    }
+
+    public boolean isPrepareAndSendEiffelEventMethodCalled() {
+        if(isPrepareAndSendEiffelEventMethodCalled) {
+            isPrepareAndSendEiffelEventMethodCalled = false;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -154,14 +195,6 @@ class ListenerTestMock extends AbstractEventListener {
      * This method is enforced by the AbstractEventListener and not used in test.
      */
     @Override
-    public void onEvent(Event event) {
-        // Not used in test
-    }
-
-    /**
-     * This method is enforced by the AbstractEventListener and not used in test.
-     */
-    @Override
     protected boolean isExpectedGerritEvent(Event gerritEvent) {
         // Not used in test
         return false;
@@ -173,7 +206,7 @@ class ListenerTestMock extends AbstractEventListener {
     @Override
     protected void prepareAndSendEiffelEvent(Event gerritEvent,
             EiffelPluginConfiguration pluginConfig) {
-        // Not used in test
+        isPrepareAndSendEiffelEventMethodCalled = true;
     }
 
 }
