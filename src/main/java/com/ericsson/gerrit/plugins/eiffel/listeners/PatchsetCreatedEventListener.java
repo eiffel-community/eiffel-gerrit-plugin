@@ -41,8 +41,8 @@ public class PatchsetCreatedEventListener extends AbstractEventListener {
 
     @Inject
     public PatchsetCreatedEventListener(@PluginName final String pluginName,
-            final @PluginData File pluginDir) {
-        super(pluginName, pluginDir);
+            final @PluginData File pluginDirectoryPath) {
+        super(pluginName, pluginDirectoryPath);
     }
 
     @Override

@@ -41,8 +41,8 @@ public class ChangeMergedEventListener extends AbstractEventListener {
 
     @Inject
     public ChangeMergedEventListener(@PluginName final String pluginName,
-            final @PluginData File pluginDir) {
-        super(pluginName, pluginDir);
+            final @PluginData File pluginDirectoryPath) {
+        super(pluginName, pluginDirectoryPath);
     }
 
     @Override

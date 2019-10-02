@@ -57,20 +57,16 @@ public abstract class AbstractEventListener implements EventListener {
 
     @Override
     public void onEvent(final Event gerritEvent) {
-        LOGGER.info("######################### 1111111111");
         if (!isExpectedGerritEvent(gerritEvent)) {
             return;
         }
-        LOGGER.info("######################### 22222222222222");
 
         final EiffelPluginConfiguration pluginConfig = createPluginConfig(gerritEvent);
         if (!isEiffelEventSendingEnabled(gerritEvent, pluginConfig)) {
             return;
         }
 
-        LOGGER.info("######################### 333333333333");
         prepareAndSendEiffelEvent(gerritEvent, pluginConfig);
-        LOGGER.info("######################### 44444444444");
     }
 
     /**
@@ -107,7 +103,7 @@ public abstract class AbstractEventListener implements EventListener {
 
         final String branch = changeEvent.change.get().branch;
         final String filter = pluginConfig.getFilter();
-        boolean isFilterSet = StringUtils.isEmpty(filter);
+        boolean isFilterSet = !StringUtils.isEmpty(filter);
         if (isFilterSet && !isBranchNameInConfiguredFilter(branch,
                 filter, project)) {
             return false;

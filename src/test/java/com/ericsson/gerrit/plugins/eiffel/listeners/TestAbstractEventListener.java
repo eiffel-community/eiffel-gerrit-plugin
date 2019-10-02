@@ -12,9 +12,11 @@ import org.junit.Test;
 
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.google.common.base.Supplier;
+import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.data.AccountAttribute;
 import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
+import com.google.gerrit.server.events.ChangeEvent;
 import com.google.gerrit.server.events.ChangeMergedEvent;
 import com.google.gerrit.server.events.Event;
 
@@ -111,14 +113,41 @@ public class TestAbstractEventListener {
     }
 
     @Test
+    public void testPrepareAndSendEiffelEventNotWrongEvent() throws Throwable {
+        boolean methodWasCalled;
+        listenerTestMock.setIsExpectedGerritEvent(false);
+
+        listenerTestMock.onEvent(changeMergedEvent);
+        methodWasCalled = listenerTestMock.isPrepareAndSendEiffelEventMethodCalled();
+        assertFalse("Gerrit event listener should not try to send events on wrong gerrit event.",
+                methodWasCalled);
+    }
+
+    @Test
+    public void testPrepareAndSendEiffelEventNotCalledPluginDisabled() throws Throwable {
+        boolean methodWasCalled;
+        when(pluginConfig.isEnabled()).thenReturn(false);
+        listenerTestMock.setIsExpectedGerritEvent(true);
+        listenerTestMock.setPluginConfig(pluginConfig);
+
+        listenerTestMock.onEvent(changeMergedEvent);
+        methodWasCalled = listenerTestMock.isPrepareAndSendEiffelEventMethodCalled();
+        assertFalse("Gerrit event listener should not try to send events when plugin is disabled.",
+                methodWasCalled);
+    }
+
+    @Test
     public void testPrepareAndSendEiffelEventNotCalledWhenInvalidFilter() throws Throwable {
         boolean methodWasCalled;
         when(pluginConfig.isEnabled()).thenReturn(true);
         when(pluginConfig.getFilter()).thenReturn("not-valid-branch");
+        listenerTestMock.setIsExpectedGerritEvent(false);
 
         listenerTestMock.onEvent(changeMergedEvent);
         methodWasCalled = listenerTestMock.isPrepareAndSendEiffelEventMethodCalled();
-        assertFalse("Plugin should be enabled when config filter is empty.", methodWasCalled);
+        assertFalse(
+                "Gerrit event listener should not try to send events when branch does not match filter.",
+                methodWasCalled);
     }
 
     @Test
@@ -126,10 +155,14 @@ public class TestAbstractEventListener {
         boolean methodWasCalled;
         when(pluginConfig.isEnabled()).thenReturn(true);
         when(pluginConfig.getFilter()).thenReturn("nope nupe (my-).* nepp nupp");
+        listenerTestMock.setIsExpectedGerritEvent(true);
+        listenerTestMock.setPluginConfig(pluginConfig);
 
         listenerTestMock.onEvent(changeMergedEvent);
         methodWasCalled = listenerTestMock.isPrepareAndSendEiffelEventMethodCalled();
-        assertTrue("Plugin should be enabled when config filter is empty.", methodWasCalled);
+        assertTrue(
+                "Gerrit event listener should send events when plugin is enabled and branch is set in filter.",
+                methodWasCalled);
     }
 
     @SuppressWarnings("unchecked")
@@ -166,17 +199,39 @@ public class TestAbstractEventListener {
 class ListenerTestMock extends AbstractEventListener {
 
     private boolean isPrepareAndSendEiffelEventMethodCalled = false;
+    private boolean isExpectedGerritEvent = false;
+    private EiffelPluginConfiguration pluginConfig;
 
     public ListenerTestMock(String pluginName, File pluginDir) {
         super(pluginName, pluginDir);
     }
 
+    public void setPluginConfig(EiffelPluginConfiguration pluginConfig) {
+        this.pluginConfig = pluginConfig;
+    }
+
+    public void setIsExpectedGerritEvent(boolean isExpectedGerritEvent) {
+        this.isExpectedGerritEvent = isExpectedGerritEvent;
+    }
+
     public boolean isPrepareAndSendEiffelEventMethodCalled() {
-        if(isPrepareAndSendEiffelEventMethodCalled) {
+        if (isPrepareAndSendEiffelEventMethodCalled) {
             isPrepareAndSendEiffelEventMethodCalled = false;
             return true;
         }
         return false;
+    }
+
+    /**
+     * Based on project name from the gerrit event, creates a project specific
+     * EiffelPluginConfiguration.
+     *
+     * @param gerritEvent
+     * @return EiffelPluginConfiguration
+     */
+    @Override
+    public EiffelPluginConfiguration createPluginConfig(final Event gerritEvent) {
+        return this.pluginConfig;
     }
 
     /**
@@ -196,7 +251,10 @@ class ListenerTestMock extends AbstractEventListener {
      */
     @Override
     protected boolean isExpectedGerritEvent(Event gerritEvent) {
-        // Not used in test
+        if (isExpectedGerritEvent) {
+            isExpectedGerritEvent = false;
+            return true;
+        }
         return false;
     }
 
