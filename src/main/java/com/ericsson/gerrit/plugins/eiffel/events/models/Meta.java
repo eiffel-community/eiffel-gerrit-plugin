@@ -24,10 +24,6 @@ public class Meta {
     @Expose
     public String type;
 
-    @SerializedName("version")
-    @Expose
-    public String version;
-
     @SerializedName("source")
     @Expose
     public Source source = new Source();

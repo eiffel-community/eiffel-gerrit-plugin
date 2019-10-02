@@ -24,7 +24,6 @@ import com.google.gerrit.server.events.ChangeMergedEvent;
 
 public class EiffelSourceChangeSubmittedEventGenerator extends EiffelEventGenerator {
     private static final String TYPE = "EiffelSourceChangeSubmittedEvent";
-    private static final String VERSION = "3.0.0";
 
     /**
      * Extracts information from the ChangeMergedEvent and generates an
@@ -48,7 +47,6 @@ public class EiffelSourceChangeSubmittedEventGenerator extends EiffelEventGenera
 
         EiffelSourceChangeSubmittedEvent eiffelEvent = new EiffelSourceChangeSubmittedEvent();
         eiffelEvent.msgParams.meta.type = TYPE;
-        eiffelEvent.msgParams.meta.version = VERSION;
         eiffelEvent.msgParams.meta.source.name = META_SOURCE_NAME;
         eiffelEvent.msgParams.meta.source.host = determineHostName();
         eiffelEvent.msgParams.meta.source.uri = url;

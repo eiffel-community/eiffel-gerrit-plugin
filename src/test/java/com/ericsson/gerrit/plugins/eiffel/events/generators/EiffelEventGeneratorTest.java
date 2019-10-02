@@ -38,9 +38,7 @@ public class EiffelEventGeneratorTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(EiffelEventGeneratorTest.class);
 
     private static final String SCS_EVENT = "EiffelSourceChangeSubmittedEvent";
-    private static final String SCS_VERSION = "3.0.0";
     private static final String SCC_EVENT = "EiffelSourceChangeCreatedEvent";
-    private static final String SCC_VERSION = "4.0.0";
     private static final String COMMIT_ID = "00000000-0000-0000-0000-000000000000";
     private static final String CHANGE_ID = "I13400c37d648c2eedd9eaa24c136bc6d98e9a791";
     private static final String SOURCE_NAME = "Eiffel Gerrit Plugin";
@@ -197,7 +195,6 @@ public class EiffelEventGeneratorTest {
 
         String errorMessage = "Eiffel event did not generate properly";
         assertEquals(errorMessage, SCS_EVENT, meta.get("type").getAsString());
-        assertEquals(errorMessage, SCS_VERSION, meta.get("version").getAsString());
         assertEquals(errorMessage, SOURCE_NAME, source.get("name").getAsString());
         assertEquals(errorMessage, URL, source.get("uri").getAsString());
         assertEquals(errorMessage, NAME, submitter.get("name").getAsString());
@@ -222,7 +219,6 @@ public class EiffelEventGeneratorTest {
 
         String errorMessage = "Eiffel event did not generate properly";
         assertEquals(errorMessage, SCC_EVENT, meta.get("type").getAsString());
-        assertEquals(errorMessage, SCC_VERSION, meta.get("version").getAsString());
         assertEquals(errorMessage, SOURCE_NAME, source.get("name").getAsString());
         assertEquals(errorMessage, URL, source.get("uri").getAsString());
         assertEquals(errorMessage, NAME, author.get("name").getAsString());

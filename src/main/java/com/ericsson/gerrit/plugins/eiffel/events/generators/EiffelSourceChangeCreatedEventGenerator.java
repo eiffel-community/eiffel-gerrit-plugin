@@ -25,7 +25,6 @@ import com.google.gerrit.server.events.PatchSetCreatedEvent;
 public class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerator {
 
     private static final String TYPE = "EiffelSourceChangeCreatedEvent";
-    private static final String VERSION = "4.0.0";
     private static final String TRACKER = "Gerrit";
 
     /**
@@ -53,7 +52,6 @@ public class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerato
 
         EiffelSourceChangeCreatedEvent eiffelEvent = new EiffelSourceChangeCreatedEvent();
         eiffelEvent.msgParams.meta.type = TYPE;
-        eiffelEvent.msgParams.meta.version = VERSION;
         eiffelEvent.msgParams.meta.source.name = META_SOURCE_NAME;
         eiffelEvent.msgParams.meta.source.host = determineHostName();
         eiffelEvent.msgParams.meta.source.uri = url;

@@ -32,5 +32,5 @@ public class EiffelSourceChangeSubmittedEventData {
 
     @SerializedName("customData")
     @Expose
-    public ArrayList<KeyValue> customData = new ArrayList<KeyValue>();;
+    public ArrayList<KeyValue> customData = new ArrayList<KeyValue>();
 }
