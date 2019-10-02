@@ -56,13 +56,11 @@ public class GerritModule extends AbstractModule {
     }
 
     private void bindGerritEventListeners() {
-        // Register change listener that will send messages
         DynamicSet.bind(binder(), EventListener.class).to(ChangeMergedEventListener.class);
         DynamicSet.bind(binder(), EventListener.class).to(PatchsetCreatedEventListener.class);
     }
 
     private void bindPluginConfiguration() {
-        // Example of how to register plugin configuration to the project screen
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.ENABLED))
                 .toInstance(new ProjectConfigEntry("Enable Eiffel messaging", false));
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.FILTER))
