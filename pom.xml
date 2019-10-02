@@ -15,8 +15,8 @@
         <Gerrit-PluginName>Eiffel-Integration</Gerrit-PluginName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skipTests>false</skipTests>
-        <skipUTs>${skipTests}</skipUTs>
         <skipITs>${skipTests}</skipITs>
+        <skipUTs>${skipTests}</skipUTs>
         <!-- URL is input variable for Eiffel Gerrit Plugin artifact path 
             to Dockerfile -->
         <URL>${project.artifactId}-${project.version}.jar</URL>
@@ -29,13 +29,6 @@
             <artifactId>gerrit-${Gerrit-ApiType}-api</artifactId>
             <version>${Gerrit-ApiVersion}</version>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- Dependencies for enabling logging -->
@@ -57,7 +50,8 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.27.2</version>
         </dependency>
-        
+
+        <!-- Dependencies for testing -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -99,9 +93,22 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.0.0</version>
+
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <version>1.7.4</version>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>2.0.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>2.0.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -128,13 +135,13 @@
                         </goals>
                         <configuration>
                             <sources>
+                                <source>src/test/java</source>
                                 <source>src/test/resources</source>
                                 <source>src/integrationtest/java</source>
                                 <source>src/integrationtest/resources</source>
                             </sources>
                         </configuration>
                     </execution>
-
                     <execution>
                         <id>add-docker-source</id>
                         <phase>process-resources</phase>
@@ -159,8 +166,7 @@
                             <Implementation-Vendor>Eiffel-Community</Implementation-Vendor>
                             <Implementation-URL></Implementation-URL>
 
-                            <Implementation-Title>Plugin
-                                ${Gerrit-PluginName}</Implementation-Title>
+                            <Implementation-Title>Plugin ${Gerrit-PluginName}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
 
                             <Gerrit-ApiType>${Gerrit-ApiType}</Gerrit-ApiType>
@@ -235,7 +241,30 @@
                 <configuration>
                     <skipTests>${skipUTs}</skipTests>
                     <excludes>
-                        <exclude>**/*IT.java</exclude>
+                        <exclude>**/integrationtest/*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.22.0</version>
+                <executions>
+                    <execution>
+                        <id>integration-test</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <phase>integration-test</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skipTests>${skipTests}</skipTests>
+                    <skipITs>${skipITs}</skipITs>
+                    <excludes>
+                        <exclude>**/test/*</exclude>
                     </excludes>
                 </configuration>
             </plugin>

@@ -29,7 +29,6 @@ function do_stop {
   echo "###### STOPPING DOCKER SERVICES ########"
   echo "########################################"
   docker-compose -f target/docker-compose.yml down
-  
   if [ $? -eq 1 ]; then
     echo "Failed to stop docker containers!"
     exit 1  
@@ -47,7 +46,6 @@ function do_rebuild {
   mv target/test-classes/Dockerfile target/Dockerfile
 
   docker build -f target/Dockerfile -t plugin-test target/
-  
   if [ $? -eq 1 ]; then
     echo "Failed to build docker file!"
     exit 1  
@@ -99,7 +97,6 @@ function do_test {
 
   # Installing firefox binary before integration tests
   # mvn exec:exec
-  
   mvn verify -DskipUTs -Dgerrit.url=$GERRIT_API_HOST
   STATUS=$?
 }
