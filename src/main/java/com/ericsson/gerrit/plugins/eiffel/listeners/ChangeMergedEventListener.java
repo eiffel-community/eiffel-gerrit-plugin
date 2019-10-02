@@ -57,5 +57,4 @@ public class ChangeMergedEventListener extends AbstractEventListener {
                 + "preparing to send a SourceChangeSubmitted eiffel event.\n{}",
                 changeMergedEvent);
     }
-
 }
