@@ -26,8 +26,8 @@ Build Eiffel Gerrit Plugin Docker image:
 
 ```bash
 cd (git root dir)
-export PLUGIN_LOCATION=target/$(ls target/ | grep '^eiffel-gerrit-plugin-[0-9]*.[0-9]*.[0-9]*.jar')
-docker build -t eiffel-gerrit-plugin --build-arg PLUGIN_LOCATION=./${PLUGIN_LOCATION} -f src/main/docker/Dockerfile .
+export JAR_LOCATION=target/$(ls target/ | grep '^eiffel-gerrit-plugin-[0-9]*.[0-9]*.[0-9]*.jar')
+docker build -t eiffel-gerrit-plugin --build-arg JAR_LOCATION=./${JAR_LOCATION} -f src/main/docker/Dockerfile .
 ```
 
 ## Use docker-compose to set up environment for testing

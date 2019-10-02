@@ -2,7 +2,7 @@ FROM centos:7.5.1804
 
 LABEL maintainer="Eiffel-Community"
 
-ARG PLUGIN_LOCATION
+ARG JAR_LOCATION
 
 RUN yum -y install openssh-client initscripts sudo
 
@@ -19,7 +19,7 @@ USER gerrit
 RUN java -jar /var/gerrit/bin/gerrit.war init --batch -d /var/gerrit
 RUN java -jar /var/gerrit/bin/gerrit.war reindex -d /var/gerrit
 
-COPY ${PLUGIN_LOCATION} /var/gerrit/plugins/eiffel-plugin.jar
+COPY ${JAR_LOCATION} /var/gerrit/plugins/eiffel-plugin.jar
 
 # Allow incoming traffic
 EXPOSE 29418 8080
