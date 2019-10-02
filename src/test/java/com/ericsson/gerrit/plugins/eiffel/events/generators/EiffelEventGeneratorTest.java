@@ -46,7 +46,8 @@ public class EiffelEventGeneratorTest {
     private static final String PROJECT = "my-project";
     private static final String BRANCH = "my-branch";
     private static final String URL = "http://my-url.com";
-    private static final String NULL_HOST = "no-host/";
+    private static final String NULL_HOST = "http://:8080";
+    private static final String SSH_URI = "ssh://my-url.com:29418/";
     private static final String NAME = "User Usersson";
     private static final String USERNAME = "my-user";
     private static final String EMAIL = "my@email.com";
@@ -112,11 +113,17 @@ public class EiffelEventGeneratorTest {
         assertEquals("Repo URI should have been set to null", null, repoURI);
     }
 
-    @Test
     public void testEiffelEventGeneratorNullHost() {
         String repoURI = EiffelEventGenerator.createRepoURI(NULL_HOST, PROJECT);
 
         assertNull("Repo URI should have been set to null", repoURI);
+    }
+
+    @Test
+    public void testEiffelEventGeneratorValidHost() {
+        String repoURI = EiffelEventGenerator.createRepoURI(URL, PROJECT);
+
+        assertEquals("Repo URI should match SSH URI", SSH_URI, repoURI);
     }
 
     @SuppressWarnings("unchecked")
