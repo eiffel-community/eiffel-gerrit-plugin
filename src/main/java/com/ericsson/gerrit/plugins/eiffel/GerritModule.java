@@ -44,14 +44,24 @@ public class GerritModule extends AbstractModule {
     @Override
     @CoberturaIgnore
     protected void configure() {
+        bindMessageQueueHandler();
+        bindGerritEventListeners();
+        bindPluginConfiguration();
+    }
+
+    private void bindMessageQueueHandler() {
         bind(MessageQueueHandler.class).in(Scopes.SINGLETON);
         bind(LifecycleListener.class).annotatedWith(UniqueAnnotations.create())
                                      .to(MessageQueueHandler.class);
+    }
 
+    private void bindGerritEventListeners() {
         // Register change listener that will send messages
         DynamicSet.bind(binder(), EventListener.class).to(ChangeMergedEventListener.class);
         DynamicSet.bind(binder(), EventListener.class).to(PatchsetCreatedEventListener.class);
+    }
 
+    private void bindPluginConfiguration() {
         // Example of how to register plugin configuration to the project screen
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.ENABLED))
                 .toInstance(new ProjectConfigEntry("Enable Eiffel messaging", false));
@@ -67,14 +77,5 @@ public class GerritModule extends AbstractModule {
         // Currently the Gerrit has defined set of types that can be used. The Password is String type today, but will need some changes.
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_PASSWORD))
                 .toInstance(new ProjectConfigEntry("REMReM Password", ""));
-
-        // Example how to define a Send test message button
-        // install(new RestApiModule() {
-        // @Override
-        // @CoberturaIgnore
-        // protected void configure() {
-        // post(PROJECT_KIND, "eiffel-test-message").to(EiffelTestMessageSender.class);
-        // }
-        // });
     }
 }

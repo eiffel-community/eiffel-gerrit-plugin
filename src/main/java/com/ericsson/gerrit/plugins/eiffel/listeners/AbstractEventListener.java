@@ -104,11 +104,11 @@ public abstract class AbstractEventListener implements EventListener {
         final String branch = changeEvent.change.get().branch;
         final String filter = pluginConfig.getFilter();
         boolean isFilterSet = !StringUtils.isEmpty(filter);
-        if (isFilterSet && !isBranchNameInConfiguredFilter(branch,
-                filter, project)) {
-            return false;
-        }
-        return true;
+        boolean isBranchNameInConfiguredFilter = isFilterSet
+                && isBranchNameInConfiguredFilter(branch, filter, project);
+
+        boolean isEiffelEventSendingEnabled = !isFilterSet || isBranchNameInConfiguredFilter;
+        return isEiffelEventSendingEnabled;
     }
 
     protected abstract boolean isExpectedGerritEvent(Event gerritEvent);
