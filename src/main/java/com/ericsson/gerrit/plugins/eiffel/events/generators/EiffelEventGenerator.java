@@ -25,7 +25,7 @@ import java.net.UnknownHostException;
  * Base class with common functionality for event generators.
  *
  */
-public class EiffelEventGenerator {
+class EiffelEventGenerator {
     protected static final String META_SOURCE_NAME = "Eiffel Gerrit Plugin";
 
     private static final int DEFAULT_SSH_PORT = 29418;
