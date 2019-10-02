@@ -47,6 +47,7 @@ public class EiffelEventGeneratorTest {
     private static final String PROJECT = "my-project";
     private static final String BRANCH = "my-branch";
     private static final String URL = "http://my-url.com";
+    private static final String NAME = "User Usersson";
     private static final String USERNAME = "my-user";
     private static final String EMAIL = "my@email.com";
     private static final int SIZE_INSERTIONS = 1;
@@ -66,7 +67,7 @@ public class EiffelEventGeneratorTest {
     private Key changeKey;
 
     @Test
-    public void eiffelSourceChangeSubmittedEventGeneratorTest() {
+    public void testEiffelSourceChangeSubmittedEventGenerator() {
         setUpMocks();
         populateChangeMergedEvent();
 
@@ -77,7 +78,7 @@ public class EiffelEventGeneratorTest {
     }
 
     @Test
-    public void eiffelSourceChangeCreatedEventGeneratorTest() {
+    public void testEiffelSourceChangeCreatedEventGenerator() {
         setUpMocks();
         populatePatchSetCreatedEvent();
 
@@ -88,7 +89,7 @@ public class EiffelEventGeneratorTest {
     }
 
     @Test
-    public void eiffelEventGeneratorHostNameExceptionTest() {
+    public void testEiffelEventGeneratorHostNameException() {
         setUpHostNameExceptionMock();
 
         String hostName = EiffelEventGenerator.determineHostName();
@@ -96,7 +97,7 @@ public class EiffelEventGeneratorTest {
     }
 
     @Test
-    public void eiffelEventGeneratorRepoUriExceptionTest() {
+    public void testEiffelEventGeneratorRepoUriException() {
         setUpRepoUriExceptionMocks();
 
         String repoURI = EiffelEventGenerator.createRepoURI(URL, PROJECT);
@@ -104,7 +105,7 @@ public class EiffelEventGeneratorTest {
     }
 
     @Test
-    public void eiffelEventGeneratorSshBaseUrlExceptionTest() {
+    public void testEiffelEventGeneratorSshBaseUrlException() {
         setUpSshBaseUrlExceptionMocks();
 
         String repoURI = EiffelEventGenerator.createRepoURI(URL, PROJECT);
@@ -162,6 +163,7 @@ public class EiffelEventGeneratorTest {
         changeAttribute.url = URL;
         changeMergedEvent.patchSet = supplierPatchSetAttribute;
         patchSetAttribute.author = accountAttribute;
+        accountAttribute.name = NAME;
         accountAttribute.username = USERNAME;
         accountAttribute.email = EMAIL;
     }
@@ -177,6 +179,7 @@ public class EiffelEventGeneratorTest {
         patchSetAttribute.author = accountAttribute;
         patchSetAttribute.sizeInsertions = SIZE_INSERTIONS;
         patchSetAttribute.sizeDeletions = SIZE_DELETIONS;
+        accountAttribute.name = NAME;
         accountAttribute.username = USERNAME;
         accountAttribute.email = EMAIL;
     }
@@ -197,7 +200,8 @@ public class EiffelEventGeneratorTest {
         assertEquals(errorMessage, SCS_VERSION, meta.get("version").getAsString());
         assertEquals(errorMessage, SOURCE_NAME, source.get("name").getAsString());
         assertEquals(errorMessage, URL, source.get("uri").getAsString());
-        assertEquals(errorMessage, USERNAME, submitter.get("name").getAsString());
+        assertEquals(errorMessage, NAME, submitter.get("name").getAsString());
+        assertEquals(errorMessage, USERNAME, submitter.get("id").getAsString());
         assertEquals(errorMessage, EMAIL, submitter.get("email").getAsString());
         assertEquals(errorMessage, COMMIT_ID, gitIdentifier.get("commitId").getAsString());
         assertEquals(errorMessage, BRANCH, gitIdentifier.get("branch").getAsString());
@@ -221,7 +225,8 @@ public class EiffelEventGeneratorTest {
         assertEquals(errorMessage, SCC_VERSION, meta.get("version").getAsString());
         assertEquals(errorMessage, SOURCE_NAME, source.get("name").getAsString());
         assertEquals(errorMessage, URL, source.get("uri").getAsString());
-        assertEquals(errorMessage, USERNAME, author.get("name").getAsString());
+        assertEquals(errorMessage, NAME, author.get("name").getAsString());
+        assertEquals(errorMessage, USERNAME, author.get("id").getAsString());
         assertEquals(errorMessage, EMAIL, author.get("email").getAsString());
         assertEquals(errorMessage, COMMIT_ID, gitIdentifier.get("commitId").getAsString());
         assertEquals(errorMessage, BRANCH, gitIdentifier.get("branch").getAsString());

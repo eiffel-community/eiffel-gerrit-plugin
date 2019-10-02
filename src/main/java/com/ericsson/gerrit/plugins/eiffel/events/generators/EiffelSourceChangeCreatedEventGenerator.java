@@ -18,6 +18,8 @@ package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
+import com.google.gerrit.server.data.ChangeAttribute;
+import com.google.gerrit.server.data.PatchSetAttribute;
 import com.google.gerrit.server.events.PatchSetCreatedEvent;
 
 public class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerator {
@@ -36,14 +38,17 @@ public class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerato
      */
     public static EiffelSourceChangeCreatedEvent generate(PatchSetCreatedEvent patchSetCreatedEvent,
             EiffelPluginConfiguration pluginConfig) {
-        final String projectName = patchSetCreatedEvent.change.get().project;
-        final String branch = patchSetCreatedEvent.change.get().branch;
-        final String url = patchSetCreatedEvent.change.get().url;
-        final String commitId = patchSetCreatedEvent.patchSet.get().revision;
-        final String username = patchSetCreatedEvent.patchSet.get().author.username;
-        final String email = patchSetCreatedEvent.patchSet.get().author.email;
-        final int insertions = patchSetCreatedEvent.patchSet.get().sizeInsertions;
-        final int deletions = patchSetCreatedEvent.patchSet.get().sizeDeletions;
+        final ChangeAttribute changeAttribute = patchSetCreatedEvent.change.get();
+        final PatchSetAttribute patchSetAttribute = patchSetCreatedEvent.patchSet.get();
+        final String projectName = changeAttribute.project;
+        final String branch = changeAttribute.branch;
+        final String url = changeAttribute.url;
+        final String commitId = patchSetAttribute.revision;
+        final String name = patchSetAttribute.author.name;
+        final String username = patchSetAttribute.author.username;
+        final String email = patchSetAttribute.author.email;
+        final int insertions = patchSetAttribute.sizeInsertions;
+        final int deletions = patchSetAttribute.sizeDeletions;
         final String changeId = patchSetCreatedEvent.changeKey.toString();
 
         EiffelSourceChangeCreatedEvent eiffelEvent = new EiffelSourceChangeCreatedEvent();
@@ -53,7 +58,8 @@ public class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerato
         eiffelEvent.msgParams.meta.source.host = determineHostName();
         eiffelEvent.msgParams.meta.source.uri = url;
 
-        eiffelEvent.eventParams.data.author.name = username;
+        eiffelEvent.eventParams.data.author.name = name;
+        eiffelEvent.eventParams.data.author.id = username;
         eiffelEvent.eventParams.data.author.email = email;
 
         eiffelEvent.eventParams.data.change.id = changeId;

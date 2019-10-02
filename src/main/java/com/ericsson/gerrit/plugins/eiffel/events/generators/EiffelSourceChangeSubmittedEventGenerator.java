@@ -18,6 +18,8 @@ package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
+import com.google.gerrit.server.data.ChangeAttribute;
+import com.google.gerrit.server.data.PatchSetAttribute;
 import com.google.gerrit.server.events.ChangeMergedEvent;
 
 public class EiffelSourceChangeSubmittedEventGenerator extends EiffelEventGenerator {
@@ -34,12 +36,15 @@ public class EiffelSourceChangeSubmittedEventGenerator extends EiffelEventGenera
      */
     public static EiffelSourceChangeSubmittedEvent generate(ChangeMergedEvent changeMergedEvent,
             EiffelPluginConfiguration pluginConfig) {
+        final ChangeAttribute changeAttribute = changeMergedEvent.change.get();
+        final PatchSetAttribute patchSetAttribute = changeMergedEvent.patchSet.get();
         final String commitId = changeMergedEvent.newRev;
-        final String projectName = changeMergedEvent.change.get().project;
-        final String branch = changeMergedEvent.change.get().branch;
-        final String url = changeMergedEvent.change.get().url;
-        final String username = changeMergedEvent.patchSet.get().author.username;
-        final String email = changeMergedEvent.patchSet.get().author.email;
+        final String projectName = changeAttribute.project;
+        final String branch = changeAttribute.branch;
+        final String url = changeAttribute.url;
+        final String name = patchSetAttribute.author.name;
+        final String username = patchSetAttribute.author.username;
+        final String email = patchSetAttribute.author.email;
 
         EiffelSourceChangeSubmittedEvent eiffelEvent = new EiffelSourceChangeSubmittedEvent();
         eiffelEvent.msgParams.meta.type = TYPE;
@@ -48,7 +53,8 @@ public class EiffelSourceChangeSubmittedEventGenerator extends EiffelEventGenera
         eiffelEvent.msgParams.meta.source.host = determineHostName();
         eiffelEvent.msgParams.meta.source.uri = url;
 
-        eiffelEvent.eventParams.data.submitter.name = username;
+        eiffelEvent.eventParams.data.submitter.name = name;
+        eiffelEvent.eventParams.data.submitter.id = username;
         eiffelEvent.eventParams.data.submitter.email = email;
 
         eiffelEvent.eventParams.data.gitIdentifier.commitId = commitId;
