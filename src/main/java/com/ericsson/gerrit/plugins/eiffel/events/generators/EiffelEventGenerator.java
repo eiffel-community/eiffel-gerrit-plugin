@@ -21,6 +21,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
+/**
+ * Base class with common functionality for event generators.
+ *
+ */
 public class EiffelEventGenerator {
     protected static final String META_SOURCE_NAME = "Eiffel Gerrit Plugin";
 

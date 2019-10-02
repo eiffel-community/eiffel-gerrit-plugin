@@ -22,8 +22,8 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * This Eiffel Event model represents the EiffelSourceChangeSubmittedEvent and is populated with
- * information from the change-merged gerrit event.
+ * This Eiffel event model represents the EiffelSourceChangeSubmittedEvent structure used by REMReM
+ * and is populated with information from the change-merged gerrit event.
  *
  */
 public class EiffelSourceChangeSubmittedEvent implements EiffelEvent {
