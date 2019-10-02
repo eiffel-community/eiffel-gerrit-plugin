@@ -10,14 +10,13 @@ import java.net.ConnectException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.ericsson.gerrit.plugins.eiffel.handlers.DataBaseHandler.Table;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(fullyQualifiedNames = "com.ericsson.gerrit.plugins.eiffel.*")
@@ -26,11 +25,15 @@ public class StateHandlerTest {
     private static final String FILE_ENDING = "db";
     private static final String PROJECT = "project_test";
     private static final String BRANCH = "branch_test";
+    private static final String CHANGE_ID = "changeID";
     private DataBaseHandler dbHandler;
     private StateHandler stateHandler;
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
     private File tmpFolderPath;
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
 
     @Before
@@ -49,6 +52,7 @@ public class StateHandlerTest {
         String expectedParentPath = tmpFolderPath + "/" + "parent";
 
         Mockito.when(dbHandler.getEventID(Table.SCS_TABLE, BRANCH)).thenReturn("");
+        exception.expect(RuntimeException.class);
         stateHandler.setLastSourceChangeSubmittedEiffelEvent(projectName, BRANCH, "someID");
 
         File parentDirectory = new File(expectedParentPath);
@@ -64,6 +68,7 @@ public class StateHandlerTest {
 
         Mockito.when(dbHandler.getEventID(Table.SCS_TABLE, ""))
                 .thenThrow(new ConnectException("Exception thrown by test"));
+        exception.expect(RuntimeException.class);
         stateHandler.getLastSourceChangeSubmittedEiffelEvent("", "");
 
     }
@@ -95,6 +100,8 @@ public class StateHandlerTest {
         Mockito.when(dbHandler.getEventID(Table.SCS_TABLE, PROJECT)).thenThrow(new ConnectException("Test Exception"));
 
         String eventId = "event-id";
+
+        exception.expect(RuntimeException.class);
         stateHandler.setLastSourceChangeSubmittedEiffelEvent(PROJECT, BRANCH, eventId);
 
         Mockito.verify(dbHandler, Mockito.never()).updateInto(Mockito.any(), Mockito.any(), Mockito.any());

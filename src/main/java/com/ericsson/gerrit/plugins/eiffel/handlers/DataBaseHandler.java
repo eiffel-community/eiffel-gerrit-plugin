@@ -34,7 +34,7 @@ public class DataBaseHandler {
      * @throws ConnectException
      */
     public DataBaseHandler(final String pluginDir, final String filename) throws ConnectException {
-        Path filePath = Paths.get(pluginDir, filename);
+        final Path filePath = Paths.get(pluginDir, filename);
         this.databaseFile = String.format("jdbc:sqlite:%s", filePath);
         createNewDatabase();
         createTables();
@@ -52,24 +52,6 @@ public class DataBaseHandler {
     }
 
     /**
-     * This sets up an enum for Tables including the key name used as primary key for that table
-     *
-     */
-    public enum Table {
-        SCS_TABLE("branch"), SCC_TABLE("changeId");
-
-        private final String keyName;
-
-        Table(String keyValue) {
-            this.keyName = keyValue;
-        }
-
-        public String getKeyName() {
-            return this.keyName;
-        }
-    }
-
-    /**
      * This function returns an event id if exists for a specific table depending on the keyValue
      *
      * @param table
@@ -77,7 +59,7 @@ public class DataBaseHandler {
      * @return eventId
      * @throws ConnectException
      */
-    public String getEventID(final Table table, final String keyValue) throws ConnectException {
+    public String getEventID(final Table table, final String keyValue) throws ConnectException, RuntimeException {
         String eventID = "";
 
         String sqlSelectStatement = String.format("SELECT * FROM %s WHERE %s=?", table, table.keyName);
@@ -91,12 +73,16 @@ public class DataBaseHandler {
             LOGGER.error("Error when trying to fetch values from database: {}\n{}", e.getMessage(), e);
         }
 
+        if (eventID.isEmpty()) {
+            throw new RuntimeException("Database did not return any value for this query");
+        }
+
         return eventID;
     }
 
     /**
-     * This function updates value to the given table. The keyValue value is different depending on
-     * Table (branch name for scm and change-id for scmp)
+     * This function updates value to the given table. The keyValue value is
+     * different depending on Table (branch name for scs and change-id for scc)
      *
      * @param table
      * @param keyValue
@@ -111,8 +97,8 @@ public class DataBaseHandler {
     }
 
     /**
-     * This function inserts values to the given table. The keyValue value is different depending on
-     * Table (branch name for scm and change-id for scmp)
+     * This function inserts values to the given table. The keyValue value is
+     * different depending on Table (branch name for scs and change-id for scc)
      *
      * @param table
      * @param keyValue
@@ -154,15 +140,8 @@ public class DataBaseHandler {
     private void createTables() throws ConnectException {
         try (Connection connection = connect(); Statement statement = connection.createStatement()) {
             for (Table table : Table.values()) {
-
-                // Add a check if table is ALL, then add extra fields
-                String sqlCreateStatement = String.format(
-                        "CREATE TABLE IF NOT EXISTS %s (%s text PRIMARY KEY, %s text)", table,
-                        table.keyName,
-                        EVENT_ID_KEY);
-                statement.execute(sqlCreateStatement);
+                createTable(table, statement);
             }
-
             LOGGER.debug("Created tables successfully");
         } catch (SQLException e) {
             LOGGER.error("Error while creating Tables in database: {}\n{}", e.getMessage(), e);
@@ -228,6 +207,12 @@ public class DataBaseHandler {
             LOGGER.error("Error when trying to add value into database: {}\n{}", e.getMessage(), e);
             throw e;
         }
+    }
+
+    public void createTable(Table table, Statement statement) throws ConnectException, SQLException {
+        String sqlCreateStatement = String.format("CREATE TABLE IF NOT EXISTS %s (%s text PRIMARY KEY, %s text)", table,
+                table.keyName, EVENT_ID_KEY);
+        statement.execute(sqlCreateStatement);
     }
 
 }

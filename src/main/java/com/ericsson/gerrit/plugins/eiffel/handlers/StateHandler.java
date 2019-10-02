@@ -7,8 +7,6 @@ import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ericsson.gerrit.plugins.eiffel.handlers.DataBaseHandler.Table;
-
 public class StateHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StateHandler.class);
@@ -35,26 +33,7 @@ public class StateHandler {
      * @return
      */
     public String getLastSourceChangeSubmittedEiffelEvent(String project, String branch) {
-        if (isDisabled()) {
-            return "";
-        }
-
-        File parentDir = new File(buildParentFilePath(project));
-        if(!(parentDir.exists())) {
-            return "";
-        }
-
-        try {
-            String fileName = String.format("%s.%s", project, FILE_ENDING);
-            DataBaseHandler dBHandler = new DataBaseHandler(pluginDir, fileName);
-            String eventId = dBHandler.getEventID(Table.SCS_TABLE, branch);
-            LOGGER.info("Fetched old event with id '{}', for project '{}', and branch '{}'", eventId, project, branch);
-            return eventId;
-        } catch (Exception e) {
-            LOGGER.error("Error while trying to get eiffel event id from database: {}\n{}", e.getMessage(), e);
-            return "";
-        }
-
+        return getLastCreatedEiffelEvent(project, branch, Table.SCS_TABLE);
     }
 
     /**
@@ -66,31 +45,31 @@ public class StateHandler {
      * @param eiffelEvent
      */
     public void setLastSourceChangeSubmittedEiffelEvent(String project, String branch, String eiffelEvent) {
-        if (isDisabled()) {
-            return;
-        }
+        setLastSubmittedEiffelEvent(project, branch, eiffelEvent, Table.SCS_TABLE);
 
-        DataBaseHandler dBHandler;
-        try {
-            String parentPath = buildParentFilePath(project);
-            createParentDirsIfNecessary(parentPath);
+    }
 
-            String fileName = String.format("%s.%s", project, FILE_ENDING);
-            dBHandler = new DataBaseHandler(pluginDir, fileName);
-            String oldEvent = dBHandler.getEventID(Table.SCS_TABLE, branch);
-            if (!oldEvent.isEmpty()) {
-                dBHandler.updateInto(Table.SCS_TABLE, branch, eiffelEvent);
-                LOGGER.info("Replaced old event id '{}' with new event if '{}', for project '{}', and branch '{}'.",
-                        oldEvent, eiffelEvent, project, branch);
-            } else {
-                dBHandler.insertInto(Table.SCS_TABLE, branch, eiffelEvent);
-                LOGGER.info("Saved eiffel event with id '{}', for project '{}', and branch '{}'.", eiffelEvent, project,
-                        branch);
-            }
-        } catch (Exception e) {
-            LOGGER.error("Error while trying to insert eiffel event id into database: {}\n{}", e.getMessage(), e);
-        }
+    /**
+     * This function sets an SCC eiffel event id for a specific project and branch.
+     *
+     * @param project
+     * @param changeId
+     * @param eiffelEvent
+     */
+    public void setLastSourceChangeCreatedEiffelEvent(String project, String changeId, String eiffelEvent) {
+        setLastSubmittedEiffelEvent(project, changeId, eiffelEvent, Table.SCC_TABLE);
+    }
 
+    /**
+     * This function returns the last set SCC eiffel event id stored based on the
+     * changeId and specific project.
+     *
+     * @param project
+     * @param changeId
+     * @return
+     */
+    public String getLastSourceChangeCreatedEiffelEvent(String project, String changeId) {
+        return getLastCreatedEiffelEvent(project, changeId, Table.SCC_TABLE);
     }
 
     /**
@@ -100,20 +79,14 @@ public class StateHandler {
      * @return
      */
     private String buildParentFilePath(String project) {
-        int lastIndexOfSlash = project.lastIndexOf("/");
-
-        String relativeParentPath = "";
-        boolean projectContainsParent = lastIndexOfSlash != -1;
-        if (projectContainsParent) {
-            relativeParentPath = project.substring(0, lastIndexOfSlash);
-        }
-
+        String relativeParentPath = generateRelativeParentPath(project);
         Path absolutePath = Paths.get(pluginDir.getAbsolutePath(), relativeParentPath);
         return absolutePath.toString();
     }
 
     /**
-     * Creates parent directories of a project if they don't exist and is included in the projectname.
+     * Creates parent directories of a project if they don't exist and is included
+     * in the project name.
      *
      * @param path
      */
@@ -123,7 +96,6 @@ public class StateHandler {
             directory.mkdirs();
         }
     }
-
 
     /**
      * returns true or false depending if the StateHandler is disabled or not.
@@ -138,50 +110,7 @@ public class StateHandler {
         return false;
     }
 
-    /**
-     * This function sets an SCC eiffel event id for a specific project and branch.
-     *
-     * @param project
-     * @param changeId
-     * @param eiffelEvent
-     */
-    public void setLastSourceChangeCreatedEiffelEvent(String project, String changeId, String eiffelEvent) {
-        if (isDisabled()) {
-            return;
-        }
-
-        DataBaseHandler dBHandler;
-        try {
-            String parentPath = buildParentFilePath(project);
-            createParentDirsIfNecessary(parentPath);
-
-            String fileName = String.format("%s.%s", project, FILE_ENDING);
-            dBHandler = new DataBaseHandler(pluginDir, fileName);
-            String oldEvent = dBHandler.getEventID(Table.SCC_TABLE, changeId);
-            if (!oldEvent.isEmpty()) {
-                dBHandler.updateInto(Table.SCC_TABLE, changeId, eiffelEvent);
-                LOGGER.info("Replaced old event id '{}' with new event if '{}', for project '{}', and branch '{}'.",
-                        oldEvent, eiffelEvent, project, changeId);
-            } else {
-                dBHandler.insertInto(Table.SCC_TABLE, changeId, eiffelEvent);
-                LOGGER.info("Saved eiffel event with id '{}', for project '{}', and branch '{}'.", eiffelEvent, project,
-                        changeId);
-            }
-        } catch (Exception e) {
-            LOGGER.error("Error while trying to insert eiffel event id into database: {}\n{}", e.getMessage(), e);
-        }
-
-    }
-
-    /**
-     * This function returns the last set SCC eiffel event id stored based on the
-     * changeId and specific project.
-     *
-     * @param project
-     * @param changeId
-     * @return
-     */
-    public String getLastSourceChangeCreatedEiffelEvent(String project, String changeId) {
+    public String getLastCreatedEiffelEvent(String project, String tableColumnName, Table tableName) {
         if (isDisabled()) {
             return "";
         }
@@ -194,14 +123,57 @@ public class StateHandler {
         try {
             String fileName = String.format("%s.%s", project, FILE_ENDING);
             DataBaseHandler dBHandler = new DataBaseHandler(pluginDir, fileName);
-            String eventId = dBHandler.getEventID(Table.SCC_TABLE, changeId);
+            String eventId = dBHandler.getEventID(tableName, tableColumnName);
             LOGGER.info("Fetched old event with id '{}', for project '{}', and branch '{}'", eventId, project,
-                    changeId);
+                    tableColumnName);
             return eventId;
         } catch (Exception e) {
             LOGGER.error("Error while trying to get eiffel event id from database: {}\n{}", e.getMessage(), e);
-            return "";
+            // return "";
+            throw new RuntimeException("Database did not return any value for this query");
         }
 
     }
+
+    public void setLastSubmittedEiffelEvent(String project, String tableColumnName, String eiffelEvent,
+            Table tableName) {
+        if (isDisabled()) {
+            return;
+        }
+
+        DataBaseHandler dBHandler;
+        try {
+            String parentPath = buildParentFilePath(project);
+            createParentDirsIfNecessary(parentPath);
+
+            String fileName = String.format("%s.%s", project, FILE_ENDING);
+            dBHandler = new DataBaseHandler(pluginDir, fileName);
+            String oldEvent = dBHandler.getEventID(tableName, tableColumnName);
+            if (!oldEvent.isEmpty()) {
+                dBHandler.updateInto(Table.SCS_TABLE, tableColumnName, eiffelEvent);
+                LOGGER.info("Replaced old event id '{}' with new event if '{}', for project '{}', and branch '{}'.",
+                        oldEvent, eiffelEvent, project, tableColumnName);
+            } else {
+                dBHandler.insertInto(tableName, tableColumnName, eiffelEvent);
+                LOGGER.info("Saved eiffel event with id '{}', for project '{}', and branch '{}'.", eiffelEvent, project,
+                        tableColumnName);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error while trying to insert eiffel event id into database: {}\n{}", e.getMessage(), e);
+            throw new RuntimeException("Database did not return any value for this query");
+        }
+
+    }
+
+    private String generateRelativeParentPath(String project) {
+        int lastIndexOfSlash = project.lastIndexOf("/");
+
+        String relativeParentPath = "";
+        boolean projectContainsParent = lastIndexOfSlash != -1;
+        if (projectContainsParent) {
+            relativeParentPath = project.substring(0, lastIndexOfSlash);
+            }
+        return relativeParentPath;
+    }
+
 }
