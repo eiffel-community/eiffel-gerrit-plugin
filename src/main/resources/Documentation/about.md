@@ -1,4 +1,4 @@
-Eiffel Gerrit plugin is may be used to send Eiffel events when changes occurs in in a project in Gerrit.
+Eiffel Gerrit plugin is used to send Eiffel events when changes occur in a project in Gerrit.
 This plugin simplifies communication in continuous integration and delivery pipelines and helps keeping
 source code management traceability.
 
@@ -17,18 +17,18 @@ Parameters
 Project Configuration:
 
 eiffel-integration.enabled
-:   If set to `true` the plugin will send eiffel events.
-    Is set to `false` or is not defined no eiffel events will be sent.
+:   If set to `true` the plugin will send Eiffel events.
+    Is set to `false` or not defined no Eiffel events will be sent.
 
 eiffel-integration.filter
-:   Allow users to defined a white list of branches, i.e. messages will be sent only for source change on
+:   Allow users to define a white list of branches, i.e. messages will be sent only for source change on
     specified branches. Source Change to any other branch will be ignored. Accepts full branch name and or
     regex separated by spaces. If not defined, messages will be sent for source changes in all branches.
-    See Example configuration where release branch may be triggered on release-(Any version).
+    See example configuration where release branch may be triggered on release-(Any version).
 
 eiffel-integration.flow-context
 :   Optional, but expects a UUID of a EiffelFlowContextDefinedEvent if provided.
-    Can accept List of UUID's seperated by `,` that tell which flow it will be part of. (More about Flow Context:
+    Can accept List of UUID's separated by `,` that tells which flow it will be part of. (More about Flow Context:
     <https://github.com/eiffel-community/eiffel/blob/master/eiffel-vocabulary/EiffelSourceChangeCreatedEvent.md#flow_context>)
 
 eiffel-integration.remrem-publish-url
@@ -78,7 +78,7 @@ Configuration
 -------------
 
 Plugin configuration stored as part of the project configuration and can be edited/configured in two ways - by editing
- project.conf file:
+project.conf file:
 
     cd <your repository>
     git fetch origin refs/meta/config:refs/remotes/origin/meta/config
@@ -87,7 +87,7 @@ Plugin configuration stored as part of the project configuration and can be edit
     git commit -a
     git push origin meta/config:meta/config
 
-or by editing project configuration using web ui, (This option is available only in Gerrit 2.9 and onwards).
+or by editing project configuration using web ui.
 
 Plugin configuration as part of the global configuration can be edited through the gerrit.config file.
 
