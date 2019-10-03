@@ -2,8 +2,8 @@ Eiffel Gerrit plugin is used to send Eiffel events when changes occur in a proje
 This plugin simplifies communication in continuous integration and delivery pipelines and helps keeping
 source code management traceability.
 
-For more Eiffel information follow this link:
-<https://github.com/eiffel-community/eiffel-gerrit-plugin>
+For more information about Eiffel, follow this link:
+<https://github.com/eiffel-community/eiffel>
 
 #####Eiffel Events:
 
