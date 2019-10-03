@@ -19,7 +19,8 @@ package com.ericsson.gerrit.plugins.eiffel;
 
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.handlers.MessageQueueHandler;
-import com.ericsson.gerrit.plugins.eiffel.listeners.GerritEventListener;
+import com.ericsson.gerrit.plugins.eiffel.listeners.ChangeMergedEventListener;
+import com.ericsson.gerrit.plugins.eiffel.listeners.PatchsetCreatedEventListener;
 import com.google.gerrit.common.EventListener;
 import com.google.gerrit.extensions.annotations.Exports;
 import com.google.gerrit.extensions.events.LifecycleListener;
@@ -43,11 +44,23 @@ public class GerritModule extends AbstractModule {
     @Override
     @CoberturaIgnore
     protected void configure() {
+        bindMessageQueueHandler();
+        bindGerritEventListeners();
+        bindPluginConfiguration();
+    }
+
+    private void bindMessageQueueHandler() {
         bind(MessageQueueHandler.class).in(Scopes.SINGLETON);
         bind(LifecycleListener.class).annotatedWith(UniqueAnnotations.create())
                                      .to(MessageQueueHandler.class);
+    }
 
-        // Example of how to register plugin configuration to the project screen
+    private void bindGerritEventListeners() {
+        DynamicSet.bind(binder(), EventListener.class).to(ChangeMergedEventListener.class);
+        DynamicSet.bind(binder(), EventListener.class).to(PatchsetCreatedEventListener.class);
+    }
+
+    private void bindPluginConfiguration() {
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.ENABLED))
                 .toInstance(new ProjectConfigEntry("Enable Eiffel messaging", false));
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.FILTER))
@@ -62,16 +75,5 @@ public class GerritModule extends AbstractModule {
         // Currently the Gerrit has defined set of types that can be used. The Password is String type today, but will need some changes.
         bind(ProjectConfigEntry.class).annotatedWith(Exports.named(EiffelPluginConfiguration.REMREM_PASSWORD))
                 .toInstance(new ProjectConfigEntry("REMReM Password", ""));
-        // Register change listener that will send messages
-        DynamicSet.bind(binder(), EventListener.class).to(GerritEventListener.class);
-
-        // Example how to define a Send test message button
-        // install(new RestApiModule() {
-        // @Override
-        // @CoberturaIgnore
-        // protected void configure() {
-        // post(PROJECT_KIND, "eiffel-test-message").to(EiffelTestMessageSender.class);
-        // }
-        // });
     }
 }

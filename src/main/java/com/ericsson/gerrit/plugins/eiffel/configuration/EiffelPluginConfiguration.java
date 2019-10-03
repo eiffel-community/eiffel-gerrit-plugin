@@ -17,6 +17,8 @@
 
 package com.ericsson.gerrit.plugins.eiffel.configuration;
 
+import java.io.File;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,11 +28,12 @@ import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.project.NoSuchProjectException;
 
 /**
- * Class to keep plugin configuration parameters names and handle plugin
- * configuration
+ * Class to keep plugin configuration parameters names and handle plugin configuration
  *
  */
 public class EiffelPluginConfiguration {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EiffelPluginConfiguration.class);
 
     // Plugin configuration parameters names
     public static final String ENABLED = "enabled";
@@ -47,8 +50,7 @@ public class EiffelPluginConfiguration {
     private final String filter;
     private final boolean enabled;
     private final String flowContext;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(EiffelPluginConfiguration.class);
+    private File pluginDirectoryPath;
 
     public EiffelPluginConfiguration(final String pluginName, final NameKey project,
             final PluginConfigFactory pluginConfigFactory) {
@@ -59,8 +61,9 @@ public class EiffelPluginConfiguration {
             pluginConfig = pluginConfigFactory.getFromProjectConfig(project, pluginName);
         } catch (NoSuchProjectException e) {
             LOGGER.error("Could not initiate, error: {} \n{}", e.getMessage(), e);
-            throw new ExceptionInInitializerError(String.format("Can't read %s plugin configuration for project %s: %s",
-                    pluginName, project.toString(), e.getMessage()));
+            throw new ExceptionInInitializerError(
+                    String.format("Can't read %s plugin configuration for project %s: %s",
+                            pluginName, project.toString(), e.getMessage()));
         }
         // Read plugin configuration
         this.enabled = pluginConfig.getBoolean(ENABLED, false);
@@ -76,14 +79,16 @@ public class EiffelPluginConfiguration {
             return;
         }
 
-        // Make sure that REMReM configuration is defined, otherwise we won't be able to
-        // send messages.
-        // Present we are not making the username and password mandatory, as REMReM has
-        // the capability to not use them.
+        // Make sure that REMReM configuration is defined, otherwise we won't be able to send
+        // messages.
+        // Present we are not making the username and password mandatory, as REMReM has the
+        // capability to not use them.
         if (this.remremPublishURL == null) {
             throw new ExceptionInInitializerError(
-                    String.format("Can't read %s plugin configuration for project %s: REMReM Generate URL is null",
-                            pluginName, project.toString()));
+                    String.format(
+                            "Can't read %s plugin configuration for project %s: REMReM Generate URL is null",
+                            pluginName,
+                            project.toString()));
         }
         LOGGER.info("Loaded plugin configuration: {}", pluginConfig.toString());
     }
@@ -110,5 +115,23 @@ public class EiffelPluginConfiguration {
 
     public String getFlowContext() {
         return flowContext;
+    }
+
+    /**
+     * The location in the system where the plugin may store plugin specific files.
+     *
+     * @return File
+     */
+    public File getPluginDirectoryPath() {
+        return this.pluginDirectoryPath;
+    }
+
+    /**
+     * Set the location in the system where the plugin may store plugin specific files.
+     *
+     * @param pluginDirectoryPath
+     */
+    public void setPluginDirectoryPath(File pluginDirectoryPath) {
+        this.pluginDirectoryPath = pluginDirectoryPath;
     }
 }
