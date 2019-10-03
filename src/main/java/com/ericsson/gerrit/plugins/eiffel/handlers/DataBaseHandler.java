@@ -52,14 +52,16 @@ public class DataBaseHandler {
     }
 
     /**
-     * This function returns an event id if exists for a specific table depending on the keyValue
+     * This function returns an event id if exists for a specific table depending on
+     * the keyValue
      *
      * @param table
      * @param keyValue
      * @return eventId
      * @throws ConnectException
+     * @throws SomeRuntimeException
      */
-    public String getEventID(final Table table, final String keyValue) throws ConnectException, RuntimeException {
+    public String getEventID(final Table table, final String keyValue) throws ConnectException, SomeRuntimeException {
         String eventID = "";
 
         String sqlSelectStatement = String.format("SELECT * FROM %s WHERE %s=?", table, table.keyName);
@@ -74,7 +76,7 @@ public class DataBaseHandler {
         }
 
         if (eventID.isEmpty()) {
-            throw new RuntimeException("Database did not return any value for this query");
+            throw new SomeRuntimeException("Database did not return any value for this query");
         }
 
         return eventID;

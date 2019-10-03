@@ -114,7 +114,7 @@ public class DataBaseHandlerTest {
      *
      * @throws Exception
      */
-    @Test(expected = RuntimeException.class)
+    @Test(expected = SomeRuntimeException.class)
     public void testGetNoneExistingEventIdReturnsNull() throws Exception {
         dbHandler.getEventID(Table.SCS_TABLE, branch);
     }
@@ -147,7 +147,7 @@ public class DataBaseHandlerTest {
         Statement statement = mock(Statement.class);
         ResultSet result = mock(ResultSet.class);
 
-        if (!result.isBeforeFirst()) {
+        if (!result.next()) {
             throw new SomeRuntimeException("Mocking ResultSet class was unsuccessful...!");
         }
 

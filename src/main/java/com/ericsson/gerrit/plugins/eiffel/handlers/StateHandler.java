@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 public class StateHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StateHandler.class);
-    private static final String DISABLED_RESPONSE = "No plugin dir given. Saving last event id is disabled for tests.";
     private static final String FILE_ENDING = "db";
     private final File pluginDir;
 
