@@ -22,10 +22,14 @@ import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
 import com.google.gerrit.server.events.PatchSetCreatedEvent;
 
-class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerator {
+public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGenerator {
 
     private static final String TYPE = "EiffelSourceChangeCreatedEvent";
     private static final String TRACKER = "Gerrit";
+
+    static {
+        new EiffelSourceChangeCreatedEventGenerator();
+    }
 
     /**
      * Extracts information from the PatchSetCreatedEvent and generates an

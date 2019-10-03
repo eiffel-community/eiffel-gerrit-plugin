@@ -27,7 +27,6 @@ import java.net.UnknownHostException;
  */
 public class EiffelEventGenerator {
     protected static final String META_SOURCE_NAME = "Eiffel Gerrit Plugin";
-
     private static final int DEFAULT_SSH_PORT = 29418;
 
     protected static String determineHostName() {
@@ -45,7 +44,6 @@ public class EiffelEventGenerator {
             if (hostName == null) {
                 return null;
             }
-
             String sshBaseUrl = getSshBaseUrl(changeUri.getHost());
             return sshBaseUrl;
         } catch (Exception e) {
