@@ -42,11 +42,13 @@ public class EiffelEventGenerator {
         try {
             URI changeUri = new URI(url);
             String hostName = changeUri.getHost();
-            assert hostName != null;
+            if (hostName == null) {
+                return null;
+            }
 
             String sshBaseUrl = getSshBaseUrl(changeUri.getHost());
             return sshBaseUrl;
-        } catch (Exception | AssertionError e) {
+        } catch (Exception e) {
             return null;
         }
     }
