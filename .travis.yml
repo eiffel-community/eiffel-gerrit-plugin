@@ -18,9 +18,6 @@ before_install:
   - java -version
   - uname -a
   - chmod +x pom.xml
-  # Fetching converter for converting coverage report to Codacy format
-  - sudo apt-get install jq
-  - curl -LSs $(curl -LSs https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r '.assets | map({content_type, browser_download_url} | select(.content_type | contains("application/java-archive"))) | .[0].browser_download_url') -o codacy-coverage-reporter-assembly.jar
 
 stages:
   - test
@@ -42,5 +39,9 @@ jobs:
       name: report_coverage
       # Generating test coverage report and publishing to Codacy
       script:
+      # Fetching converter for converting coverage report to Codacy format
+        - sudo apt-get install jq
+        - curl -LSs $(curl -LSs https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r '.assets | map({content_type, browser_download_url} | select(.content_type | contains("application/java-archive"))) | .[0].browser_download_url') -o codacy-coverage-reporter-assembly.jar
         - mvn cobertura:cobertura -B
         - java -jar codacy-coverage-reporter-assembly.jar report -l Java -r target/site/cobertura/coverage.xml
+
