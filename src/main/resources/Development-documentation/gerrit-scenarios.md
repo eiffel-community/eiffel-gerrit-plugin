@@ -13,7 +13,21 @@ implementation and update of the plugin
 
 <!-- /TOC -->
 
+Glossary:
+
+- **SCS** SourceChangeSubmitted
+- **SCC** SourceChangeCreated
+- **E?** Events
+- **C?** Commits
+- **P?** Push commands
+
 ## Create patch set - CASE1
+
+Scenario overview:
+
+This scenario describes a standard review cycle where a user uploads a patch
+set, receives some comments, corrects the comments and submits the changes. The
+plugin can find the SCS event from the previous successful review.
 
 Preconditions:
 
@@ -27,13 +41,13 @@ The user does the following:
 - Squashes the commits to one commits (`C1`)
 - Pushes to `refs/for/[branch name]` (`P1`)
 - Receives comments from reviewer
-- Updates code
+- Updates the code
 - Does `commit --amend` (`C2`)
 - Pushes to `refs/for/[branch name]` (`P2`)
 - Gets ok from the reviewer
 - Hits the submit button in Gerrit
 
-Events sent:
+Eiffel events sent from the plugin:
 
 - SCC(`E1`) sent for `P1` push with `BASE` link set to `E0`
 - SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set `E1` and `BASE` link set to `E0`
@@ -64,6 +78,12 @@ SCC Event table:
 
 ## Create patch set with rebase - CASE2
 
+Scenario overview:
+
+This scenario describes a workflow where a user performs a standard review
+cycle. Before the review finishes another review finishes and submits to
+master(`C01`). The project settings does not allow merge commits.
+
 Preconditions:
 
 - Previous review submitted to the master with hash `C0`
@@ -76,7 +96,7 @@ The user does the following:
 - Squashes the commits to one commits (`C1`)
 - Pushes to `refs/for/[branch name]` (`P1`)
 - Receives comments from reviewer
-- Updates code
+- Updates the code
 - Does `commit --amend` (`C2`)
 - Pushes to `refs/for/[branch name]` (`P2`)
 - Gets ok from the reviewer
@@ -84,7 +104,7 @@ The user does the following:
 - Pushes to `refs/for/[branch name]`  (`P3`)
 - Hits the submit button in Gerrit
 
-Events sent:
+Eiffel events sent from the plugin:
 
 - SCC(`E1`) sent for `P1` push with `BASE` link set to `E0`
 - SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set `E1` and `BASE` link set to `E0`
@@ -119,6 +139,12 @@ SCC Event table:
 
 ## Create patch set with merge - CASE3
 
+Scenario overview:
+
+This scenario describes a workflow where a user performs a standard review
+cycle. Before the review finishes another review finishes and submits to
+master(`C01`). The project settings does not allow rebase.
+
 Preconditions:
 
 - Previous review submitted to the master with hash `C0`
@@ -131,7 +157,7 @@ The user does the following:
 - Squashes the commits to one commits (`C1`)
 - Pushes to `refs/for/[branch name]` (`P1`)
 - Receives comments from reviewer
-- Updates code
+- Updates the code
 - Does `commit --amend` (`C2`)
 - Pushes to `refs/for/[branch name]` (`P2`)
 - Gets ok from the reviewer
@@ -139,7 +165,7 @@ The user does the following:
 - Pushes to `refs/for/[branch name]`  (`P3`)
 - Hits the submit button in Gerrit
 
-Events sent:
+Eiffel events sent from the plugin:
 
 - SCC(`E1`) sent for `P1` push with `BASE` link set to `E0`
 - SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set `E1` and `BASE` link set to `E0`
@@ -177,6 +203,15 @@ SCC Event table:
 
 ## Create patch set with no previous events - CASE4
 
+Scenario overview:
+
+This scenario describes a standard review cycle. The plugin cannot find the SCS
+event from a previous review.
+
+This scenario represents the situations:
+- Plugin enabled for the first time
+- An error occurred during the sending of the event
+
 Preconditions:
 
 - Previous review submitted to the master with hash `C0`
@@ -189,13 +224,13 @@ The user does the following:
 - Squashes the commits to one commits (`C1`)
 - Pushes to `refs/for/[branch name]` (`P1`)
 - Receives comments from reviewer
-- Updates code
+- Updates the code
 - Does `commit --amend` (`C2`)
 - Pushes to `refs/for/[branch name]` (`P2`)
 - Gets ok from the reviewer
 - Hits the submit button in Gerrit
 
-Events sent:
+Eiffel events sent from the plugin:
 
 - SCC(`E1`) sent for `P1` push with no `BASE` link set
 - SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set `E1`
