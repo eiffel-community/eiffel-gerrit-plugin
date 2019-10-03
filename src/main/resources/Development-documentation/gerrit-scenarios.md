@@ -17,7 +17,7 @@ implementation and update of the plugin
 
 Preconditions:
 
-- Previous review submits to  the master with hash `C0`
+- Previous review submitted to the master with hash `C0`
 - The plugin sends SCS with id `E0`
 
 The user does the following:
@@ -25,11 +25,11 @@ The user does the following:
 - Creates a branch
 - Updates the code
 - Squashes the commits to one commits (`C1`)
-- Pushes to `refs/for/[branch name]`
+- Pushes to `refs/for/[branch name]` (`P1`)
 - Receives comments from reviewer
 - Updates code
 - Does `commit --amend` (`C2`)
-- Pushes to `refs/for/[branch name]`
+- Pushes to `refs/for/[branch name]` (`P2`)
 - Gets ok from the reviewer
 - Hits the submit button in Gerrit
 
@@ -66,7 +66,7 @@ SCC Event table:
 
 Preconditions:
 
-- Previous review submits to  the master with hash `C0`
+- Previous review submitted to the master with hash `C0`
 - The plugin sends SCS with id `E0`
 
 The user does the following:
@@ -78,7 +78,7 @@ The user does the following:
 - Receives comments from reviewer
 - Updates code
 - Does `commit --amend` (`C2`)
-- Pushes to `refs/for/[branch name]`  (`P2`)
+- Pushes to `refs/for/[branch name]` (`P2`)
 - Gets ok from the reviewer
 - Forced to rebase the code due to `C01` (`C3`)  event `E01`
 - Pushes to `refs/for/[branch name]`  (`P3`)
@@ -121,7 +121,7 @@ SCC Event table:
 
 Preconditions:
 
-- Previous review submits to  the master with hash `C0`
+- Previous review submitted to the master with hash `C0`
 - The plugin sends SCS with id `E0`
 
 The user does the following:
@@ -133,7 +133,7 @@ The user does the following:
 - Receives comments from reviewer
 - Updates code
 - Does `commit --amend` (`C2`)
-- Pushes to `refs/for/[branch name]`  (`P2`)
+- Pushes to `refs/for/[branch name]` (`P2`)
 - Gets ok from the reviewer
 - Forced to do a merge due to `C01` (`C3`) event `E01`
 - Pushes to `refs/for/[branch name]`  (`P3`)
@@ -179,7 +179,7 @@ SCC Event table:
 
 Preconditions:
 
-- Previous review submits to  the master with hash `C0`
+- Previous review submitted to the master with hash `C0`
 - No event available for the commit
 
 The user does the following:
@@ -187,18 +187,18 @@ The user does the following:
 - Creates a branch
 - Updates the code
 - Squashes the commits to one commits (`C1`)
-- Pushes to `refs/for/[branch name]`
+- Pushes to `refs/for/[branch name]` (`P1`)
 - Receives comments from reviewer
 - Updates code
 - Does `commit --amend` (`C2`)
-- Pushes to `refs/for/[branch name]`
+- Pushes to `refs/for/[branch name]` (`P2`)
 - Gets ok from the reviewer
 - Hits the submit button in Gerrit
 
 Events sent:
 
 - SCC(`E1`) sent for `P1` push with no `BASE` link set
-- SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set `E1` and `BASE` link set to `E0`
+- SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set `E1`
 - SCS(`E3`) at submit with `CHANGE` link set `E2`
 
 Commit history after submit:
