@@ -31,8 +31,9 @@ public class StateHandler {
      * @param project
      * @param branch
      * @return
+     * @throws SomeRunTimeException
      */
-    public String getLastSourceChangeSubmittedEiffelEvent(String project, String branch) {
+    public String getLastSourceChangeSubmittedEiffelEvent(String project, String branch) throws SomeRuntimeException {
         return getLastCreatedEiffelEvent(project, branch, Table.SCS_TABLE);
     }
 
@@ -43,8 +44,10 @@ public class StateHandler {
      * @param project
      * @param branch
      * @param eiffelEvent
+     * @throws SomeRunTimeException
      */
-    public void setLastSourceChangeSubmittedEiffelEvent(String project, String branch, String eiffelEvent) {
+    public void setLastSourceChangeSubmittedEiffelEvent(String project, String branch, String eiffelEvent)
+            throws SomeRuntimeException {
         setLastSubmittedEiffelEvent(project, branch, eiffelEvent, Table.SCS_TABLE);
 
     }
@@ -55,8 +58,10 @@ public class StateHandler {
      * @param project
      * @param changeId
      * @param eiffelEvent
+     * @throws SomeRunTimeException
      */
-    public void setLastSourceChangeCreatedEiffelEvent(String project, String changeId, String eiffelEvent) {
+    public void setLastSourceChangeCreatedEiffelEvent(String project, String changeId, String eiffelEvent)
+            throws SomeRuntimeException {
         setLastSubmittedEiffelEvent(project, changeId, eiffelEvent, Table.SCC_TABLE);
     }
 
@@ -67,8 +72,9 @@ public class StateHandler {
      * @param project
      * @param changeId
      * @return
+     * @throws SomeRunTimeException
      */
-    public String getLastSourceChangeCreatedEiffelEvent(String project, String changeId) {
+    public String getLastSourceChangeCreatedEiffelEvent(String project, String changeId) throws SomeRuntimeException {
         return getLastCreatedEiffelEvent(project, changeId, Table.SCC_TABLE);
     }
 
@@ -97,24 +103,8 @@ public class StateHandler {
         }
     }
 
-    // /**
-    // * returns true or false depending if the StateHandler is disabled or not.
-    // *
-    // * @return
-    // */
-    // private boolean isDisabled() {
-    // if (pluginDir == null || pluginDir.toString().isEmpty()) {
-    // LOGGER.info(DISABLED_RESPONSE);
-    // return true;
-    // }
-    // return false;
-    // }
-
-    private String getLastCreatedEiffelEvent(String project, String tableColumnName, Table tableName) {
-        // if (isDisabled()) {
-        // return "";
-        // }
-
+    private String getLastCreatedEiffelEvent(String project, String tableColumnName, Table tableName)
+            throws SomeRuntimeException {
         File parentDir = new File(buildParentFilePath(project));
         if (!(parentDir.exists())) {
             return "";
@@ -130,17 +120,14 @@ public class StateHandler {
         } catch (Exception e) {
             LOGGER.error("Error while trying to get eiffel event id from database: {}\n{}", e.getMessage(), e);
             // return "";
-            throw new RuntimeException("Database did not return any value for this query");
+            throw new SomeRuntimeException(
+                    "Database did not return any value for this query\n" + "Exception Message:" + e.getMessage());
         }
 
     }
 
     private void setLastSubmittedEiffelEvent(String project, String tableColumnName, String eiffelEvent,
-            Table tableName) {
-        // if (isDisabled()) {
-        // return;
-        // }
-
+            Table tableName) throws SomeRuntimeException {
         DataBaseHandler dBHandler;
         try {
             String parentPath = buildParentFilePath(project);
@@ -160,7 +147,8 @@ public class StateHandler {
             }
         } catch (Exception e) {
             LOGGER.error("Error while trying to insert eiffel event id into database: {}\n{}", e.getMessage(), e);
-            throw new RuntimeException("Database did not return any value for this query");
+            throw new SomeRuntimeException(
+                    "Database did not return any value for this query\n" + "Exception Message:" + e.getMessage());
         }
 
     }

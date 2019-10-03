@@ -58,8 +58,8 @@ public class DataBaseHandlerTest {
     }
 
     /**
-     * This test inserts and event id for a branch and fetches it to ensure it both got inserted and
-     * fetched correctly.
+     * This test inserts and event id for a branch and fetches it to ensure it both
+     * got inserted and fetched correctly.
      *
      * @throws Exception
      */
@@ -133,12 +133,13 @@ public class DataBaseHandlerTest {
     }
 
     /**
-     * Test throwing several exceptions and ensure they cause the class to return correct values and or
-     * the exception is correctly caught. Exceptions caused by mocks should not leak into the test.
+     * Test throwing several exceptions and ensure they cause the class to return
+     * correct values and or the exception is correctly caught. Exceptions caused by
+     * mocks should not leak into the test.
      *
      * @throws Exception
      */
-    @Test(expected = NullPointerException.class)
+    @Test(expected = SomeRuntimeException.class)
     public void testExceptionsIsThrown() throws Exception {
         // Prepare mocks
         Connection connection = mock(Connection.class);
@@ -146,19 +147,25 @@ public class DataBaseHandlerTest {
         Statement statement = mock(Statement.class);
         ResultSet result = mock(ResultSet.class);
 
+        if (!result.isBeforeFirst()) {
+            throw new SomeRuntimeException("Mocking ResultSet class was unsuccessful...!");
+        }
+
         PowerMockito.mockStatic(DriverManager.class);
         BDDMockito.given(DriverManager.getConnection(Mockito.any())).willReturn(connection);
 
         Mockito.doReturn(preparedStatement).when(connection).prepareStatement(Mockito.any());
         Mockito.doReturn(result).when(preparedStatement).executeQuery();
 
-        // When mocking an exception while executing getEventID the function should return an empty String,
+        // When mocking an exception while executing getEventID the function should
+        // return an empty String,
         // exception may be thrown when no values was found and should be empty.
         Mockito.when(result.next()).thenThrow(new SQLException("Exception thrown by test"));
         exception.expect(RuntimeException.class);
         dbHandler.getEventID(Table.SCS_TABLE, branch);
 
-        // When we initiate a new DataBaseHandler we throw SQLExceptions, those exceptions should be caught
+        // When we initiate a new DataBaseHandler we throw SQLExceptions, those
+        // exceptions should be caught
         // and the class should be created as normal.
         Mockito.when(connection.getMetaData()).thenThrow(new SQLException("Exception thrown by test"));
         Mockito.doReturn(statement).when(connection).createStatement();
@@ -166,7 +173,8 @@ public class DataBaseHandlerTest {
         File tmpFolderPath = testFolder.newFolder();
         new DataBaseHandler(tmpFolderPath, "test_file_name.db");
 
-        // When doing updateInto on the database handler we throw some exceptions and ensures they are
+        // When doing updateInto on the database handler we throw some exceptions and
+        // ensures they are
         // correctly sent back to the user.
         try {
             Mockito.when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Exception thrown by test"));

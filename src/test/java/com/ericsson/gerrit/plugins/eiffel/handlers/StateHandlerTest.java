@@ -25,7 +25,6 @@ public class StateHandlerTest {
     private static final String FILE_ENDING = "db";
     private static final String PROJECT = "project_test";
     private static final String BRANCH = "branch_test";
-    private static final String CHANGE_ID = "changeID";
     private DataBaseHandler dbHandler;
     private StateHandler stateHandler;
     @Rule
@@ -52,7 +51,7 @@ public class StateHandlerTest {
         String expectedParentPath = tmpFolderPath + "/" + "parent";
 
         Mockito.when(dbHandler.getEventID(Table.SCS_TABLE, BRANCH)).thenReturn("");
-        exception.expect(RuntimeException.class);
+        exception.expect(SomeRuntimeException.class);
         stateHandler.setLastSourceChangeSubmittedEiffelEvent(projectName, BRANCH, "someID");
 
         File parentDirectory = new File(expectedParentPath);
@@ -68,7 +67,7 @@ public class StateHandlerTest {
 
         Mockito.when(dbHandler.getEventID(Table.SCS_TABLE, ""))
                 .thenThrow(new ConnectException("Exception thrown by test"));
-        exception.expect(RuntimeException.class);
+        exception.expect(SomeRuntimeException.class);
         stateHandler.getLastSourceChangeSubmittedEiffelEvent("", "");
 
     }
@@ -101,7 +100,7 @@ public class StateHandlerTest {
 
         String eventId = "event-id";
 
-        exception.expect(RuntimeException.class);
+        exception.expect(SomeRuntimeException.class);
         stateHandler.setLastSourceChangeSubmittedEiffelEvent(PROJECT, BRANCH, eventId);
 
         Mockito.verify(dbHandler, Mockito.never()).updateInto(Mockito.any(), Mockito.any(), Mockito.any());
