@@ -97,23 +97,23 @@ public class StateHandler {
         }
     }
 
-    /**
-     * returns true or false depending if the StateHandler is disabled or not.
-     *
-     * @return
-     */
-    private boolean isDisabled() {
-        if (pluginDir == null || pluginDir.toString().isEmpty()) {
-            LOGGER.info(DISABLED_RESPONSE);
-            return true;
-        }
-        return false;
-    }
+    // /**
+    // * returns true or false depending if the StateHandler is disabled or not.
+    // *
+    // * @return
+    // */
+    // private boolean isDisabled() {
+    // if (pluginDir == null || pluginDir.toString().isEmpty()) {
+    // LOGGER.info(DISABLED_RESPONSE);
+    // return true;
+    // }
+    // return false;
+    // }
 
-    public String getLastCreatedEiffelEvent(String project, String tableColumnName, Table tableName) {
-        if (isDisabled()) {
-            return "";
-        }
+    private String getLastCreatedEiffelEvent(String project, String tableColumnName, Table tableName) {
+        // if (isDisabled()) {
+        // return "";
+        // }
 
         File parentDir = new File(buildParentFilePath(project));
         if (!(parentDir.exists())) {
@@ -135,11 +135,11 @@ public class StateHandler {
 
     }
 
-    public void setLastSubmittedEiffelEvent(String project, String tableColumnName, String eiffelEvent,
+    private void setLastSubmittedEiffelEvent(String project, String tableColumnName, String eiffelEvent,
             Table tableName) {
-        if (isDisabled()) {
-            return;
-        }
+        // if (isDisabled()) {
+        // return;
+        // }
 
         DataBaseHandler dBHandler;
         try {

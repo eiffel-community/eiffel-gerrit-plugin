@@ -31,15 +31,15 @@ import com.google.gerrit.server.project.NoSuchProjectException;
  *
  */
 public class EiffelPluginConfiguration {
-    
- // Plugin configuration parameters names
+
+    // Plugin configuration parameters names
     public static final String ENABLED = "enabled";
     public static final String FILTER = "filter";
     public static final String REMREM_PUBLISH_URL = "remrem-publish-url";
     public static final String REMREM_USERNAME = "remrem-username";
     public static final String REMREM_PASSWORD = "remrem-password";
     public static final String FLOW_CONTEXT = "flow-context";
-    
+
     // Fields to keep actual configuration
     private final String remremPublishURL;
     private final String remremUsername;
@@ -51,7 +51,7 @@ public class EiffelPluginConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(EiffelPluginConfiguration.class);
 
     public EiffelPluginConfiguration(final String pluginName, final NameKey project,
-                                     final PluginConfigFactory pluginConfigFactory) {
+            final PluginConfigFactory pluginConfigFactory) {
 
         PluginConfig pluginConfig;
 
@@ -68,21 +68,23 @@ public class EiffelPluginConfiguration {
         this.remremPublishURL = pluginConfig.getString(REMREM_PUBLISH_URL);
         this.remremUsername = pluginConfig.getString(REMREM_USERNAME);
         this.remremPassword = pluginConfig.getString(REMREM_PASSWORD);
-        //flow context is optional
+        // flow context is optional
         this.flowContext = pluginConfig.getString(FLOW_CONTEXT);
 
         // No point to check other config parameters if plugin is disabled
         if (!this.enabled) {
             return;
         }
-        
-        // Make sure that REMReM configuration is defined, otherwise we won't be able to send messages.
-        // Present we are not making the username and password mandatory, as REMReM has the capability to not use them.
+
+        // Make sure that REMReM configuration is defined, otherwise we won't be able to
+        // send messages.
+        // Present we are not making the username and password mandatory, as REMReM has
+        // the capability to not use them.
         if (this.remremPublishURL == null) {
             throw new ExceptionInInitializerError(
-                    String.format("Can't read %s plugin configuration for project %s: REMReM Generate URL is null", pluginName,
-                            project.toString()));
-        } 
+                    String.format("Can't read %s plugin configuration for project %s: REMReM Generate URL is null",
+                            pluginName, project.toString()));
+        }
         LOGGER.info("Loaded plugin configuration: {}", pluginConfig.toString());
     }
 
