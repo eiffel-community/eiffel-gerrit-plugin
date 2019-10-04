@@ -160,13 +160,9 @@ public class DataBaseHandlerTest {
         // When mocking an exception while executing getEventID the function should
         // return an empty String,
         // exception may be thrown when no values was found and should be empty.
-        if (result.next() != false) {
             Mockito.when(result.next()).thenThrow(new SQLException("Exception thrown by test"));
             exception.expect(RuntimeException.class);
             dbHandler.getEventID(Table.SCS_TABLE, branch);
-        } else {
-            throw new SomeRuntimeException("Mocking ResultSet class was unsuccessful...!");
-        }
 
         // When we initiate a new DataBaseHandler we throw SQLExceptions, those
         // exceptions should be caught
