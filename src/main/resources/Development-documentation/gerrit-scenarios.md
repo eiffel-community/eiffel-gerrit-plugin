@@ -8,8 +8,8 @@ implementation and update of the plugin
 - [Gerrit scenarios](#gerrit-scenarios)
   - [Create patch set - CASE1](#create-patch-set---case1)
   - [Create patch set with rebase - CASE2](#create-patch-set-with-rebase---case2)
-  - [Create patch set with merge - CASE3](#create-patch-set-with-merge---case3)
-  - [Create patch set no previous events - CASE4](#create-patch-set-no-previous-events---case4)
+  - [Create patch set, submitting with merge strategy - CASE3](#create-patch-set-submitting-with-merge-strategy---case3)
+  - [Create patch set with no previous events - CASE4](#create-patch-set-with-no-previous-events---case4)
 
 <!-- /TOC -->
 
@@ -82,7 +82,7 @@ Scenario overview:
 
 This scenario describes a workflow where a user performs a standard review
 cycle. Before the review finishes another review finishes and submits to
-master(`C01`). The project settings does not allow merge commits.
+master(`C01`).
 
 Preconditions:
 
@@ -137,13 +137,13 @@ SCC Event table:
 | E2    | E0   | E1               |
 | E3    | E01  | E2               |
 
-## Create patch set with merge - CASE3
+## Create patch set, submitting with merge strategy - CASE3
 
 Scenario overview:
 
 This scenario describes a workflow where a user performs a standard review
-cycle. Before the review finishes another review finishes and submits to
-master(`C01`). The project settings does not allow rebase.
+cycle. Due to project setting **Always merge** Gerrit will preform a merge when
+the user submits the review.
 
 Preconditions:
 
@@ -161,23 +161,23 @@ The user does the following:
 - Does `commit --amend` (`C2`)
 - Pushes to `refs/for/[branch name]` (`P2`)
 - Gets ok from the reviewer
-- Forced to do a merge due to `C01` (`C3`) event `E01`
-- Pushes to `refs/for/[branch name]`  (`P3`)
 - Hits the submit button in Gerrit
+- Gerrit creates a merge commit (`C3`)
 
 Eiffel events sent from the plugin:
 
 - SCC(`E1`) sent for `P1` push with `BASE` link set to `E0`
 - SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set `E1` and `BASE` link set to `E0`
-- SCS(`E3`) sent for `P3` push with `PREVIOUS_VERSION` link set `E2` and `BASE` link set to `?`
-- SCS(`E4`) sent at submit with `CHANGE` link set `E3`
+- SCS(`E3`) sent at submit with `CHANGE` link set `E4`and `PREVIOUS_VERSION` set to `E0`
+
+**NOTE:** The plugin will not send a SCS event for `C2` and can not set a
+`PREVIOUS_VERSION` link to the commit.
 
 Commit history after submit:
 
 ```git
-* C3 Merged changes
+* C3 Merge commit
 |\
-* | C01 Other code change
 | * C2  Review changes
 |/
 * C0 Commit from previous user
@@ -190,8 +190,7 @@ Trigger table:
 | E0    |              | Submit  |
 | E1    | P1           |
 | E2    | P2           |
-| E3    | P3           |
-| E4    |              | Submit  |
+| E3    |              | Submit  |
 
 SCC Event table:
 
@@ -199,7 +198,6 @@ SCC Event table:
 | ---   | ---  | ---              |
 | E1    | E0   |
 | E2    | E0   | E1               |
-| E3    | ?    | E2               |
 
 ## Create patch set with no previous events - CASE4
 
