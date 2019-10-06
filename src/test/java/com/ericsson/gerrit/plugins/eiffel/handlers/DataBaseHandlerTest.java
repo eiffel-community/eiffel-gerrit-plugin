@@ -114,7 +114,7 @@ public class DataBaseHandlerTest {
      *
      * @throws Exception
      */
-    @Test(expected = SomeRuntimeException.class)
+    @Test(expected = NoSuchElementException.class)
     public void testGetNoneExistingEventIdReturnsNull() throws Exception {
         dbHandler.getEventID(Table.SCS_TABLE, branch);
     }
@@ -139,7 +139,7 @@ public class DataBaseHandlerTest {
      *
      * @throws Exception
      */
-    @Test(expected = SomeRuntimeException.class)
+    @Test(expected = NoSuchElementException.class)
     public void testExceptionsIsThrown() throws Exception {
         // Prepare mocks
         Connection connection = mock(Connection.class);
@@ -155,7 +155,7 @@ public class DataBaseHandlerTest {
             Mockito.doReturn(preparedStatement).when(connection).prepareStatement(Mockito.any());
             Mockito.doReturn(result).when(preparedStatement).executeQuery();
         } else {
-            throw new SomeRuntimeException("Mocking ResultSet class was unsuccessful...!");
+            throw new NoSuchElementException("Mocking ResultSet class was unsuccessful...!");
         }
 
         // When mocking an exception while executing getEventID the function should
@@ -166,7 +166,7 @@ public class DataBaseHandlerTest {
             exception.expect(RuntimeException.class);
             dbHandler.getEventID(Table.SCS_TABLE, branch);
         } else {
-            throw new SomeRuntimeException("Mocking ResultSet class was unsuccessful...!");
+            throw new NoSuchElementException("Mocking ResultSet class was unsuccessful...!");
         }
 
         // When we initiate a new DataBaseHandler we throw SQLExceptions, those

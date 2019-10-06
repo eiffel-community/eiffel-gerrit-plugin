@@ -59,9 +59,9 @@ public class DataBaseHandler {
      * @param keyValue
      * @return eventId
      * @throws ConnectException
-     * @throws SomeRuntimeException
+     * @throws NoSuchElementException
      */
-    public String getEventID(final Table table, final String keyValue) throws ConnectException, SomeRuntimeException {
+    public String getEventID(final Table table, final String keyValue) throws ConnectException, NoSuchElementException {
         String eventID = "";
 
         String sqlSelectStatement = String.format("SELECT * FROM %s WHERE %s=?", table, table.keyName);
@@ -76,7 +76,7 @@ public class DataBaseHandler {
         }
 
         if (eventID.isEmpty()) {
-            throw new SomeRuntimeException("Database did not return any value for this query");
+            throw new NoSuchElementException("Database did not return any value for this query");
         }
 
         return eventID;

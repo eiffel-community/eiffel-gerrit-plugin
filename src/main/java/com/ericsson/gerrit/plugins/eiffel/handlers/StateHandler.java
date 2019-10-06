@@ -32,7 +32,7 @@ public class StateHandler {
      * @return
      * @throws SomeRunTimeException
      */
-    public String getLastSourceChangeSubmittedEiffelEvent(String project, String branch) throws SomeRuntimeException {
+    public String getLastSourceChangeSubmittedEiffelEvent(String project, String branch) throws NoSuchElementException {
         return getLastCreatedEiffelEvent(project, branch, Table.SCS_TABLE);
     }
 
@@ -46,7 +46,7 @@ public class StateHandler {
      * @throws SomeRunTimeException
      */
     public void setLastSourceChangeSubmittedEiffelEvent(String project, String branch, String eiffelEvent)
-            throws SomeRuntimeException {
+            throws NoSuchElementException {
         setLastSubmittedEiffelEvent(project, branch, eiffelEvent, Table.SCS_TABLE);
 
     }
@@ -60,7 +60,7 @@ public class StateHandler {
      * @throws SomeRunTimeException
      */
     public void setLastSourceChangeCreatedEiffelEvent(String project, String changeId, String eiffelEvent)
-            throws SomeRuntimeException {
+            throws NoSuchElementException {
         setLastSubmittedEiffelEvent(project, changeId, eiffelEvent, Table.SCC_TABLE);
     }
 
@@ -73,7 +73,7 @@ public class StateHandler {
      * @return
      * @throws SomeRunTimeException
      */
-    public String getLastSourceChangeCreatedEiffelEvent(String project, String changeId) throws SomeRuntimeException {
+    public String getLastSourceChangeCreatedEiffelEvent(String project, String changeId) throws NoSuchElementException {
         return getLastCreatedEiffelEvent(project, changeId, Table.SCC_TABLE);
     }
 
@@ -103,7 +103,7 @@ public class StateHandler {
     }
 
     private String getLastCreatedEiffelEvent(String project, String tableColumnName, Table tableName)
-            throws SomeRuntimeException {
+            throws NoSuchElementException {
         File parentDir = new File(buildParentFilePath(project));
         if (!(parentDir.exists())) {
             return "";
@@ -119,14 +119,14 @@ public class StateHandler {
         } catch (Exception e) {
             LOGGER.error("Error while trying to get eiffel event id from database: {}\n{}", e.getMessage(), e);
             // return "";
-            throw new SomeRuntimeException(
+            throw new NoSuchElementException(
                     "Database did not return any value for this query\n" + "Exception Message:" + e.getMessage());
         }
 
     }
 
     private void setLastSubmittedEiffelEvent(String project, String tableColumnName, String eiffelEvent,
-            Table tableName) throws SomeRuntimeException {
+            Table tableName) throws NoSuchElementException {
         DataBaseHandler dBHandler;
         try {
             String parentPath = buildParentFilePath(project);
@@ -146,7 +146,7 @@ public class StateHandler {
             }
         } catch (Exception e) {
             LOGGER.error("Error while trying to insert eiffel event id into database: {}\n{}", e.getMessage(), e);
-            throw new SomeRuntimeException(
+            throw new NoSuchElementException(
                     "Database did not return any value for this query\n" + "Exception Message:" + e.getMessage());
         }
 
