@@ -27,10 +27,6 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
     private static final String TYPE = "EiffelSourceChangeCreatedEvent";
     private static final String TRACKER = "Gerrit";
 
-    static {
-        new EiffelSourceChangeCreatedEventGenerator();
-    }
-
     /**
      * Extracts information from the PatchSetCreatedEvent and generates an
      * EiffelSourceChangeCreatedEvent

@@ -25,10 +25,6 @@ import com.google.gerrit.server.events.ChangeMergedEvent;
 public final class EiffelSourceChangeSubmittedEventGenerator extends EiffelEventGenerator {
     private static final String TYPE = "EiffelSourceChangeSubmittedEvent";
 
-    static {
-        new EiffelSourceChangeSubmittedEventGenerator();
-    }
-
     /**
      * Extracts information from the ChangeMergedEvent and generates an
      * EiffelSourceChangeSubmittedEvent
