@@ -22,7 +22,7 @@ import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
 import com.google.gerrit.server.events.ChangeMergedEvent;
 
-public class EiffelSourceChangeSubmittedEventGenerator extends EiffelEventGenerator {
+public final class EiffelSourceChangeSubmittedEventGenerator extends EiffelEventGenerator {
     private static final String TYPE = "EiffelSourceChangeSubmittedEvent";
 
     /**
