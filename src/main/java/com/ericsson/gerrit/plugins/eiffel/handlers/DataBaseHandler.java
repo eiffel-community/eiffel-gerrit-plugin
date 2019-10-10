@@ -15,10 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is the database handler class. at initiation it checks if the name given exist as a db file,
- * if not it gets created together with required tables. At initiation a file name is given making
- * it possible to store a file per project depending how the classes that uses this handler
- * implements this function.
+ * This is the database handler class. at initiation it checks if the name given
+ * exist as a db file, if not it gets created together with required tables. At
+ * initiation a file name is given making it possible to store a file per
+ * project depending how the classes that uses this handler implements this
+ * function.
  *
  */
 public class DataBaseHandler {
@@ -27,7 +28,8 @@ public class DataBaseHandler {
     private final String databaseFile;
 
     /**
-     * Constructor that takes plugin directory path as String and plugin name as String.
+     * Constructor that takes plugin directory path as String and plugin name as
+     * String.
      *
      * @param pluginDir
      * @param filename
@@ -41,7 +43,8 @@ public class DataBaseHandler {
     }
 
     /**
-     * Constructor that takes plugin directory path as File and plugin name as String.
+     * Constructor that takes plugin directory path as File and plugin name as
+     * String.
      *
      * @param pluginDir
      * @param filename
@@ -117,7 +120,8 @@ public class DataBaseHandler {
     }
 
     /**
-     * This function will create a database structure in the database file if it does not exist.
+     * This function will create a database structure in the database file if it
+     * does not exist.
      *
      * @throws ConnectException
      */
@@ -134,8 +138,9 @@ public class DataBaseHandler {
     }
 
     /**
-     * This function loops the values in the Table enum and executes the create table command for each
-     * table and creates it in the database if it not already exist.
+     * This function loops the values in the Table enum and executes the create
+     * table command for each table and creates it in the database if it not already
+     * exist.
      *
      * @throws ConnectException
      */
@@ -178,14 +183,13 @@ public class DataBaseHandler {
             if (result.next()) {
                 return result.getString(EVENT_ID_KEY);
             }
-        } catch (SQLException e) {
-            throw e;
         }
         return "";
     }
 
     /**
-     * Creates a prepared statement and executes an update on the sqlStatement given.
+     * Creates a prepared statement and executes an update on the sqlStatement
+     * given.
      *
      * @param sqlStatement
      * @param keyValue
