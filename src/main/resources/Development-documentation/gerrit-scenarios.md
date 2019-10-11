@@ -50,8 +50,8 @@ The user does the following:
 Eiffel events sent from the plugin:
 
 - SCC(`E1`) sent for `P1` push with `BASE` link set to `E0`
-- SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set `E1` and `BASE` link set to `E0`
-- SCS(`E3`) at submit with `CHANGE` link set `E2`
+- SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set to `E1` and `BASE` link set to `E0`
+- SCS(`E3`) at submit with `CHANGE` link set `E2` and `PREVIOUS_VERSION` link set to `E0`
 
 Commit history after submit:
 
@@ -109,7 +109,7 @@ Eiffel events sent from the plugin:
 - SCC(`E1`) sent for `P1` push with `BASE` link set to `E0`
 - SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set `E1` and `BASE` link set to `E0`
 - SCC(`E3`) sent for `P3` push with `PREVIOUS_VERSION` link set `E2` and `BASE` link set to `E01`
-- SCS(`E4`) sent at submit with `CHANGE` link set `E3`
+- SCS(`E4`) sent at submit with `CHANGE` link set `E3` and `PREVIOUS_VERSION` link set to `E0`
 
 Commit history after submit:
 
