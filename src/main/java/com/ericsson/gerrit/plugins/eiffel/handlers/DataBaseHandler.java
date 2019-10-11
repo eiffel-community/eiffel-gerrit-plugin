@@ -199,8 +199,7 @@ public class DataBaseHandler {
      */
     private void executeUpdate(final String sqlStatement, final String keyValue, final String eiffelevent)
             throws ConnectException, SQLException {
-        try (Connection connection = connect();
-                PreparedStatement preparedStatement = connection.prepareStatement(sqlStatement)) {
+        try (PreparedStatement preparedStatement = prepareStatmentForResourceBlock(sqlStatement)) {
             preparedStatement.setString(1, eiffelevent);
             preparedStatement.setString(2, keyValue);
             int updateCount = preparedStatement.executeUpdate();
@@ -221,4 +220,9 @@ public class DataBaseHandler {
         statement.execute(sqlCreateStatement);
     }
 
+    private PreparedStatement prepareStatmentForResourceBlock(final String sqlStatement)
+            throws ConnectException, SQLException {
+        Connection connection = connect();
+        return connection.prepareStatement(sqlStatement);
+    }
 }
