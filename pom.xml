@@ -45,6 +45,24 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.2.0.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.eiffel-community</groupId>
+            <artifactId>eiffel-commons</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- Dependencies for testing -->
         <dependency>
             <groupId>junit</groupId>
@@ -79,7 +97,7 @@
                 <filtering>true</filtering>
             </testResource>
         </testResources>
-        
+
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -125,7 +143,8 @@
                             <Implementation-Vendor>Eiffel-Community</Implementation-Vendor>
                             <Implementation-URL></Implementation-URL>
 
-                            <Implementation-Title>Plugin ${Gerrit-PluginName}</Implementation-Title>
+                            <Implementation-Title>Plugin
+                                ${Gerrit-PluginName}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
 
                             <Gerrit-ApiType>${Gerrit-ApiType}</Gerrit-ApiType>
