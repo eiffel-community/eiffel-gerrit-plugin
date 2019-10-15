@@ -1,9 +1,5 @@
 package com.ericsson.gerrit.plugins.eiffel.messaging;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 
@@ -17,7 +13,8 @@ import com.ericsson.eiffelcommons.utils.HttpRequest;
 import com.ericsson.eiffelcommons.utils.ResponseEntity;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
-import com.ericsson.gerrit.plugins.eiffel.exceptions.EiffelEventSenderException;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.HttpRequestFailedException;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.MissingConfigurationException;
 
 public class EiffelEventSenderTest {
 
@@ -35,65 +32,34 @@ public class EiffelEventSenderTest {
     }
 
     @Test
-    public void testEventSender() throws IOException, URISyntaxException {
+    public void testEventSender() throws Exception {
         setUpMockActions();
 
         EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
         sender.setMessage(new EiffelSourceChangeCreatedEvent());
         sender.setType(EIFFEL_TYPE);
 
-        try {
-            Whitebox.invokeMethod(sender, "generateAndPublish");
-        } catch (Exception e) {
-            String exceptionType = e.getClass().getSimpleName();
-            String assertError = String.format(
-                    "No exception should have been thrown but was %s",
-                    exceptionType);
-            fail(assertError);
-        }
+        Whitebox.invokeMethod(sender, "generateAndPublish");
     }
 
-    @Test
-    public void testEventSenderWithMissingConfiguration() throws IOException, URISyntaxException {
+    @Test(expected = MissingConfigurationException.class)  
+    public void testEventSenderWithMissingConfiguration() throws Exception {
         EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
         sender.setMessage(new EiffelSourceChangeCreatedEvent());
         sender.setType("");
 
-        try {
-            Whitebox.invokeMethod(sender, "generateAndPublish");
-        } catch (Exception e) {
-            String exceptionName = e.getClass().getSimpleName();
-            String exceptionError = String.format(
-                    "Exception should have been of type EventSenderException but was %s",
-                    exceptionName);
-            String eiffelTypeError = "eiffelType should have been blank";
-            String eiffelType = Whitebox.getInternalState(sender, "eiffelType");
-            assertTrue(exceptionError, e instanceof EiffelEventSenderException);
-            assertEquals(eiffelTypeError, "", eiffelType);
-        }
+        Whitebox.invokeMethod(sender, "verifyConfiguration");
     }
 
-    @Test
-    public void testEventSenderWithBadStatus() throws IOException, URISyntaxException {
+    @Test(expected = HttpRequestFailedException.class)  
+    public void testEventSenderWithBadStatus() throws Exception {
         setUpMockActionsWithBadStatus();
 
         EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
         sender.setMessage(new EiffelSourceChangeCreatedEvent());
         sender.setType(EIFFEL_TYPE);
 
-        try {
-            Whitebox.invokeMethod(sender, "generateAndPublish");
-        } catch (Exception e) {
-            String exceptionName = e.getClass().getSimpleName();
-            String exceptionError = String.format(
-                    "Exception should have been of type EventSenderException but was %s",
-                    exceptionName);
-            String statusError = String.format(
-                    "Error message should have contained status code %s",
-                    STATUS_NOT_FOUND);
-            assertTrue(exceptionError, e instanceof EiffelEventSenderException);
-            assertTrue(statusError, e.getMessage().contains(String.valueOf(STATUS_NOT_FOUND)));
-        }
+        Whitebox.invokeMethod(sender, "generateAndPublish");
     }
 
     private void setUpMockObjects() throws URISyntaxException, IOException {

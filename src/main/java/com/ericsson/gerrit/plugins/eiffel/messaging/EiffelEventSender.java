@@ -31,7 +31,8 @@ import com.ericsson.eiffelcommons.utils.HttpRequest;
 import com.ericsson.eiffelcommons.utils.ResponseEntity;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
-import com.ericsson.gerrit.plugins.eiffel.exceptions.EiffelEventSenderException;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.HttpRequestFailedException;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.MissingConfigurationException;
 import com.ericsson.eiffelcommons.utils.HttpRequest.HttpMethod;
 import com.google.gson.Gson;
 
@@ -52,8 +53,7 @@ public class EiffelEventSender {
     private HttpRequest httpRequest;
 
     public EiffelEventSender(EiffelPluginConfiguration pluginConfig) {
-        this.httpRequest = new HttpRequest(HttpMethod.POST);
-        this.pluginConfig = pluginConfig;
+        this(pluginConfig, new HttpRequest(HttpMethod.POST));
     }
 
     public EiffelEventSender(EiffelPluginConfiguration pluginConfig, HttpRequest httpRequest) {
@@ -67,8 +67,10 @@ public class EiffelEventSender {
      */
     public void send() {
         try {
+            verifyConfiguration();
             generateAndPublish();
-        } catch (URISyntaxException | IOException | EiffelEventSenderException e) {
+        } catch (URISyntaxException | IOException | MissingConfigurationException
+                | HttpRequestFailedException e) {
             LOGGER.error("Failed to send eiffel message.", e);
         }
     }
@@ -84,18 +86,14 @@ public class EiffelEventSender {
     }
 
     private void generateAndPublish()
-            throws URISyntaxException, IOException, EiffelEventSenderException {
-        if (!isConfigurationSet()) {
-            final String errorMessage = String.format(
-                    "Neccessary configuration is missing to send event."
-                            + "\neiffelMessage: %s\neiffelType: %s\neiffelProtocol: %s",
-                    eiffelMessage, eiffelType, EIFFEL_PROTOCOL);
-            throw new EiffelEventSenderException(errorMessage);
-        }
-
-        httpRequest = assembleRequest(httpRequest);
+            throws URISyntaxException, IOException, MissingConfigurationException,
+            HttpRequestFailedException {
+        assembleRequest();
         final ResponseEntity response = httpRequest.performRequest();
+        verifyResponse(response);
+    }
 
+    private void verifyResponse(ResponseEntity response) throws HttpRequestFailedException {
         final int statusCode = response.getStatusCode();
         final String result = response.getBody();
 
@@ -106,7 +104,17 @@ public class EiffelEventSender {
                     "Could not generate and publish eiffel message due to server issue or invalid json data, "
                             + "Status Code :: %d\npublishURL :: %s\ninput message :: %s\nError Message  :: %s",
                     statusCode, httpRequest.getBaseUrl(), eiffelMessage, result);
-            throw new EiffelEventSenderException(errorMessage);
+            throw new HttpRequestFailedException(errorMessage);
+        }
+    }
+
+    private void verifyConfiguration() throws MissingConfigurationException {
+        if (!isConfigurationSet()) {
+            final String errorMessage = String.format(
+                    "Neccessary configuration is missing to send event."
+                            + "\neiffelMessage: %s\neiffelType: %s\neiffelProtocol: %s",
+                    eiffelMessage, eiffelType, EIFFEL_PROTOCOL);
+            throw new MissingConfigurationException(errorMessage);
         }
     }
 
@@ -116,14 +124,13 @@ public class EiffelEventSender {
         return isConfigurationSet;
     }
 
-    private HttpRequest assembleRequest(HttpRequest httpRequest)
-            throws UnsupportedEncodingException {
+    private void assembleRequest() throws UnsupportedEncodingException {
         final String username = pluginConfig.getRemremUsername();
         final String password = pluginConfig.getRemremPassword();
         final String url = pluginConfig.getRemremPublishURL();
 
         // eiffel-commons:1.0.1 not available on jitpack
-        //httpRequest.setBasicAuth(username, password);
+        // httpRequest.setBasicAuth(username, password);
         String auth = String.format("%s:%s", username, password);
         String encodedAuth = new String(Base64.encodeBase64(auth.getBytes()), "UTF-8");
         httpRequest.addHeader(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth);
@@ -133,6 +140,5 @@ public class EiffelEventSender {
         httpRequest.addParameter(MESSAGE_TYPE, eiffelType);
         httpRequest.setHeader(CONTENT_TYPE_HEADER, APPLICATION_JSON);
         httpRequest.setBody(this.eiffelMessage);
-        return httpRequest;
     }
 }
