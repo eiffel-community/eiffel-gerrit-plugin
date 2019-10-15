@@ -1,5 +1,7 @@
 package com.ericsson.gerrit.plugins.eiffel.messaging;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 
@@ -39,7 +41,7 @@ public class EiffelEventSenderTest {
         sender.setMessage(new EiffelSourceChangeCreatedEvent());
         sender.setType(EIFFEL_TYPE);
 
-        Whitebox.invokeMethod(sender, "generateAndPublish");
+        assertThatCode(() -> { Whitebox.invokeMethod(sender, "generateAndPublish"); }).doesNotThrowAnyException();
     }
 
     @Test(expected = MissingConfigurationException.class)  
