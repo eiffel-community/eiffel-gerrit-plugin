@@ -129,11 +129,7 @@ public class EiffelEventSender {
         final String password = pluginConfig.getRemremPassword();
         final String url = pluginConfig.getRemremPublishURL();
 
-        // eiffel-commons:1.0.1 not available on jitpack
-        // httpRequest.setBasicAuth(username, password);
-        String auth = String.format("%s:%s", username, password);
-        String encodedAuth = new String(Base64.encodeBase64(auth.getBytes()), "UTF-8");
-        httpRequest.addHeader(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth);
+        httpRequest.setBasicAuth(username, password);
         httpRequest.setBaseUrl(url);
         httpRequest.setEndpoint(GENERATE_PUBLISH_ENDPOINT);
         httpRequest.addParameter(MESSAGE_PROTOCOL, EIFFEL_PROTOCOL);
