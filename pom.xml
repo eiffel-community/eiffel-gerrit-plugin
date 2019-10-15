@@ -22,6 +22,15 @@
         <URL>${project.artifactId}-${project.version}.jar</URL>
     </properties>
 
+    <!-- Repositories from additional providers -->
+    <!-- WARNING: Changes made here must also be made in .mvn/project-settings.xml -->
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <!-- Dependency for Gerrit -->
         <dependency>
