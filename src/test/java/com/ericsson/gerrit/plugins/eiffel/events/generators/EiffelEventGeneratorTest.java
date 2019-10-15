@@ -1,6 +1,7 @@
 package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
@@ -45,6 +46,7 @@ public class EiffelEventGeneratorTest {
     private static final String PROJECT = "my-project";
     private static final String BRANCH = "my-branch";
     private static final String URL = "http://my-url.com";
+    private static final String NULL_HOST = "no-host/";
     private static final String NAME = "User Usersson";
     private static final String USERNAME = "my-user";
     private static final String EMAIL = "my@email.com";
@@ -108,6 +110,13 @@ public class EiffelEventGeneratorTest {
 
         String repoURI = EiffelEventGenerator.createRepoURI(URL, PROJECT);
         assertEquals("Repo URI should have been set to null", null, repoURI);
+    }
+
+    @Test
+    public void testEiffelEventGeneratorNullHost() {
+        String repoURI = EiffelEventGenerator.createRepoURI(NULL_HOST, PROJECT);
+
+        assertNull("Repo URI should have been set to null", repoURI);
     }
 
     @SuppressWarnings("unchecked")
