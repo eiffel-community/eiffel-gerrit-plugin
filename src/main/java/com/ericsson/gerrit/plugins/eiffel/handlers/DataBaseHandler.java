@@ -120,16 +120,16 @@ public class DataBaseHandler {
     }
 
     /**
-     * This function will create a database structure in the database file if it
+     * This function will create a sql database structure in the database file if it
      * does not exist.
      *
      * @throws ConnectException
      */
     private void createNewDatabase() throws ConnectException {
-        try (Connection connection = connect()) {
-            if (connection != null) {
-                connection.getMetaData();
-                connection.close();
+        try (Connection sqlConnection = connect()) {
+            if (sqlConnection != null) {
+                sqlConnection.getMetaData();
+                sqlConnection.close();
             }
 
         } catch (SQLException e) {
