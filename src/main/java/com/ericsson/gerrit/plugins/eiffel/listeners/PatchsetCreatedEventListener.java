@@ -62,7 +62,7 @@ public class PatchsetCreatedEventListener extends AbstractEventListener {
                 patchSetCreatedEvent);
 
         EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator.generate(
-                patchSetCreatedEvent, pluginConfig);
+                patchSetCreatedEvent, pluginConfig, pluginDirectoryPath);
         EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig);
         eiffelEventSender.send(eiffelEvent);
 

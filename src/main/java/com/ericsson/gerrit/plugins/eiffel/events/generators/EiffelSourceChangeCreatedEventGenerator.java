@@ -16,8 +16,13 @@
 */
 package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
+import java.io.File;
+
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
+import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
+import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.handlers.StateHandler;
 import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
 import com.google.gerrit.server.events.PatchSetCreatedEvent;
@@ -26,6 +31,7 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
 
     private static final String TYPE = "EiffelSourceChangeCreatedEvent";
     private static final String TRACKER = "Gerrit";
+    private static final String LINK_TYPE_PREVIOUS_VERSION = "PREVIOUS_VERSION";
 
     /**
      * Extracts information from the PatchSetCreatedEvent and generates an
@@ -36,7 +42,7 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
      * @return EiffelSourceChangeCreatedEvent
      */
     public static EiffelSourceChangeCreatedEvent generate(PatchSetCreatedEvent patchSetCreatedEvent,
-            EiffelPluginConfiguration pluginConfig) {
+            EiffelPluginConfiguration pluginConfig, File pluginDirectoryPath) {
         final ChangeAttribute changeAttribute = patchSetCreatedEvent.change.get();
         final PatchSetAttribute patchSetAttribute = patchSetCreatedEvent.patchSet.get();
         final String projectName = changeAttribute.project;
@@ -49,6 +55,8 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
         final int insertions = patchSetAttribute.sizeInsertions;
         final int deletions = patchSetAttribute.sizeDeletions;
         final String changeId = patchSetCreatedEvent.changeKey.toString();
+        final Link previousVersionLink = createPreviousVersionLink(pluginDirectoryPath, projectName,
+                changeId);
 
         EiffelSourceChangeCreatedEvent eiffelEvent = new EiffelSourceChangeCreatedEvent();
         eiffelEvent.msgParams.meta.type = TYPE;
@@ -71,15 +79,35 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
         eiffelEvent.eventParams.data.gitIdentifier.branch = branch;
         eiffelEvent.eventParams.data.gitIdentifier.repoName = projectName;
 
-        // TODO
-        // String latestEiffelSourceChangeCreatedEventId =
-        // getLatestEiffelSourceChangeCreatedEventId();
-        // setPreviousVersionLink(latestEiffelSourceChangeCreatedEventId);
+        eiffelEvent.eventParams.links.add(previousVersionLink);
 
         // String latestEiffelSourceChangeSubmittedEventId =
         // getLatestEiffelSourceChangeSubmittedEventId();
         // setBaseLink(latestEiffelSourceChangeSubmittedEventId);
 
         return eiffelEvent;
+    }
+
+    private static Link createPreviousVersionLink(File pluginDirectoryPath, final String projectName,
+            final String changeId) {
+        StateHandler stateHandler = new StateHandler(pluginDirectoryPath);
+        String lastSourceChangeCreated = getLastSourceChangeCreatedEiffelEvent(projectName, changeId, stateHandler);
+
+        Link previousVersionLink = new Link();
+        previousVersionLink.type = LINK_TYPE_PREVIOUS_VERSION;
+        previousVersionLink.target = lastSourceChangeCreated;
+        return previousVersionLink;
+    }
+
+    private static String getLastSourceChangeCreatedEiffelEvent(final String projectName, final String changeId,
+            StateHandler stateHandler) {
+
+        try {
+            String latestEiffelSourceChangeCreatedEventId = stateHandler
+                    .getLastSourceChangeCreatedEiffelEvent(projectName, changeId);
+            return latestEiffelSourceChangeCreatedEventId;
+        } catch (NoSuchElementException e) {
+            return null;
+        }
     }
 }
