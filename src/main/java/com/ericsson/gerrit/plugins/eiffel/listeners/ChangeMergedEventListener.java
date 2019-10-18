@@ -62,7 +62,7 @@ public class ChangeMergedEventListener extends AbstractEventListener {
         EiffelSourceChangeSubmittedEvent eiffelEvent = EiffelSourceChangeSubmittedEventGenerator.generate(
                 changeMergedEvent, pluginConfig);
         EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig);
-        eiffelEventSender.setType("EiffelSourceChangeSubmittedEvent");
+        eiffelEventSender.setType(eiffelEvent.getClass().getSimpleName());
         eiffelEventSender.setMessage(eiffelEvent);
         eiffelEventSender.send();
     }

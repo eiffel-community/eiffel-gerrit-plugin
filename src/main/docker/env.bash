@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 
-if [[ "${DOCKER_HOST}" ]]; then
-  export HOST=$(echo ${DOCKER_HOST} | sed -e 's|^tcp\://||;s|:.*$||');
-else
-  export HOST=$(hostname -I | tr " " "\n"| head -1);
-  echo "Docker Host IP: $HOST"
-fi
+export HOST=$(hostname -I | tr " " "\n"| head -1);
+echo "Docker Host IP: $HOST"
 
 export RABBITMQ_IMAGE="bitnami/rabbitmq:3.7.8-debian-9"
 export REMREM_GENERATE_IMAGE="eiffelericsson/eiffel-remrem-generate:2.0.4"
