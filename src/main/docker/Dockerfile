@@ -22,7 +22,9 @@ RUN java -jar /var/gerrit/bin/gerrit.war reindex -d /var/gerrit
 COPY ${JAR_LOCATION} /var/gerrit/plugins/eiffel-plugin.jar
 
 # Allow incoming traffic
-EXPOSE 29418 8080
+EXPOSE 29418 8080 5005
 
 # Start Gerrit
-CMD git config -f /var/gerrit/etc/gerrit.config gerrit.canonicalWebUrl http://localhost:8080/ && /var/gerrit/bin/gerrit.sh start && tail -f /var/gerrit/logs/error_log
+CMD git config -f /var/gerrit/etc/gerrit.config gerrit.canonicalWebUrl http://localhost:8080/ && \
+java -jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 /var/gerrit/bin/gerrit.war daemon -d /var/gerrit && \
+tail -f /var/gerrit/logs/error_log
