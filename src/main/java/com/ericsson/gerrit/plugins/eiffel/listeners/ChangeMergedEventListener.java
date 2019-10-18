@@ -40,6 +40,9 @@ public class ChangeMergedEventListener extends AbstractEventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChangeMergedEventListener.class);
 
+    /**
+     * Injecting here as the injection framework will go through this class
+     */
     @Inject
     public ChangeMergedEventListener(@PluginName final String pluginName,
             final @PluginData File pluginDirectoryPath) {

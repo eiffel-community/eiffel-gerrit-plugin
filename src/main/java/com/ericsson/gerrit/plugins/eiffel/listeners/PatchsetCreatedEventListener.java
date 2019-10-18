@@ -41,6 +41,9 @@ public class PatchsetCreatedEventListener extends AbstractEventListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(
             PatchsetCreatedEventListener.class);
 
+    /**
+     * Injecting here as the injection framework will go through this class
+     */
     @Inject
     public PatchsetCreatedEventListener(@PluginName final String pluginName,
             final @PluginData File pluginDirectoryPath) {
