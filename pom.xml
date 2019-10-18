@@ -22,6 +22,15 @@
         <URL>${project.artifactId}-${project.version}.jar</URL>
     </properties>
 
+    <!-- Repositories from additional providers -->
+    <!-- WARNING: Changes made here must also be made in .mvn/project-settings.xml -->
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <!-- Dependency for Gerrit -->
         <dependency>
@@ -43,6 +52,18 @@
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.26</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.eiffel-community</groupId>
+            <artifactId>eiffel-commons</artifactId>
+            <version>1.0.1</version>
         </dependency>
 
         <!-- Dependencies for testing -->
@@ -70,16 +91,15 @@
             <version>2.0.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.13.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
-        <testResources>
-            <testResource>
-                <directory>src/main/docker</directory>
-                <filtering>true</filtering>
-            </testResource>
-        </testResources>
-        
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -125,7 +145,8 @@
                             <Implementation-Vendor>Eiffel-Community</Implementation-Vendor>
                             <Implementation-URL></Implementation-URL>
 
-                            <Implementation-Title>Plugin ${Gerrit-PluginName}</Implementation-Title>
+                            <Implementation-Title>Plugin
+                                ${Gerrit-PluginName}</Implementation-Title>
                             <Implementation-Version>${project.version}</Implementation-Version>
 
                             <Gerrit-ApiType>${Gerrit-ApiType}</Gerrit-ApiType>
