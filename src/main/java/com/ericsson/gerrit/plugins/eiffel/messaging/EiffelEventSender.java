@@ -20,9 +20,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,12 +73,12 @@ public class EiffelEventSender {
         }
     }
 
-    public EiffelEventSender setMessage(final EiffelEvent eiffelMessage) {
+    public EiffelEventSender setEiffelEventMessage(final EiffelEvent eiffelMessage) {
         this.eiffelMessage = gson.toJsonTree(eiffelMessage).toString();
         return this;
     }
 
-    public EiffelEventSender setType(final String eiffelType) {
+    public EiffelEventSender setEiffelEventType(final String eiffelType) {
         this.eiffelType = eiffelType;
         return this;
     }

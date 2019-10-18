@@ -38,8 +38,8 @@ public class EiffelEventSenderTest {
         setUpMockActions();
 
         EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
-        sender.setMessage(new EiffelSourceChangeCreatedEvent());
-        sender.setType(EIFFEL_TYPE);
+        sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
+        sender.setEiffelEventType(EIFFEL_TYPE);
 
         assertThatCode(() -> { Whitebox.invokeMethod(sender, "generateAndPublish"); }).doesNotThrowAnyException();
     }
@@ -47,8 +47,8 @@ public class EiffelEventSenderTest {
     @Test(expected = MissingConfigurationException.class)  
     public void testEventSenderWithMissingConfiguration() throws Exception {
         EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
-        sender.setMessage(new EiffelSourceChangeCreatedEvent());
-        sender.setType("");
+        sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
+        sender.setEiffelEventType("");
 
         Whitebox.invokeMethod(sender, "verifyConfiguration");
     }
@@ -58,8 +58,8 @@ public class EiffelEventSenderTest {
         setUpMockActionsWithBadStatus();
 
         EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
-        sender.setMessage(new EiffelSourceChangeCreatedEvent());
-        sender.setType(EIFFEL_TYPE);
+        sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
+        sender.setEiffelEventType(EIFFEL_TYPE);
 
         Whitebox.invokeMethod(sender, "generateAndPublish");
     }
