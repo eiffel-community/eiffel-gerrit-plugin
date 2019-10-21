@@ -60,16 +60,19 @@ public class EiffelEventSender {
     }
 
     /**
-     * Sends a REMReM eiffel message using
+     * Sends a REMReM Eiffel message to the generateAndPublish endpoint. RuntimeException is thrown
+     * when a HttpRequestFailedException occurs so that the retry logic works.
      *
      */
     public void send() {
         try {
             verifyConfiguration();
             generateAndPublish();
-        } catch (URISyntaxException | IOException | MissingConfigurationException
-                | HttpRequestFailedException e) {
-            LOGGER.error("Failed to send eiffel message.", e);
+        } catch (URISyntaxException | IOException | MissingConfigurationException e1) {
+            LOGGER.error("Failed to send eiffel message.", e1);
+        } catch (HttpRequestFailedException e2) {
+            LOGGER.error("Failed to send eiffel message.", e2);
+            throw new RuntimeException(e2);
         }
     }
 

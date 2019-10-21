@@ -21,6 +21,10 @@ import java.io.File;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.support.RetryTemplate;
 
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
@@ -40,6 +44,9 @@ import com.google.inject.Inject;
 public class ChangeMergedEventListener extends AbstractEventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChangeMergedEventListener.class);
+
+    @Autowired
+    private RetryTemplate retryTemplate;
 
     @Inject
     public ChangeMergedEventListener(@PluginName final String pluginName,
@@ -64,6 +71,12 @@ public class ChangeMergedEventListener extends AbstractEventListener {
         EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig);
         eiffelEventSender.setEiffelEventType(eiffelEvent.getClass().getSimpleName());
         eiffelEventSender.setEiffelEventMessage(eiffelEvent);
-        eiffelEventSender.send();
+        retryTemplate.execute(new RetryCallback<Void, RuntimeException>() {
+            @Override
+            public Void doWithRetry(RetryContext context) {
+                eiffelEventSender.send();
+                return null;
+            }
+        });
     }
 }
