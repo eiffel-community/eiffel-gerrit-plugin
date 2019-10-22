@@ -1,9 +1,10 @@
 package com.ericsson.gerrit.plugins.eiffel.git;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.slf4j.Logger;
@@ -48,17 +49,18 @@ public class CommitInformation {
      * @param projectName The name of the project which the commits resides in
      * @return A list of parents SHAs
      */
-    public List<String> getParents(final String commitId, final String projectName) {
-        List<String> parentsSha = getParentsList(commitId, projectName);
-        return parentsSha;
+    public List<String> getParentsSHAs(final String commitId, final String projectName) {
+        List<RevCommit> parents = getParents(commitId, projectName);
+        List<String> parentsSHAs = getSHAs(parents);
+        return parentsSHAs;
     }
 
     /**
      * Will return a list of parents for a given commit. If the collections cannot find the project
      * or commit, an empty list will be returned.
      */
-    private List<String> getParentsList(final String commitId, final String projectName) {
-        List<String> parents = Collections.emptyList();
+    private List<RevCommit> getParents(final String commitId, final String projectName) {
+        List<RevCommit> parents = Collections.emptyList();;
 
         try {
             parents = getParentsFromCommit(commitId, projectName);
@@ -74,20 +76,22 @@ public class CommitInformation {
         return parents;
     }
 
-    private List<String> getParentsFromCommit(final String commitId, final String projectName)
+    private List<RevCommit> getParentsFromCommit(final String commitId, final String projectName)
             throws UnprocessableEntityException, IOException, ResourceNotFoundException {
 
         ProjectResource projectResource = projectsCollection.parse(projectName, true);
         CommitResource commitResource = commitsCollection.parse(projectResource,
                 IdString.fromDecoded(commitId));
-
-        List<String> parentsSha = new ArrayList<String>();
         RevCommit commit = commitResource.getCommit();
         RevCommit[] parents = commit.getParents();
-        for (RevCommit revCommit : parents) {
-            parentsSha.add(revCommit.getName());
-        }
 
+        return Arrays.asList(parents);
+    }
+
+    private List<String> getSHAs(List<RevCommit> parents) {
+        List<String> parentsSha = parents.stream()
+                                         .map(parent -> parent.getName())
+                                         .collect(Collectors.toList());
         return parentsSha;
     }
 

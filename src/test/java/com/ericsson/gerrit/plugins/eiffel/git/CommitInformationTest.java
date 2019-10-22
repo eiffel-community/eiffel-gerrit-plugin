@@ -104,7 +104,7 @@ public class CommitInformationTest {
         String projectName = "projectName";
         List<String> expectedParentsSha = Arrays.asList(parent1Sha, parent2Sha);
 
-        List<String> actualParentSha = commitInformation.getParents(commitId, projectName);
+        List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
 
         assertEquals(expectedParentsSha, actualParentSha);
 
@@ -131,7 +131,7 @@ public class CommitInformationTest {
         String commitId = "not found hash";
         String projectName = "projectName";
 
-        List<String> actualParentSha = commitInformation.getParents(commitId, projectName);
+        List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
 
         assertEquals(expectedParentsSha, actualParentSha);
         verify(mockAppender, times(1)).doAppend(captorLoggingEvent.capture());
@@ -156,7 +156,7 @@ public class CommitInformationTest {
         String commitId = "sha hash";
         String projectName = "projectName";
 
-        List<String> actualParentSha = commitInformation.getParents(commitId, projectName);
+        List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
 
         assertEquals(expectedParentsSha, actualParentSha);
         verify(mockAppender, times(1)).doAppend(captorLoggingEvent.capture());
@@ -179,7 +179,7 @@ public class CommitInformationTest {
         String projectName = "notFoundProject";
         List<String> expectedParentsSha = Arrays.asList();
 
-        List<String> actualParentSha = commitInformation.getParents(commitId, projectName);
+        List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
 
         assertEquals(expectedParentsSha, actualParentSha);
         verify(mockAppender, times(1)).doAppend(captorLoggingEvent.capture());
@@ -196,6 +196,7 @@ public class CommitInformationTest {
     private void removeStdoutAppenders() {
         org.apache.log4j.Logger rootLogger = LogManager.getRootLogger();
 
+        @SuppressWarnings("unchecked")
         Enumeration<Appender> enumeration = rootLogger.getAllAppenders();
         /*
          * A note on mockito and equals: Testing equality with mock objects depends on the context.
