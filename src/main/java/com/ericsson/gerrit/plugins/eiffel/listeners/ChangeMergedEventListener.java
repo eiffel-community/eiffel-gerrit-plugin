@@ -29,6 +29,7 @@ import org.springframework.retry.support.RetryTemplate;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.generators.EiffelSourceChangeSubmittedEventGenerator;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.HttpRequestFailedException;
 import com.ericsson.gerrit.plugins.eiffel.messaging.EiffelEventSender;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.PluginName;
@@ -71,7 +72,7 @@ public class ChangeMergedEventListener extends AbstractEventListener {
         EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig);
         eiffelEventSender.setEiffelEventType(eiffelEvent.getClass().getSimpleName());
         eiffelEventSender.setEiffelEventMessage(eiffelEvent);
-        retryTemplate.execute(new RetryCallback<Void, RuntimeException>() {
+        retryTemplate.execute(new RetryCallback<Void, HttpRequestFailedException>() {
             @Override
             public Void doWithRetry(RetryContext context) {
                 eiffelEventSender.send();

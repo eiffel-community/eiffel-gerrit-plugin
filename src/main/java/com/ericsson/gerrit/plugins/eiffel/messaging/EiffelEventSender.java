@@ -72,7 +72,7 @@ public class EiffelEventSender {
             LOGGER.error("Failed to send eiffel message.", e1);
         } catch (HttpRequestFailedException e2) {
             LOGGER.error("Failed to send eiffel message.", e2);
-            throw new RuntimeException(e2);
+            throw e2;
         }
     }
 
