@@ -10,15 +10,21 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Appender;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.spi.LoggingEvent;
+import org.assertj.core.util.Lists;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -43,11 +49,13 @@ public class CommitInformationTest {
      * constrcutor instead for easiser testing
      */
 
+    @Rule
+    public TestName name = new TestName();
     @Mock
     private Appender mockAppender;
     @Captor
     private ArgumentCaptor<LoggingEvent> captorLoggingEvent;
-
+    private List<Appender> otherAppenders = Lists.emptyList();
 
     @Before
     public void setup() {
@@ -55,12 +63,15 @@ public class CommitInformationTest {
         rootLogger.addAppender(mockAppender);
     }
 
+
     @After
     public void tearDown() {
         org.apache.log4j.Logger rootLogger = LogManager.getRootLogger();
         rootLogger.removeAppender(mockAppender);
 
+        restoreStdoutAppenders(rootLogger);
     }
+
 
     @Test
     public void testFetchingParentsShas() throws Exception {
@@ -96,11 +107,15 @@ public class CommitInformationTest {
         List<String> actualParentSha = commitInformation.getParents(commitId, projectName);
 
         assertEquals(expectedParentsSha, actualParentSha);
+
+        // Verify we have not logged
         verify(mockAppender, times(0)).doAppend(captorLoggingEvent.capture());
+
     }
 
     @Test
     public void testFetchingCommitNotFound() throws Exception {
+        removeStdoutAppenders();
 
         CommitsCollection commitsCollection = mock(CommitsCollection.class);
         ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
@@ -120,10 +135,13 @@ public class CommitInformationTest {
 
         assertEquals(expectedParentsSha, actualParentSha);
         verify(mockAppender, times(1)).doAppend(captorLoggingEvent.capture());
+
     }
 
     @Test
     public void testFetchingIOException() throws Exception {
+        removeStdoutAppenders();
+
         CommitsCollection commitsCollection = mock(CommitsCollection.class);
         ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
         ProjectResource projectResource = mock(ProjectResource.class);
@@ -142,10 +160,13 @@ public class CommitInformationTest {
 
         assertEquals(expectedParentsSha, actualParentSha);
         verify(mockAppender, times(1)).doAppend(captorLoggingEvent.capture());
+
     }
 
-    @Test()
+    @Test
     public void testFetchingProjectNotFound() throws Exception {
+        removeStdoutAppenders();
+
         CommitsCollection commitsCollection = mock(CommitsCollection.class);
         ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
 
@@ -162,6 +183,31 @@ public class CommitInformationTest {
 
         assertEquals(expectedParentsSha, actualParentSha);
         verify(mockAppender, times(1)).doAppend(captorLoggingEvent.capture());
+    }
+
+    private void restoreStdoutAppenders(org.apache.log4j.Logger rootLogger) {
+        for (Appender appender : otherAppenders) {
+            rootLogger.addAppender((Appender) appender);
+        }
+        otherAppenders.clear();
+    }
+
+
+    private void removeStdoutAppenders() {
+        org.apache.log4j.Logger rootLogger = LogManager.getRootLogger();
+
+        Enumeration<Appender> enumeration = rootLogger.getAllAppenders();
+        /*
+         * A note on mockito and equals: Testing equality with mock objects depends on the context.
+         * When removing a the mock from the root logger mockito will call an '=='. Here mockito
+         * interprets it as another context and thus does not call '=='.
+         */
+        otherAppenders = Collections.list(enumeration)
+                                    .stream()
+                                    .filter(appender -> appender != mockAppender)
+                                    .collect(Collectors.toList());
+
+        otherAppenders.forEach(appender -> rootLogger.removeAppender(appender));
     }
 
 }
