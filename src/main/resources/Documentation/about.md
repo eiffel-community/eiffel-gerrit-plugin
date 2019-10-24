@@ -78,12 +78,12 @@ Configuration
 -------------
 
 Plugin configuration stored as part of the project configuration and can be edited/configured in two ways - by editing
-project.conf file:
+project.config file:
 
     cd <your repository>
     git fetch origin refs/meta/config:refs/remotes/origin/meta/config
     git checkout meta/config
-    <open project.conf and plugin configuration as it shown in example above>
+    <open project.config and plugin configuration as it shown in example above>
     git commit -a
     git push origin meta/config:meta/config
 
