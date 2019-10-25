@@ -69,7 +69,7 @@ public class EiffelPluginConfiguration {
         // Read plugin configuration
         this.enabled = pluginConfig.getBoolean(ENABLED, false);
         StringBuilder filterBuilder = new StringBuilder();
-        if (pluginConfig.getStringList(FILTER).length > 0) {
+        if (pluginConfig.getStringList(FILTER)!=null && pluginConfig.getStringList(FILTER).length > 0) {
             Arrays.stream(pluginConfig.getStringList(FILTER)).forEach(filterval -> {
                 filterBuilder.append(filterval).append(",");
             });
@@ -80,7 +80,7 @@ public class EiffelPluginConfiguration {
         this.remremPassword = pluginConfig.getString(REMREM_PASSWORD);
         // flow context is optional
         StringBuilder flowContextBuilder = new StringBuilder();
-        if (pluginConfig.getStringList(FLOW_CONTEXT).length > 0) {
+        if (pluginConfig.getStringList(FLOW_CONTEXT)!=null && pluginConfig.getStringList(FLOW_CONTEXT).length > 0) {
             Arrays.stream(pluginConfig.getStringList(FLOW_CONTEXT)).forEach(filterval -> {
                 flowContextBuilder.append(filterval).append(",");
             });

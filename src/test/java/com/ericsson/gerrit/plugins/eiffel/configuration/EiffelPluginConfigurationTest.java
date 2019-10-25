@@ -20,8 +20,8 @@ public class EiffelPluginConfigurationTest {
     public ExpectedException exception = ExpectedException.none();
 
     private final String PLUGIN_NAME = "plugin";
-    private final String FILTER = null;
-    private final String FLOW_CONTEXT = null;
+    private final String[] FILTER = null;
+    private final String[] FLOW_CONTEXT = null;
     private final boolean ENABLED_TRUE = true;
     private final boolean ENABLED_FALSE = false;
     private final String REMREM_PUBLISH_URL = "https://localhost:8080/publish";
@@ -40,8 +40,8 @@ public class EiffelPluginConfigurationTest {
 
         when(pluginConfigFactory.getFromProjectConfig(nameKey, PLUGIN_NAME)).thenReturn(pluginConfig);
         when(pluginConfig.getBoolean(EiffelPluginConfiguration.ENABLED, false)).thenReturn(ENABLED_TRUE);
-        when(pluginConfig.getString(EiffelPluginConfiguration.FILTER)).thenReturn(FILTER);
-        when(pluginConfig.getString(EiffelPluginConfiguration.FLOW_CONTEXT)).thenReturn(FLOW_CONTEXT);
+        when(pluginConfig.getStringList(EiffelPluginConfiguration.FILTER)).thenReturn(FILTER);
+        when(pluginConfig.getStringList(EiffelPluginConfiguration.FLOW_CONTEXT)).thenReturn(FLOW_CONTEXT);
         when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_PUBLISH_URL)).thenReturn(REMREM_PUBLISH_URL);
         when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_USERNAME)).thenReturn(REMREM_USERNAME);
         when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_PASSWORD)).thenReturn(REMREM_PASSWORD);
@@ -91,14 +91,14 @@ public class EiffelPluginConfigurationTest {
     public void testEiffelPluginConfigurationFilter() throws NoSuchProjectException {
         EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
                 pluginConfigFactory);
-        assertEquals(pluginConfig.getFilter(), FILTER);
+        assertEquals(pluginConfig.getFilter(), "");
     }
 
     @Test
     public void testEiffelPluginConfigurationtFlowContext() throws NoSuchProjectException {
         EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
                 pluginConfigFactory);
-        assertEquals(pluginConfig.getFlowContext(), FLOW_CONTEXT);
+        assertEquals(pluginConfig.getFlowContext(), "");
     }
 
     @Test
