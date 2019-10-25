@@ -18,6 +18,7 @@
 package com.ericsson.gerrit.plugins.eiffel.configuration;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,12 +68,26 @@ public class EiffelPluginConfiguration {
         }
         // Read plugin configuration
         this.enabled = pluginConfig.getBoolean(ENABLED, false);
-        this.filter = pluginConfig.getString(FILTER);
+        StringBuilder filterBuilder = new StringBuilder();
+        if (pluginConfig.getStringList(FILTER).length > 0) {
+            Arrays.stream(pluginConfig.getStringList(FILTER)).forEach(filterval -> {
+                filterBuilder.append(filterval).append(",");
+            });
+        }
+        this.filter = filterBuilder.toString();
         this.remremPublishURL = pluginConfig.getString(REMREM_PUBLISH_URL);
         this.remremUsername = pluginConfig.getString(REMREM_USERNAME);
         this.remremPassword = pluginConfig.getString(REMREM_PASSWORD);
         // flow context is optional
-        this.flowContext = pluginConfig.getString(FLOW_CONTEXT);
+        StringBuilder flowContextBuilder = new StringBuilder();
+        if (pluginConfig.getStringList(FLOW_CONTEXT).length > 0) {
+            Arrays.stream(pluginConfig.getStringList(FLOW_CONTEXT)).forEach(filterval -> {
+                flowContextBuilder.append(filterval).append(",");
+            });
+        }
+        this.flowContext = flowContextBuilder.toString();
+        pluginConfig.setString(FILTER, filterBuilder.toString());
+        pluginConfig.setString(FLOW_CONTEXT, flowContextBuilder.toString());
 
         // No point to check other config parameters if plugin is disabled
         if (!this.enabled) {

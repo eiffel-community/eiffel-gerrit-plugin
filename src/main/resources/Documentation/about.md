@@ -23,7 +23,7 @@ eiffel-integration.enabled
 eiffel-integration.filter
 :   Allow users to define a white list of branches, i.e. messages will be sent only for source change on
     specified branches. Source Change to any other branch will be ignored. Accepts full branch name and or
-    regex separated by spaces. If not defined, messages will be sent for source changes in all branches.
+    regex separated by `,`. If not defined, messages will be sent for source changes in all branches.
     See example configuration where release branch may be triggered on release-(Any version).
 
 eiffel-integration.flow-context

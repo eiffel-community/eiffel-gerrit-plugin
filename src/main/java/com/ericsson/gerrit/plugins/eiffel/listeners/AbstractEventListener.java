@@ -130,7 +130,7 @@ public abstract class AbstractEventListener implements EventListener {
 
     private boolean isBranchNameInConfiguredFilter(final String branch, final String filter,
             final String project) {
-        final String[] filterList = filter.split("\\s+");
+        final String[] filterList = filter.split(",");
         for (final String regExString : filterList) {
             if (branch.matches(regExString)) {
                 return true;
