@@ -144,7 +144,7 @@ Scenario overview:
 
 This scenario describes a workflow where a user performs a standard review
 cycle. Before the review finishes another review finishes and submits to
-master(`C01`). Due to project setting *Rebase if necessary* and no conflicting
+master(`C01`). Due to project setting **Rebase if necessary** and no conflicting
 changes, Gerrit will perform a rebase when the user submits the review.
 
 Preconditions:
@@ -171,6 +171,10 @@ Eiffel events sent from the plugin:
 - SCC(`E1`) sent for `P1` push with `BASE` link set to `E0`
 - SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set `E1` and `BASE` link set to `E0`
 - SCS(`E3`) sent at submit with `CHANGE` link set `E2` and `PREVIOUS_VERSION` link set to `E01`
+
+**Note:** Gerrit will create a new patchset and rebase in that patchset. The
+plugin will not send an event for that patchset and we will not link to that
+ patchset.
 
 Commit history after submit:
 
@@ -229,8 +233,8 @@ Eiffel events sent from the plugin:
 - SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set `E1` and `BASE` link set to `E0`
 - SCS(`E3`) sent at submit with `CHANGE` link set `E2`and `PREVIOUS_VERSION` set to `E0`
 
-**NOTE:** The plugin will not send a SCS event for `C2` and can not set a
-`PREVIOUS_VERSION` link to the commit.
+**NOTE:** The plugin will send a SCS event for the merge commit `C3` and not for
+ the commit created in the patchset `C2`.
 
 Commit history after submit:
 
