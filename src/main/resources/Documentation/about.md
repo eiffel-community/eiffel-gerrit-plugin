@@ -49,7 +49,7 @@ Example:
 
     [plugin "eiffel-integration"]
       enabled = true
-      filter = (release-).* master
+      filter = (release-).*,master
       flow-context = <UUID of EiffelFlowContextDefinedEvent>
       remrem-publish-url = <URL of REMReM publish service>
       remrem-username = <REMReM Username to authenticate>
@@ -58,7 +58,7 @@ Example:
 
     [plugin "eiffel-integration"]
       enabled = true
-      filter = (release-).* master
+      filter = (release-).*,master
       flow-context = aaaaaaaa-bbbb-5ccc-8ddd-eeeeeeeeeee0
       remrem-publish-url = https://localhost:8080/publish
       remrem-username = dummyuser
