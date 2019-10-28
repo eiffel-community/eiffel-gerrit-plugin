@@ -145,16 +145,17 @@ public class EiffelPluginConfiguration {
      * [eiffel-integration]
      *    filter = branch1, branch2
      *    filter = branch3
-     * @param key  the property which can contain multiple values, for example: Filter, FlowContext, etc.
+     * @param property  the property which can contain multiple values, for example: Filter, FlowContext, etc.
      * @param pluginConfig the configuration for the project read
      * @return String  returns the value for the property read from the plugin configuration.
      */
-    private String getMultiValueParameters(final String key, final PluginConfig pluginConfig){
-        String keyValue = "";
-        if (pluginConfig.getStringList(key)!=null && pluginConfig.getStringList(key).length > 0) {
-            keyValue = Arrays.stream(pluginConfig.getStringList(key)).collect(Collectors.joining(","));
-            pluginConfig.setString(key, Arrays.stream(pluginConfig.getStringList(key)).collect(Collectors.joining(",")));
+    private String getMultiValueParameters(final String property, final PluginConfig pluginConfig){
+        String propertyValue = "";
+        String[] propertyValues = pluginConfig.getStringList(property);
+        if (propertyValues!=null && propertyValues.length > 0) {
+            propertyValue = Arrays.stream(propertyValues).collect(Collectors.joining(","));
+            pluginConfig.setString(property, Arrays.stream(propertyValues).collect(Collectors.joining(",")));
         }
-        return keyValue;
+        return propertyValue;
     }
 }

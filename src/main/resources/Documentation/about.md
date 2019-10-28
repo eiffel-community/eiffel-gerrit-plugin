@@ -64,7 +64,9 @@ Example:
       remrem-username = dummyuser
       remrem-password = ********
 
-##### Note: Manually editing the Eiffel plugin configurations will show the configurations in the GUI using , seperated values. If you are changing them back in the UI, it will only contain one pair in the project configurations.
+##### Note
+Manually editing the Eiffel plugin configurations will show the configurations in the GUI using , seperated values.
+If you are changing them back in the UI, it will only contain one pair in the project configurations.
 
 Global Configuration:
 
