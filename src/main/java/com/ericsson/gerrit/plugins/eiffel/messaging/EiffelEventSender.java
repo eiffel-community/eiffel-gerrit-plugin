@@ -68,11 +68,14 @@ public class EiffelEventSender {
         try {
             verifyConfiguration();
             generateAndPublish();
-        } catch (URISyntaxException | IOException | MissingConfigurationException e1) {
-            LOGGER.error("Failed to send eiffel message.", e1);
-        } catch (HttpRequestFailedException e2) {
-            LOGGER.error("Failed to send eiffel message.", e2);
-            throw e2;
+        } catch (URISyntaxException | MissingConfigurationException e) {
+            LOGGER.error("Failed to send eiffel message.", e);
+        } catch (IOException e) {
+            LOGGER.error("Failed to send eiffel message.", e);
+            throw new RuntimeException(e);
+        } catch (HttpRequestFailedException e) {
+            LOGGER.error("Failed to send eiffel message.", e);
+            throw e;
         }
     }
 
@@ -100,7 +103,7 @@ public class EiffelEventSender {
 
         if (HttpStatus.SC_OK == statusCode) {
             LOGGER.info("Generated and published eiffel message successfully. \n{}", result);
-        } else {
+        } else if (HttpStatus.SC_BAD_GATEWAY == statusCode || HttpStatus.SC_SERVICE_UNAVAILABLE == statusCode ) {
             final String errorMessage = String.format(
                     "Could not generate and publish eiffel message due to server issue or invalid json data, "
                             + "Status Code :: %d\npublishURL :: %s\ninput message :: %s\nError Message  :: %s",

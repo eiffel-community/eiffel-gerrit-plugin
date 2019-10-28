@@ -44,9 +44,9 @@ function do_rebuild {
 
   mvn clean install package -DskipTests
 
-  mv src/main/docker/env.bash target/env.bash
-  mv src/main/docker/docker-compose.yml target/docker-compose.yml
-  mv src/main/docker/Dockerfile target/Dockerfile
+  cp src/main/docker/env.bash target/env.bash
+  cp src/main/docker/docker-compose.yml target/docker-compose.yml
+  cp src/main/docker/Dockerfile target/Dockerfile
 
   JAR_LOCATION=$(ls target/ | grep '^eiffel-gerrit-plugin-[0-9]*.[0-9]*.[0-9]*.jar')
   docker build -f target/Dockerfile -t plugin-test target/ --build-arg JAR_LOCATION=./$JAR_LOCATION
