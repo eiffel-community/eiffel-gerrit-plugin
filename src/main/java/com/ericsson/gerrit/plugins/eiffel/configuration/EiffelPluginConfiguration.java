@@ -69,23 +69,12 @@ public class EiffelPluginConfiguration {
         }
         // Read plugin configuration
         this.enabled = pluginConfig.getBoolean(ENABLED, false);
-        if (pluginConfig.getStringList(FILTER)!=null && pluginConfig.getStringList(FILTER).length > 0) {
-            this.filter = Arrays.stream(pluginConfig.getStringList(FILTER)).collect(Collectors.joining(","));
-            pluginConfig.setString(FILTER, this.filter);
-        } else {
-            this.filter = "";
-        }
-
+        this.filter = getMultiValueParameters(FILTER, pluginConfig);
         this.remremPublishURL = pluginConfig.getString(REMREM_PUBLISH_URL);
         this.remremUsername = pluginConfig.getString(REMREM_USERNAME);
         this.remremPassword = pluginConfig.getString(REMREM_PASSWORD);
         // flow context is optional
-        if (pluginConfig.getStringList(FLOW_CONTEXT)!=null && pluginConfig.getStringList(FLOW_CONTEXT).length > 0) {
-            this.flowContext = Arrays.stream(pluginConfig.getStringList(FLOW_CONTEXT)).collect(Collectors.joining(","));
-            pluginConfig.setString(FLOW_CONTEXT, this.flowContext);
-        } else {
-            this.flowContext = "";
-        }
+        this.flowContext = getMultiValueParameters(FLOW_CONTEXT, pluginConfig);
 
         // No point to check other config parameters if plugin is disabled
         if (!this.enabled) {
@@ -146,5 +135,26 @@ public class EiffelPluginConfiguration {
      */
     public void setPluginDirectoryPath(File pluginDirectoryPath) {
         this.pluginDirectoryPath = pluginDirectoryPath;
+    }
+
+    /**
+     * This method reads multiple values set manually by editing the project configuration
+     * and then setting it in the GUI so that the person who is having the privileges to the UI is aware of the 
+     * parameters set manually.
+     * Ex:
+     * [eiffel-integration]
+     *    filter = branch1, branch2
+     *    filter = branch3
+     * @param key  the property which can contain multiple values, for example: Filter, FlowContext, etc.
+     * @param pluginConfig the configuration for the project read
+     * @return String  returns the value for the property read from the plugin configuration.
+     */
+    private String getMultiValueParameters(final String key, final PluginConfig pluginConfig){
+        String keyValue = "";
+        if (pluginConfig.getStringList(key)!=null && pluginConfig.getStringList(key).length > 0) {
+            keyValue = Arrays.stream(pluginConfig.getStringList(key)).collect(Collectors.joining(","));
+            pluginConfig.setString(key, Arrays.stream(pluginConfig.getStringList(key)).collect(Collectors.joining(",")));
+        }
+        return keyValue;
     }
 }

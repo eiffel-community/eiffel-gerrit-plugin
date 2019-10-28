@@ -5,7 +5,7 @@ source code management traceability.
 For more information about Eiffel, follow this link:
 <https://github.com/eiffel-community/eiffel>
 
-#####Eiffel Events:
+##### Eiffel Events:
 
 Version 0.0.1
 :   SourceChangeCreatedEvent
@@ -63,6 +63,8 @@ Example:
       remrem-publish-url = https://localhost:8080/publish
       remrem-username = dummyuser
       remrem-password = ********
+
+##### Note: Manually editing the Eiffel plugin configurations will show the configurations in the GUI using ´,´ seperated values. If you are changing them back in the UI, it will only contain one pair in the project configurations.
 
 Global Configuration:
 
