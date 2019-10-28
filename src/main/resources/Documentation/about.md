@@ -66,7 +66,7 @@ Example:
 
 <span style="color:red">Note</span>
 -----------------
-Manually editing the Eiffel plugin configurations will show the configurations in the GUI using , seperated values.
+Manually editing the Eiffel plugin configurations will show the configurations in the GUI using comma-seperated values.
 If you are changing them back in the UI, it will only contain one pair in the project configurations.
 
 -----------------
