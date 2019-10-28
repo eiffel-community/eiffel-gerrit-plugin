@@ -149,12 +149,12 @@ public class EiffelPluginConfiguration {
      * @param pluginConfig the configuration for the project read
      * @return String  returns the value for the property read from the plugin configuration.
      */
-    private String getMultiValueParameters(final String property, final PluginConfig pluginConfig){
+    private String getMultiValueParameters(final String property, final PluginConfig pluginConfig) {
         String propertyValue = "";
         String[] propertyValues = pluginConfig.getStringList(property);
-        if (propertyValues!=null && propertyValues.length > 0) {
+        if (propertyValues != null && propertyValues.length > 0) {
             propertyValue = Arrays.stream(propertyValues).collect(Collectors.joining(","));
-            pluginConfig.setString(property, Arrays.stream(propertyValues).collect(Collectors.joining(",")));
+            pluginConfig.setString(property, propertyValue);
         }
         return propertyValue;
     }
