@@ -21,15 +21,10 @@ import java.io.File;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.retry.RetryCallback;
-import org.springframework.retry.RetryContext;
-import org.springframework.retry.support.RetryTemplate;
 
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.generators.EiffelSourceChangeCreatedEventGenerator;
-import com.ericsson.gerrit.plugins.eiffel.exceptions.HttpRequestFailedException;
-import com.ericsson.gerrit.plugins.eiffel.messaging.EiffelEventSender;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.server.events.Event;
@@ -45,9 +40,6 @@ public class PatchsetCreatedEventListener extends AbstractEventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(
             PatchsetCreatedEventListener.class);
-    
-    @Inject
-    private RetryTemplate retryTemplate;
 
     @Inject
     public PatchsetCreatedEventListener(@PluginName final String pluginName,
@@ -70,16 +62,6 @@ public class PatchsetCreatedEventListener extends AbstractEventListener {
 
         EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator.generate(
                 patchSetCreatedEvent, pluginConfig);
-        EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig);
-        eiffelEventSender.setEiffelEventType(eiffelEvent.getClass().getSimpleName());
-        eiffelEventSender.setEiffelEventMessage(eiffelEvent);
-        retryTemplate.execute(new RetryCallback<Void, HttpRequestFailedException>() {
-            @Override
-            public Void doWithRetry(RetryContext context) {
-                eiffelEventSender.send();
-                return null;
-            }
-        });
+        sendEiffelEvent(eiffelEvent, pluginConfig);
     }
-
 }

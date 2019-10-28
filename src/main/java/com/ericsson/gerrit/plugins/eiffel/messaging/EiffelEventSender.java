@@ -103,7 +103,7 @@ public class EiffelEventSender {
 
         if (HttpStatus.SC_OK == statusCode) {
             LOGGER.info("Generated and published eiffel message successfully. \n{}", result);
-        } else if (HttpStatus.SC_BAD_GATEWAY == statusCode || HttpStatus.SC_SERVICE_UNAVAILABLE == statusCode ) {
+        } else if (HttpStatus.SC_INTERNAL_SERVER_ERROR == statusCode || HttpStatus.SC_SERVICE_UNAVAILABLE == statusCode ) {
             final String errorMessage = String.format(
                     "Could not generate and publish eiffel message due to server issue or invalid json data, "
                             + "Status Code :: %d\npublishURL :: %s\ninput message :: %s\nError Message  :: %s",

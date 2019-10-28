@@ -17,18 +17,28 @@
 package com.ericsson.gerrit.plugins.eiffel.listeners;
 
 import java.io.File;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
+import com.ericsson.gerrit.plugins.eiffel.configuration.RetryConfiguration;
+import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
+import com.ericsson.gerrit.plugins.eiffel.messaging.EiffelEventSender;
 import com.google.gerrit.common.EventListener;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.events.ChangeEvent;
 import com.google.gerrit.server.events.Event;
 import com.google.inject.Inject;
+
+import io.github.resilience4j.decorators.Decorators;
+import io.github.resilience4j.retry.Retry;
+import io.vavr.control.Try;
 
 /**
  * Abstract class implemented by the Gerrit event listeners, enforces needed listener methods and
@@ -42,6 +52,9 @@ public abstract class AbstractEventListener implements EventListener {
 
     @Inject
     private com.google.gerrit.server.config.PluginConfigFactory pluginConfigFactory;
+
+    @Inject
+    private RetryConfiguration retryConfiguration;
 
     @Inject
     @CanonicalWebUrl
@@ -83,6 +96,18 @@ public abstract class AbstractEventListener implements EventListener {
                 projectNameKey, pluginConfigFactory);
         pluginConfig.setPluginDirectoryPath(pluginDirectoryPath);
         return pluginConfig;
+    }
+
+    public void sendEiffelEvent(EiffelEvent eiffelEvent, EiffelPluginConfiguration pluginConfig) {
+        EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig);
+        eiffelEventSender.setEiffelEventType(eiffelEvent.getClass().getSimpleName());
+        eiffelEventSender.setEiffelEventMessage(eiffelEvent);
+
+        Retry policy = retryConfiguration.getRetryPolicy();
+        Runnable decoratedRunnable = Decorators.ofRunnable(() -> eiffelEventSender.send())
+                                               .withRetry(policy)
+                                               .decorate();
+        Try.runRunnable(decoratedRunnable);
     }
 
     /**
