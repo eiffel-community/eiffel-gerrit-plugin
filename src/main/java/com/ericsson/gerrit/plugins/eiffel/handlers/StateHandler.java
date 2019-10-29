@@ -7,6 +7,9 @@ import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
+import com.google.gson.Gson;
+
 public class StateHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StateHandler.class);
@@ -36,6 +39,24 @@ public class StateHandler {
         return getLastCreatedEiffelEvent(project, branch, Table.SCS_TABLE);
     }
 
+    public void setState(String project, String branch, String changeId, EiffelEvent eiffelEvent) {
+        try {
+            Gson gson = new Gson();
+            String eiffelEventString = gson.toJsonTree(eiffelEvent).toString();
+            switch (eiffelEvent.msgParams.meta.type) {
+            case "EiffelSourceChangeCreatedEvent":
+                setLastSourceChangeCreatedEiffelEvent(project, changeId, eiffelEventString);
+                break;
+
+            case "EiffelSourceChangeSubmitteddEvent":
+                setLastSourceChangeSubmittedEiffelEvent(project, branch, eiffelEventString);
+                break;
+            }
+        } catch (Exception e) {
+            // Do someything
+        }
+
+    }
     /**
      * This function sets an scm change eiffel event id for a specific project and
      * branch.

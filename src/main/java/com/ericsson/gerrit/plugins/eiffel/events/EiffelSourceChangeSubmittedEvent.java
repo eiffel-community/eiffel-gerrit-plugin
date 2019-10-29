@@ -17,7 +17,6 @@
 package com.ericsson.gerrit.plugins.eiffel.events;
 
 import com.ericsson.gerrit.plugins.eiffel.events.models.EiffelSourceChangeSubmittedEventParams;
-import com.ericsson.gerrit.plugins.eiffel.events.models.MsgParams;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -26,11 +25,7 @@ import com.google.gson.annotations.SerializedName;
  * and is populated with information from the change-merged gerrit event.
  *
  */
-public class EiffelSourceChangeSubmittedEvent implements EiffelEvent {
-    @SerializedName("msgParams")
-    @Expose
-    public MsgParams msgParams = new MsgParams();
-
+public class EiffelSourceChangeSubmittedEvent extends EiffelEvent {
     @SerializedName("eventParams")
     @Expose
     public EiffelSourceChangeSubmittedEventParams eventParams = new EiffelSourceChangeSubmittedEventParams();

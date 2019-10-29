@@ -16,9 +16,11 @@
 */
 package com.ericsson.gerrit.plugins.eiffel.messaging;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -26,13 +28,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ericsson.eiffelcommons.utils.HttpRequest;
+import com.ericsson.eiffelcommons.utils.HttpRequest.HttpMethod;
 import com.ericsson.eiffelcommons.utils.ResponseEntity;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.HttpRequestFailedException;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.MissingConfigurationException;
-import com.ericsson.eiffelcommons.utils.HttpRequest.HttpMethod;
+import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import state.StateAccessor;
+import state.StateFactory;
 
 public class EiffelEventSender {
     private static final String GENERATE_PUBLISH_ENDPOINT = "/generateAndPublish/";
@@ -45,18 +54,21 @@ public class EiffelEventSender {
     private static final Logger LOGGER = LoggerFactory.getLogger(EiffelEventSender.class);
 
     private final Gson gson = new Gson();
-    private String eiffelMessage;
+    private EiffelEvent eiffelEvent;
     private String eiffelType;
     private EiffelPluginConfiguration pluginConfig;
     private HttpRequest httpRequest;
+    private File pluginDir;
 
-    public EiffelEventSender(EiffelPluginConfiguration pluginConfig) {
-        this(pluginConfig, new HttpRequest(HttpMethod.POST));
+    public EiffelEventSender(File pluginDir, EiffelPluginConfiguration pluginConfig) {
+        this(pluginDir, pluginConfig, new HttpRequest(HttpMethod.POST));
     }
 
-    public EiffelEventSender(EiffelPluginConfiguration pluginConfig, HttpRequest httpRequest) {
+    public EiffelEventSender(File pluginDir, EiffelPluginConfiguration pluginConfig,
+            HttpRequest httpRequest) {
         this.httpRequest = httpRequest;
         this.pluginConfig = pluginConfig;
+        this.pluginDir = pluginDir;
     }
 
     /**
@@ -66,15 +78,20 @@ public class EiffelEventSender {
     public void send() {
         try {
             verifyConfiguration();
-            generateAndPublish();
+            String generatedEventId = generateAndPublish();
+            StateAccessor stateAccessor = StateFactory.getStateAccessor(pluginDir, eiffelEvent);
+            stateAccessor.setState(generatedEventId);
+
         } catch (URISyntaxException | IOException | MissingConfigurationException
-                | HttpRequestFailedException e) {
+                | HttpRequestFailedException | NoSuchElementException e) {
             LOGGER.error("Failed to send eiffel message.", e);
+        } catch (SQLException e) {
+            LOGGER.error("Failed to save the internal state after sending event.", e);
         }
     }
 
     public EiffelEventSender setEiffelEventMessage(final EiffelEvent eiffelMessage) {
-        this.eiffelMessage = gson.toJsonTree(eiffelMessage).toString();
+        this.eiffelEvent = eiffelMessage;
         return this;
     }
 
@@ -83,12 +100,22 @@ public class EiffelEventSender {
         return this;
     }
 
-    private void generateAndPublish()
+    private String generateAndPublish()
             throws URISyntaxException, IOException, MissingConfigurationException,
             HttpRequestFailedException {
         assembleRequest();
         final ResponseEntity response = httpRequest.performRequest();
         verifyResponse(response);
+
+        String generatedEventId = getGeneratedEventId(response);
+        return generatedEventId;
+    }
+
+    private String getGeneratedEventId(final ResponseEntity response) {
+        JsonObject responseBody = new JsonParser().parse(response.getBody()).getAsJsonObject();
+        JsonArray events = responseBody.get("events").getAsJsonArray();
+        String generatedEventId = events.get(0).getAsJsonObject().get("id").getAsString();
+        return generatedEventId;
     }
 
     private void verifyResponse(ResponseEntity response) throws HttpRequestFailedException {
@@ -101,7 +128,7 @@ public class EiffelEventSender {
             final String errorMessage = String.format(
                     "Could not generate and publish eiffel message due to server issue or invalid json data, "
                             + "Status Code :: %d\npublishURL :: %s\ninput message :: %s\nError Message  :: %s",
-                    statusCode, httpRequest.getBaseUrl(), eiffelMessage, result);
+                    statusCode, httpRequest.getBaseUrl(), eiffelEvent, result);
             throw new HttpRequestFailedException(errorMessage);
         }
     }
@@ -111,13 +138,13 @@ public class EiffelEventSender {
             final String errorMessage = String.format(
                     "Neccessary configuration is missing to send event."
                             + "\neiffelMessage: %s\neiffelType: %s\neiffelProtocol: %s",
-                    eiffelMessage, eiffelType, EIFFEL_PROTOCOL);
+                    eiffelEvent, eiffelType, EIFFEL_PROTOCOL);
             throw new MissingConfigurationException(errorMessage);
         }
     }
 
     private boolean isConfigurationSet() {
-        boolean isConfigurationSet = !StringUtils.isEmpty(eiffelMessage)
+        boolean isConfigurationSet = eiffelEvent != null
                 && !StringUtils.isEmpty(eiffelType);
         return isConfigurationSet;
     }
@@ -126,6 +153,7 @@ public class EiffelEventSender {
         final String username = pluginConfig.getRemremUsername();
         final String password = pluginConfig.getRemremPassword();
         final String url = pluginConfig.getRemremPublishURL();
+        final String eiffelMessage = gson.toJsonTree(this.eiffelEvent).toString();
 
         httpRequest.setBasicAuth(username, password);
         httpRequest.setBaseUrl(url);
@@ -133,6 +161,6 @@ public class EiffelEventSender {
         httpRequest.addParameter(MESSAGE_PROTOCOL, EIFFEL_PROTOCOL);
         httpRequest.addParameter(MESSAGE_TYPE, eiffelType);
         httpRequest.setHeader(CONTENT_TYPE_HEADER, APPLICATION_JSON);
-        httpRequest.setBody(this.eiffelMessage);
+        httpRequest.setBody(eiffelMessage);
     }
 }

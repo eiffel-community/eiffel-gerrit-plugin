@@ -21,6 +21,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
+import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.handlers.StateHandler;
+
 /**
  * Base class with common functionality for event generators.
  *
@@ -47,6 +50,28 @@ public class EiffelEventGenerator {
             String sshBaseUrl = getSshBaseUrl(changeUri.getHost());
             return sshBaseUrl;
         } catch (Exception e) {
+            return null;
+        }
+    }
+
+    protected static String getLastSourceChangeSubmittedEiffelEventId(String projectName, String branch,
+            StateHandler stateHandler) {
+        try {
+            String latestEiffelSourceChangeSubmittedEventId = stateHandler
+                    .getLastSourceChangeSubmittedEiffelEvent(projectName, branch);
+            return latestEiffelSourceChangeSubmittedEventId;
+        } catch (NoSuchElementException e) {
+            return null;
+        }
+    }
+
+    protected static String getLastSourceChangeCreatedEiffelEvent(final String projectName, final String changeId,
+            StateHandler stateHandler) {
+        try {
+            String latestEiffelSourceChangeCreatedEventId = stateHandler
+                    .getLastSourceChangeCreatedEiffelEvent(projectName, changeId);
+            return latestEiffelSourceChangeCreatedEventId;
+        } catch (NoSuchElementException e) {
             return null;
         }
     }
