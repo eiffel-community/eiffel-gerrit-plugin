@@ -5,7 +5,7 @@ source code management traceability.
 For more information about Eiffel, follow this link:
 <https://github.com/eiffel-community/eiffel>
 
-#####Eiffel Events:
+##### Eiffel Events
 
 Version 0.0.1
 :   SourceChangeCreatedEvent
@@ -23,7 +23,7 @@ eiffel-integration.enabled
 eiffel-integration.filter
 :   Allow users to define a white list of branches, i.e. messages will be sent only for source change on
     specified branches. Source Change to any other branch will be ignored. Accepts full branch name and or
-    regex separated by spaces. If not defined, messages will be sent for source changes in all branches.
+    regex separated by `,`. If not defined, messages will be sent for source changes in all branches.
     See example configuration where release branch may be triggered on release-(Any version).
 
 eiffel-integration.flow-context
@@ -49,7 +49,7 @@ Example:
 
     [plugin "eiffel-integration"]
       enabled = true
-      filter = (release-).* master
+      filter = (release-).*,master
       flow-context = <UUID of EiffelFlowContextDefinedEvent>
       remrem-publish-url = <URL of REMReM publish service>
       remrem-username = <REMReM Username to authenticate>
@@ -58,11 +58,18 @@ Example:
 
     [plugin "eiffel-integration"]
       enabled = true
-      filter = (release-).* master
+      filter = (release-).*,master
       flow-context = aaaaaaaa-bbbb-5ccc-8ddd-eeeeeeeeeee0
       remrem-publish-url = https://localhost:8080/publish
       remrem-username = dummyuser
       remrem-password = ********
+
+<span style="color:red">Note</span>
+-----------------
+Manually editing the Eiffel plugin configurations will show the configurations in the GUI using comma-seperated values.
+If you are changing them back in the UI, it will only contain one pair in the project configurations.
+
+-----------------
 
 Global Configuration:
 
