@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.function.Function;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.http.HttpStatus;
@@ -28,7 +27,9 @@ import com.ericsson.gerrit.plugins.eiffel.events.generators.EiffelSourceChangeSu
 import com.ericsson.gerrit.plugins.eiffel.listeners.ChangeMergedEventListener;
 import com.google.gerrit.server.events.ChangeMergedEvent;
 
+import io.github.resilience4j.decorators.Decorators;
 import io.github.resilience4j.retry.Retry;
+import io.vavr.control.Try;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ EiffelSourceChangeSubmittedEventGenerator.class,
@@ -62,21 +63,19 @@ public class RetryRequestTest {
         eiffelEventSender.setEiffelEventType(EIFFEL_TYPE);
 
         Retry policy = retryConfiguration.getRetryPolicy();
-        Function<Integer, Void> methodToTry = Retry.decorateFunction(
-                policy, (Integer dummy) -> {
-                    counter.setValue(counter.getValue().intValue() + 1);
-                    eiffelEventSender.send();
-                    return null;
-                });
-        try {
-            methodToTry.apply(1);
-        } catch (Exception e) {
-            int expectedValue = retryConfiguration.getMaxAttempts();
-            int actualValue = counter.getValue().intValue();
-            String errorMessage = String.format("Expected retry counter to be %d but was %d",
-                    expectedValue, actualValue);
-            assertEquals(errorMessage, expectedValue, actualValue);
-        }
+        Runnable decoratedRunnable = Decorators.ofRunnable(() -> {
+            counter.setValue(counter.getValue().intValue() + 1);
+            eiffelEventSender.send();
+        })
+                                               .withRetry(policy)
+                                               .decorate();
+        Try.runRunnable(decoratedRunnable);
+
+        int expectedValue = retryConfiguration.getMaxAttempts();
+        int actualValue = counter.getValue().intValue();
+        String errorMessage = String.format("Expected retry counter to be %d but was %d",
+                expectedValue, actualValue);
+        assertEquals(errorMessage, expectedValue, actualValue);
     }
 
     @Test(expected = Test.None.class)
@@ -87,7 +86,7 @@ public class RetryRequestTest {
         RetryConfiguration retryConfiguration = new RetryConfiguration();
         ChangeMergedEventListener listener = new ChangeMergedEventListener(PLUGIN_NAME, FILE_DIR);
         Whitebox.setInternalState(listener, "retryConfiguration", retryConfiguration);
-        Whitebox.invokeMethod(listener, "prepareAndSendEiffelEvent", changeMergedEvent,
+        Whitebox.invokeMethod(listener, "sendEiffelEvent", eiffelEvent,
                 pluginConfig);
     }
 
