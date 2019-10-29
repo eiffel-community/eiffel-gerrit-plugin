@@ -21,14 +21,20 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
-import com.ericsson.gerrit.plugins.eiffel.handlers.StateHandler;
+import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeCreatedState;
+import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeSubmittedState;
 
 /**
  * Base class with common functionality for event generators.
  *
  */
 public class EiffelEventGenerator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EiffelEventGenerator.class);
+
     protected static final String META_SOURCE_NAME = "Eiffel Gerrit Plugin";
     private static final int DEFAULT_SSH_PORT = 29418;
 
@@ -55,23 +61,27 @@ public class EiffelEventGenerator {
     }
 
     protected static String getLastSourceChangeSubmittedEiffelEventId(String projectName, String branch,
-            StateHandler stateHandler) {
+            SourceChangeSubmittedState stateAccessor) {
         try {
-            String latestEiffelSourceChangeSubmittedEventId = stateHandler
-                    .getLastSourceChangeSubmittedEiffelEvent(projectName, branch);
+            String latestEiffelSourceChangeSubmittedEventId = stateAccessor.getEventId(projectName, branch);
             return latestEiffelSourceChangeSubmittedEventId;
         } catch (NoSuchElementException e) {
+            return null;
+        } catch (Exception e) {
+            LOGGER.error("Could not get last submitted eiffel event id.", e);
             return null;
         }
     }
 
     protected static String getLastSourceChangeCreatedEiffelEvent(final String projectName, final String changeId,
-            StateHandler stateHandler) {
+            SourceChangeCreatedState stateAccessor) {
         try {
-            String latestEiffelSourceChangeCreatedEventId = stateHandler
-                    .getLastSourceChangeCreatedEiffelEvent(projectName, changeId);
+            String latestEiffelSourceChangeCreatedEventId = stateAccessor.getEventId(projectName, changeId);
             return latestEiffelSourceChangeCreatedEventId;
         } catch (NoSuchElementException e) {
+            return null;
+        } catch (Exception e) {
+            LOGGER.error("Could not get last submitted eiffel event id.", e);
             return null;
         }
     }

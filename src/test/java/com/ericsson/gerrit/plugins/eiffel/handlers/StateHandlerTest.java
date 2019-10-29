@@ -1,20 +1,6 @@
 package com.ericsson.gerrit.plugins.eiffel.handlers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.powermock.api.mockito.PowerMockito.mock;
-
-import java.io.File;
-import java.net.ConnectException;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -22,7 +8,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest(fullyQualifiedNames = "com.ericsson.gerrit.plugins.eiffel.*")
 public class StateHandlerTest {
 
-    private static final String FILE_ENDING = "db";
+    /*private static final String FILE_ENDING = "db";
     private static final String PROJECT = "project_test";
     private static final String BRANCH = "branch_test";
     private DataBaseHandler dbHandler;
@@ -109,6 +95,6 @@ public class StateHandlerTest {
         assertEquals("Error occured return empty string.", "",
                 stateHandler.getLastSourceChangeSubmittedEiffelEvent("", ""));
 
-    }
+    }*/
 
 }

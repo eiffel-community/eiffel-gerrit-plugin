@@ -35,13 +35,12 @@ import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.HttpRequestFailedException;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.MissingConfigurationException;
 import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.state.State;
+import com.ericsson.gerrit.plugins.eiffel.state.StateFactory;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import state.StateAccessor;
-import state.StateFactory;
 
 public class EiffelEventSender {
     private static final String GENERATE_PUBLISH_ENDPOINT = "/generateAndPublish/";
@@ -79,8 +78,8 @@ public class EiffelEventSender {
         try {
             verifyConfiguration();
             String generatedEventId = generateAndPublish();
-            StateAccessor stateAccessor = StateFactory.getStateAccessor(pluginDir, eiffelEvent);
-            stateAccessor.setState(generatedEventId);
+            State stateAccessor = StateFactory.getStateAccessor(pluginDir, eiffelEvent.msgParams.meta.type);
+            stateAccessor.setState(generatedEventId, eiffelEvent);
 
         } catch (URISyntaxException | IOException | MissingConfigurationException
                 | HttpRequestFailedException | NoSuchElementException e) {

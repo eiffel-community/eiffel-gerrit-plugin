@@ -22,8 +22,11 @@ import org.parboiled.common.StringUtils;
 
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
+import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
-import com.ericsson.gerrit.plugins.eiffel.handlers.StateHandler;
+import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeCreatedState;
+import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeSubmittedState;
+import com.ericsson.gerrit.plugins.eiffel.state.StateFactory;
 import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
 import com.google.gerrit.server.events.PatchSetCreatedEvent;
@@ -89,18 +92,13 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
         if (baseLink != null) {
             eiffelEvent.eventParams.links.add(baseLink);
         }
-
-        // String latestEiffelSourceChangeSubmittedEventId =
-        // getLatestEiffelSourceChangeSubmittedEventId();
-        // setBaseLink(latestEiffelSourceChangeSubmittedEventId);
-
         return eiffelEvent;
     }
 
     private static Link createBaseLink(File pluginDirectoryPath, String projectName, String branch) {
-        StateHandler stateHandler = new StateHandler(pluginDirectoryPath);
-        String lastSourceChangeSubmitted = getLastSourceChangeSubmittedEiffelEventId(projectName, branch,
-                stateHandler);
+        String eiffelEventType = EiffelSourceChangeSubmittedEvent.class.getSimpleName();
+        SourceChangeSubmittedState stateAccessor = (SourceChangeSubmittedState) StateFactory.getStateAccessor(pluginDirectoryPath, eiffelEventType);
+        String lastSourceChangeSubmitted = getLastSourceChangeSubmittedEiffelEventId(projectName, branch, stateAccessor);
 
         if (!StringUtils.isEmpty(lastSourceChangeSubmitted)) {
             Link baseLink = new Link();
@@ -114,8 +112,9 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
 
     private static Link createPreviousVersionLink(File pluginDirectoryPath, final String projectName,
             final String changeId) {
-        StateHandler stateHandler = new StateHandler(pluginDirectoryPath);
-        String lastSourceChangeCreated = getLastSourceChangeCreatedEiffelEvent(projectName, changeId, stateHandler);
+        String eiffelEventType = EiffelSourceChangeCreatedEvent.class.getSimpleName();
+        SourceChangeCreatedState stateAccessor = (SourceChangeCreatedState) StateFactory.getStateAccessor(pluginDirectoryPath, eiffelEventType);
+        String lastSourceChangeCreated = getLastSourceChangeCreatedEiffelEvent(projectName, changeId, stateAccessor);
 
         if (!StringUtils.isEmpty(lastSourceChangeCreated)) {
             Link previousVersionLink = new Link();
