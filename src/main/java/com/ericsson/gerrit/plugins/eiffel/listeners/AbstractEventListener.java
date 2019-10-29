@@ -98,11 +98,19 @@ public abstract class AbstractEventListener implements EventListener {
         return pluginConfig;
     }
 
+    /**
+     * Sends an Eiffel message to the REMReM service.
+     * RetryConfiguration contains the retry policy for the send method.
+     *
+     * @param eiffelEvent
+     * @param pluginConfig
+     */
     public void sendEiffelEvent(EiffelEvent eiffelEvent, EiffelPluginConfiguration pluginConfig) {
         EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig);
         eiffelEventSender.setEiffelEventType(eiffelEvent.getClass().getSimpleName());
         eiffelEventSender.setEiffelEventMessage(eiffelEvent);
 
+        // TODO Queue send calls as async jobs
         Retry policy = retryConfiguration.getRetryPolicy();
         Runnable decoratedRunnable = Decorators.ofRunnable(() -> eiffelEventSender.send())
                                                .withRetry(policy)

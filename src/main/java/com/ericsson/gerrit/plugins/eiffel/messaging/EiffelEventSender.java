@@ -61,7 +61,7 @@ public class EiffelEventSender {
 
     /**
      * Sends a REMReM Eiffel message to the generateAndPublish endpoint. RuntimeException is thrown
-     * when a HttpRequestFailedException occurs so that the retry logic works.
+     * when an IOException or HttpRequestFailedException occurs so that the retry logic works.
      *
      */
     public void send() {
