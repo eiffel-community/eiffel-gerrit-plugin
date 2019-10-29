@@ -10,4 +10,8 @@ public class HttpRequestFailedException extends RuntimeException {
     public HttpRequestFailedException(final String message) {
         super(message);
     }
+
+    public HttpRequestFailedException(final Throwable e) {
+        super(e);
+    }
 }

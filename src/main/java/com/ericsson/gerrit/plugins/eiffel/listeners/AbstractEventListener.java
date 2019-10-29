@@ -17,9 +17,6 @@
 package com.ericsson.gerrit.plugins.eiffel.listeners;
 
 import java.io.File;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.function.Supplier;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

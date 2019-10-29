@@ -79,7 +79,7 @@ public class RetryRequestTest {
         }
     }
 
-    @Test
+    @Test(expected = Test.None.class)
     public void testPrepareAndSendEiffelEvent() throws Exception {
         setUpMockActions();
         setUpMocksAndActionsForMethodInvoke();

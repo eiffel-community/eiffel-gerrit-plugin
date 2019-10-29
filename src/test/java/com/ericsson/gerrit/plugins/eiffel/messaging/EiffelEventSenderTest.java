@@ -26,7 +26,7 @@ public class EiffelEventSenderTest {
 
     private static final String EIFFEL_TYPE = "EiffelSourceChangeCreatedEvent";
     private static final int STATUS_OK = HttpStatus.SC_OK;
-    private static final int STATUS_NOT_FOUND = HttpStatus.SC_NOT_FOUND;
+    private static final int STATUS_NOT_FOUND = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
     @Before
     public void beforeTest() throws IOException, URISyntaxException {
