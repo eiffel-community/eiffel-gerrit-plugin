@@ -19,6 +19,7 @@ package com.ericsson.gerrit.plugins.eiffel.messaging;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 
@@ -71,7 +72,8 @@ public class EiffelEventSender {
     }
 
     /**
-     * Sends a REMReM eiffel message using
+     * Sends a REMReM Eiffel message to the generateAndPublish endpoint. RuntimeException is thrown
+     * when an IOException or HttpRequestFailedException occurs so that the retry logic works.
      *
      */
     public void send() {
@@ -81,11 +83,16 @@ public class EiffelEventSender {
             State stateAccessor = StateFactory.getState(pluginDir, eiffelEvent.msgParams.meta.type);
             stateAccessor.setState(generatedEventId, eiffelEvent);
 
-        } catch (URISyntaxException | IOException | MissingConfigurationException
-                | HttpRequestFailedException | NoSuchElementException e) {
+        } catch (URISyntaxException | MissingConfigurationException | NoSuchElementException e) {
             LOGGER.error("Failed to send eiffel message.", e);
-        } catch (SQLException e) {
+        } catch (SQLException | ConnectException e) {
             LOGGER.error("Failed to save the internal state after sending event.", e);
+        } catch (HttpRequestFailedException e) {
+            LOGGER.error("Failed to send eiffel message.", e);
+            throw e;
+        } catch (IOException e) {
+            LOGGER.error("Failed to send eiffel message.", e);
+            throw new HttpRequestFailedException(e);
         }
     }
 
@@ -123,7 +130,7 @@ public class EiffelEventSender {
 
         if (HttpStatus.SC_OK == statusCode) {
             LOGGER.info("Generated and published eiffel message successfully. \n{}", result);
-        } else {
+        } else if (HttpStatus.SC_INTERNAL_SERVER_ERROR == statusCode || HttpStatus.SC_SERVICE_UNAVAILABLE == statusCode ) {
             final String errorMessage = String.format(
                     "Could not generate and publish eiffel message due to server issue or invalid json data, "
                             + "Status Code :: %d\npublishURL :: %s\ninput message :: %s\nError Message  :: %s",

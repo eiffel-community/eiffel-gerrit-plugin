@@ -18,6 +18,8 @@
 package com.ericsson.gerrit.plugins.eiffel.configuration;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,12 +69,12 @@ public class EiffelPluginConfiguration {
         }
         // Read plugin configuration
         this.enabled = pluginConfig.getBoolean(ENABLED, false);
-        this.filter = pluginConfig.getString(FILTER);
+        this.filter = getMultiValueParameters(FILTER, pluginConfig);
         this.remremPublishURL = pluginConfig.getString(REMREM_PUBLISH_URL);
         this.remremUsername = pluginConfig.getString(REMREM_USERNAME);
         this.remremPassword = pluginConfig.getString(REMREM_PASSWORD);
         // flow context is optional
-        this.flowContext = pluginConfig.getString(FLOW_CONTEXT);
+        this.flowContext = getMultiValueParameters(FLOW_CONTEXT, pluginConfig);
 
         // No point to check other config parameters if plugin is disabled
         if (!this.enabled) {
@@ -133,5 +135,27 @@ public class EiffelPluginConfiguration {
      */
     public void setPluginDirectoryPath(File pluginDirectoryPath) {
         this.pluginDirectoryPath = pluginDirectoryPath;
+    }
+
+    /**
+     * This method reads multiple values set manually by editing the project configuration
+     * and then setting it in the GUI so that the person who is having the privileges to the UI is aware of the 
+     * parameters set manually.
+     * Ex:
+     * [eiffel-integration]
+     *    filter = branch1, branch2
+     *    filter = branch3
+     * @param property  the property which can contain multiple values, for example: Filter, FlowContext, etc.
+     * @param pluginConfig the configuration for the project read
+     * @return String  returns the value for the property read from the plugin configuration.
+     */
+    private String getMultiValueParameters(final String property, final PluginConfig pluginConfig) {
+        String propertyValue = "";
+        String[] propertyValues = pluginConfig.getStringList(property);
+        if (propertyValues != null && propertyValues.length > 0) {
+            propertyValue = Arrays.stream(propertyValues).collect(Collectors.joining(","));
+            pluginConfig.setString(property, propertyValue);
+        }
+        return propertyValue;
     }
 }
