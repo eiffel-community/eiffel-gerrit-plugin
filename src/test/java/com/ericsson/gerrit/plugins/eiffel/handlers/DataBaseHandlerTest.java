@@ -58,7 +58,7 @@ public class DataBaseHandlerTest {
     }
 
     /**
-     * This test inserts and event id for a branch and fetches it to ensure it both
+     * This test inserts an event id for a branch and fetches it to ensure it both
      * got inserted and fetched correctly.
      *
      * @throws Exception

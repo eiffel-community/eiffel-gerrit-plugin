@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is the database handler class. at initiation it checks if the name given
+ * This is a database handler class. At initiation it checks if the name given
  * exist as a db file, if not it gets created together with required tables. At
  * initiation a file name is given making it possible to store a file per
  * project depending how the classes that uses this handler implements this
@@ -56,7 +56,11 @@ public class DataBaseHandler {
 
     /**
      * This function returns an event id if exists for a specific table depending on
-     * the keyValue
+     * the table (primary) Key Value
+     *
+     * <p>
+     * Use SELECT * FROM table WHERE first_name = "xyz", In this query "name" is a
+     * (primary) key
      *
      * @param table
      * @param keyValue
@@ -79,15 +83,17 @@ public class DataBaseHandler {
         }
 
         if (eventID.isEmpty()) {
-            throw new NoSuchElementException("Database did not return any value for this query");
+            throw new NoSuchElementException(
+                    "Database did not return any value for the query:" + sqlSelectStatement.replace("?", keyValue));
         }
 
         return eventID;
     }
 
     /**
-     * This function updates value to the given table. The keyValue value is
-     * different depending on Table (branch name for scs and change-id for scc)
+     * This function updates value to the given table. The keyValue represent the
+     * value of a table's primary key. Primary key is different for different tables
+     * (branch name for scs and change-id for scc)
      *
      * @param table
      * @param keyValue
@@ -102,8 +108,9 @@ public class DataBaseHandler {
     }
 
     /**
-     * This function inserts values to the given table. The keyValue value is
-     * different depending on Table (branch name for scs and change-id for scc)
+     * This function inserts values to the given table. The keyValue represent the
+     * value of a table's primary key. Primary key is different for different tables
+     * (branch name for scs and change-id for scc)
      *
      * @param table
      * @param keyValue
@@ -172,7 +179,7 @@ public class DataBaseHandler {
     }
 
     /**
-     * executes the prepared statement.
+     * Executes the prepared statement.
      *
      * @param preparedStatement
      * @return
