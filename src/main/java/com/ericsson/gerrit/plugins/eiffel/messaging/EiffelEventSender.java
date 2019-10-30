@@ -60,16 +60,22 @@ public class EiffelEventSender {
     }
 
     /**
-     * Sends a REMReM eiffel message using
+     * Sends a REMReM Eiffel message to the generateAndPublish endpoint. RuntimeException is thrown
+     * when an IOException or HttpRequestFailedException occurs so that the retry logic works.
      *
      */
     public void send() {
         try {
             verifyConfiguration();
             generateAndPublish();
-        } catch (URISyntaxException | IOException | MissingConfigurationException
-                | HttpRequestFailedException e) {
+        } catch (URISyntaxException | MissingConfigurationException e) {
             LOGGER.error("Failed to send eiffel message.", e);
+        } catch (IOException e) {
+            LOGGER.error("Failed to send eiffel message.", e);
+            throw new HttpRequestFailedException(e);
+        } catch (HttpRequestFailedException e) {
+            LOGGER.error("Failed to send eiffel message.", e);
+            throw e;
         }
     }
 
@@ -97,7 +103,7 @@ public class EiffelEventSender {
 
         if (HttpStatus.SC_OK == statusCode) {
             LOGGER.info("Generated and published eiffel message successfully. \n{}", result);
-        } else {
+        } else if (HttpStatus.SC_INTERNAL_SERVER_ERROR == statusCode || HttpStatus.SC_SERVICE_UNAVAILABLE == statusCode ) {
             final String errorMessage = String.format(
                     "Could not generate and publish eiffel message due to server issue or invalid json data, "
                             + "Status Code :: %d\npublishURL :: %s\ninput message :: %s\nError Message  :: %s",

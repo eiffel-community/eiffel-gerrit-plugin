@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.generators.EiffelSourceChangeCreatedEventGenerator;
-import com.ericsson.gerrit.plugins.eiffel.messaging.EiffelEventSender;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.server.events.Event;
@@ -63,10 +62,6 @@ public class PatchsetCreatedEventListener extends AbstractEventListener {
 
         EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator.generate(
                 patchSetCreatedEvent, pluginConfig);
-        EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig);
-        eiffelEventSender.setEiffelEventType(eiffelEvent.getClass().getSimpleName());
-        eiffelEventSender.setEiffelEventMessage(eiffelEvent);
-        eiffelEventSender.send();
+        sendEiffelEvent(eiffelEvent, pluginConfig);
     }
-
 }
