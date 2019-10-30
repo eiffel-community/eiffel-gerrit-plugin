@@ -82,13 +82,6 @@ public abstract class AbstractEventListener implements EventListener {
         initializeThreadPoolExecutor();
     }
 
-    private void initializeThreadPoolExecutor() {
-        if (initialized.compareAndSet(false, true)) {
-            executor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
-                    TIME_UNIT, queue);
-        }
-    }
-
     @Override
     public void onEvent(final Event gerritEvent) {
         if (!isExpectedGerritEvent(gerritEvent)) {
@@ -170,6 +163,13 @@ public abstract class AbstractEventListener implements EventListener {
 
     protected abstract void prepareAndSendEiffelEvent(Event gerritEvent,
             EiffelPluginConfiguration pluginConfig);
+
+    private void initializeThreadPoolExecutor() {
+        if (initialized.compareAndSet(false, true)) {
+            executor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
+                    TIME_UNIT, queue);
+        }
+    }
 
     private boolean isPluginEnabled(final EiffelPluginConfiguration pluginConfig,
             final String project) {
