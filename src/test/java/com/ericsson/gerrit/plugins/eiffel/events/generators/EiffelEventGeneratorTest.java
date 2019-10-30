@@ -7,13 +7,18 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
@@ -22,6 +27,9 @@ import org.slf4j.LoggerFactory;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
+import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeSubmittedState;
+import com.ericsson.gerrit.plugins.eiffel.state.StateFactory;
 import com.google.common.base.Supplier;
 import com.google.gerrit.reviewdb.client.Change.Key;
 import com.google.gerrit.server.data.AccountAttribute;
@@ -30,10 +38,11 @@ import com.google.gerrit.server.data.PatchSetAttribute;
 import com.google.gerrit.server.events.ChangeMergedEvent;
 import com.google.gerrit.server.events.PatchSetCreatedEvent;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ EiffelEventGenerator.class, InetAddress.class })
+@PrepareForTest({ EiffelEventGenerator.class, InetAddress.class, StateFactory.class })
 public class EiffelEventGeneratorTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EiffelEventGeneratorTest.class);
@@ -65,30 +74,35 @@ public class EiffelEventGeneratorTest {
     private PatchSetAttribute patchSetAttribute;
     private AccountAttribute accountAttribute;
     private Key changeKey;
+    private String changeIdAttribute;
+
+    private File pluginDirectory;
+
+    @Before
+    public void setUp() throws ConnectException, FileNotFoundException, NoSuchElementException {
+        setUpMocks();
+    }
 
     @Test
     public void testEiffelSourceChangeSubmittedEventGenerator() {
-        setUpMocks();
         populateChangeMergedEvent();
 
-        // EiffelSourceChangeSubmittedEvent eiffelEvent =
-        // EiffelSourceChangeSubmittedEventGenerator.generate(
-        // changeMergedEvent, pluginConfig);
+        EiffelSourceChangeSubmittedEvent eiffelEvent =
+        EiffelSourceChangeSubmittedEventGenerator.generate(
+        changeMergedEvent, pluginConfig, pluginDirectory);
 
-        // verifyEiffelSourceChangeSubmittedEvent(eiffelEvent);
+        verifyEiffelSourceChangeSubmittedEvent(eiffelEvent);
     }
 
-    // @Test
-    // public void testEiffelSourceChangeCreatedEventGenerator() {
-    // setUpMocks();
-    // populatePatchSetCreatedEvent();
-    //
-    // EiffelSourceChangeCreatedEvent eiffelEvent =
-    // EiffelSourceChangeCreatedEventGenerator.generate(
-    // patchSetCreatedEvent, pluginConfig);
-    //
-    // verifyEiffelSourceChangeCreatedEvent(eiffelEvent);
-    // }
+     @Test
+     public void testEiffelSourceChangeCreatedEventGenerator() {
+     populatePatchSetCreatedEvent();
+
+     EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator.generate(
+     patchSetCreatedEvent, pluginConfig, pluginDirectory);
+
+     verifyEiffelSourceChangeCreatedEvent(eiffelEvent);
+     }
 
     @Test
     public void testEiffelEventGeneratorHostNameException() {
@@ -122,7 +136,7 @@ public class EiffelEventGeneratorTest {
     }
 
     @SuppressWarnings("unchecked")
-    private void setUpMocks() {
+    private void setUpMocks() throws ConnectException, FileNotFoundException, NoSuchElementException {
         pluginConfig = mock(EiffelPluginConfiguration.class);
         changeMergedEvent = mock(ChangeMergedEvent.class);
         patchSetCreatedEvent = mock(PatchSetCreatedEvent.class);
@@ -132,10 +146,18 @@ public class EiffelEventGeneratorTest {
         patchSetAttribute = mock(PatchSetAttribute.class);
         accountAttribute = mock(AccountAttribute.class);
         changeKey = mock(Key.class);
+        changeMergedEvent.changeKey = changeKey;
+        pluginDirectory = mock(File.class);
+
+        mockStatic(StateFactory.class);
+        SourceChangeSubmittedState sourceChangeSubmittedState = mock(SourceChangeSubmittedState.class);
 
         when(supplierChangeAttribute.get()).thenReturn(changeAttribute);
         when(supplierPatchSetAttribute.get()).thenReturn(patchSetAttribute);
         when(changeKey.toString()).thenReturn(CHANGE_ID);
+
+        when(StateFactory.getState(Mockito.any(), Mockito.any())).thenReturn(sourceChangeSubmittedState);
+        when(sourceChangeSubmittedState.getEventId(Mockito.any(), Mockito.any())).thenReturn("my_event_id");
     }
 
     private void setUpHostNameExceptionMock() {
@@ -203,6 +225,11 @@ public class EiffelEventGeneratorTest {
         JsonObject data = eiffelEventJson.getAsJsonObject("eventParams").getAsJsonObject("data");
         JsonObject submitter = data.getAsJsonObject("submitter");
         JsonObject gitIdentifier = data.getAsJsonObject("gitIdentifier");
+        JsonObject eventParams = eiffelEventJson.getAsJsonObject("eventParams");
+
+        JsonArray links = eventParams.getAsJsonArray("links");
+        JsonObject link1 = links.get(0).getAsJsonObject();
+        JsonObject link2 = links.get(1).getAsJsonObject();
 
         String errorMessage = "Eiffel event did not generate properly";
         assertEquals(errorMessage, SCS_EVENT, meta.get("type").getAsString());
@@ -214,7 +241,10 @@ public class EiffelEventGeneratorTest {
         assertEquals(errorMessage, COMMIT_ID, gitIdentifier.get("commitId").getAsString());
         assertEquals(errorMessage, BRANCH, gitIdentifier.get("branch").getAsString());
         assertEquals(errorMessage, PROJECT, gitIdentifier.get("repoName").getAsString());
+        assertEquals(errorMessage, "CHANGE", link1.get("type").getAsString());
+        assertEquals(errorMessage, "PREVIOUS_VERSION", link2.get("type").getAsString());
     }
+
 
     private void verifyEiffelSourceChangeCreatedEvent(
             EiffelSourceChangeCreatedEvent eiffelEvent) {
@@ -227,6 +257,11 @@ public class EiffelEventGeneratorTest {
         JsonObject author = data.getAsJsonObject("author");
         JsonObject gitIdentifier = data.getAsJsonObject("gitIdentifier");
         JsonObject change = data.getAsJsonObject("change");
+        JsonObject eventParams = eiffelEventJson.getAsJsonObject("eventParams");
+
+        JsonArray links = eventParams.getAsJsonArray("links");
+        JsonObject link1 = links.get(0).getAsJsonObject();
+        JsonObject link2 = links.get(1).getAsJsonObject();
 
         String errorMessage = "Eiffel event did not generate properly";
         assertEquals(errorMessage, SCC_EVENT, meta.get("type").getAsString());
@@ -242,5 +277,7 @@ public class EiffelEventGeneratorTest {
         assertEquals(errorMessage, CHANGE_ID, change.get("id").getAsString());
         assertEquals(errorMessage, SIZE_INSERTIONS, change.get("insertions").getAsInt());
         assertEquals(errorMessage, SIZE_DELETIONS, change.get("deletions").getAsInt());
+        assertEquals(errorMessage, "PREVIOUS_VERSION", link1.get("type").getAsString());
+        assertEquals(errorMessage, "BASE", link2.get("type").getAsString());
     }
 }

@@ -24,8 +24,7 @@ import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguratio
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
-import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeCreatedState;
-import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeSubmittedState;
+import com.ericsson.gerrit.plugins.eiffel.state.State;
 import com.ericsson.gerrit.plugins.eiffel.state.StateFactory;
 import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
@@ -56,8 +55,12 @@ public final class EiffelSourceChangeSubmittedEventGenerator extends EiffelEvent
         final String username = patchSetAttribute.author.username;
         final String email = patchSetAttribute.author.email;
         final String changeId = changeMergedEvent.changeKey.toString();
-        final Link changeLink = createChangeLink(pluginDirectoryPath, projectName, changeId);
-        final Link previousVersionLink = createPreviousVersionLink(pluginDirectoryPath, projectName, branch);
+
+        String eventTypeForChangeLink = EiffelSourceChangeCreatedEvent.class.getSimpleName();
+        final Link changeLink = createLink(LINK_TYPE_CHANGE, eventTypeForChangeLink, pluginDirectoryPath, projectName, changeId);
+
+        String eventTypeForPreviousVersionLink = EiffelSourceChangeSubmittedEvent.class.getSimpleName();
+        final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION, eventTypeForPreviousVersionLink, pluginDirectoryPath, projectName, branch);
 
         EiffelSourceChangeSubmittedEvent eiffelEvent = new EiffelSourceChangeSubmittedEvent();
         eiffelEvent.msgParams.meta.type = TYPE;
@@ -83,38 +86,5 @@ public final class EiffelSourceChangeSubmittedEventGenerator extends EiffelEvent
         }
 
         return eiffelEvent;
-    }
-
-    private static Link createPreviousVersionLink(File pluginDirectoryPath, final String projectName,
-            final String branch) {
-        String eiffelEventType = EiffelSourceChangeSubmittedEvent.class.getSimpleName();
-        SourceChangeSubmittedState stateAccessor = (SourceChangeSubmittedState) StateFactory.getStateAccessor(pluginDirectoryPath, eiffelEventType);
-
-        String lastSourceChangeSubmitted = getLastSourceChangeSubmittedEiffelEventId(projectName, branch,
-                stateAccessor);
-
-        if (!StringUtils.isEmpty(lastSourceChangeSubmitted)) {
-            Link previousVersionLink = new Link();
-            previousVersionLink.type = LINK_TYPE_PREVIOUS_VERSION;
-            previousVersionLink.target = lastSourceChangeSubmitted;
-
-            return previousVersionLink;
-        }
-        return null;
-    }
-
-    private static Link createChangeLink(File pluginDirectoryPath, final String projectName, final String changeId) {
-        String eiffelEventType = EiffelSourceChangeCreatedEvent.class.getSimpleName();
-        SourceChangeCreatedState stateAccessor = (SourceChangeCreatedState) StateFactory.getStateAccessor(pluginDirectoryPath, eiffelEventType);
-        String lastSourceChangeCreated = getLastSourceChangeCreatedEiffelEvent(projectName, changeId, stateAccessor);
-
-        if (!StringUtils.isEmpty(lastSourceChangeCreated)) {
-            Link previousVersionLink = new Link();
-            previousVersionLink.type = LINK_TYPE_CHANGE;
-            previousVersionLink.target = lastSourceChangeCreated;
-
-            return previousVersionLink;
-        }
-        return null;
     }
 }

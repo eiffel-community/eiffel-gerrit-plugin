@@ -16,17 +16,20 @@
 */
 package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
+import org.parboiled.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
 import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
-import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeCreatedState;
-import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeSubmittedState;
+import com.ericsson.gerrit.plugins.eiffel.state.State;
+import com.ericsson.gerrit.plugins.eiffel.state.StateFactory;
 
 /**
  * Base class with common functionality for event generators.
@@ -60,24 +63,25 @@ public class EiffelEventGenerator {
         }
     }
 
-    protected static String getLastSourceChangeSubmittedEiffelEventId(String projectName, String branch,
-            SourceChangeSubmittedState stateAccessor) {
-        try {
-            String latestEiffelSourceChangeSubmittedEventId = stateAccessor.getEventId(projectName, branch);
-            return latestEiffelSourceChangeSubmittedEventId;
-        } catch (NoSuchElementException e) {
-            return null;
-        } catch (Exception e) {
-            LOGGER.error("Could not get last submitted eiffel event id.", e);
-            return null;
+    protected static Link createLink(String linkType, String linkedEiffelEventType, File pluginDirectoryPath, final String projectName,
+            final String tableColumnName) {
+        State state = StateFactory.getState(pluginDirectoryPath, linkedEiffelEventType);
+        String lastEiffelEvent = getEiffelEventIdFromState(state, projectName, tableColumnName);
+
+        if (!StringUtils.isEmpty(lastEiffelEvent)) {
+            Link link = new Link();
+            link.type = linkType;
+            link.target = lastEiffelEvent;
+
+            return link;
         }
+        return null;
     }
 
-    protected static String getLastSourceChangeCreatedEiffelEvent(final String projectName, final String changeId,
-            SourceChangeCreatedState stateAccessor) {
+    protected static String getEiffelEventIdFromState(State state, String projectName, String tableColumnName) {
         try {
-            String latestEiffelSourceChangeCreatedEventId = stateAccessor.getEventId(projectName, changeId);
-            return latestEiffelSourceChangeCreatedEventId;
+            String eventId = state.getEventId(projectName, tableColumnName);
+            return eventId;
         } catch (NoSuchElementException e) {
             return null;
         } catch (Exception e) {

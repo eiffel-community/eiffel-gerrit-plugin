@@ -1,3 +1,20 @@
+/*
+   Copyright 2019 Ericsson AB.
+   For a full list of individual contributors, please see the commit history.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 package com.ericsson.gerrit.plugins.eiffel.state;
 
 import java.io.File;
@@ -28,11 +45,11 @@ public abstract class State {
     public abstract String getEventId(String project, String tableColumnName) throws NoSuchElementException, ConnectException, FileNotFoundException;
 
     public abstract void setState(String eiffelEventId, EiffelEvent eiffelEvent)
-            throws NoSuchElementException, ConnectException, SQLException;
+            throws NoSuchElementException, SQLException, ConnectException;
 
     protected String getLastSubmittedEiffelEvent(String project, String tableColumnName,
             Table tableName)
-            throws NoSuchElementException, ConnectException, FileNotFoundException {
+            throws NoSuchElementException, FileNotFoundException, ConnectException {
         try {
             File parentDir = new File(buildParentFilePath(pluginDir, project));
             if (!(parentDir.exists())) {
@@ -98,18 +115,18 @@ public abstract class State {
         return absolutePath.toString();
     }
 
-    private String getOldEventId(DataBaseHandler dBHandler, Table tableName, String tableColumnName) {
+    private String getOldEventId(DataBaseHandler dBHandler, Table tableName, String tableColumnName) throws ConnectException {
         try {
             String oldEvent = dBHandler.getEventID(tableName, tableColumnName);
             return oldEvent;
-        } catch (Exception e) {
+        } catch (NoSuchElementException e) {
             LOGGER.debug("No previous event was saved, creating a new entry");
             return "";
         }
     }
 
     private String getEventId(String project, String tableColumnName,
-            Table tableName) throws ConnectException, NoSuchElementException {
+            Table tableName) throws NoSuchElementException, ConnectException {
         String fileName = String.format("%s.%s", project, FILE_ENDING);
         DataBaseHandler dBHandler = new DataBaseHandler(pluginDir, fileName);
         String eventId = dBHandler.getEventID(tableName, tableColumnName);

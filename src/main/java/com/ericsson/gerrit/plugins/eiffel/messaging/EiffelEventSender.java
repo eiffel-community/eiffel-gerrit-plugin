@@ -78,7 +78,7 @@ public class EiffelEventSender {
         try {
             verifyConfiguration();
             String generatedEventId = generateAndPublish();
-            State stateAccessor = StateFactory.getStateAccessor(pluginDir, eiffelEvent.msgParams.meta.type);
+            State stateAccessor = StateFactory.getState(pluginDir, eiffelEvent.msgParams.meta.type);
             stateAccessor.setState(generatedEventId, eiffelEvent);
 
         } catch (URISyntaxException | IOException | MissingConfigurationException
