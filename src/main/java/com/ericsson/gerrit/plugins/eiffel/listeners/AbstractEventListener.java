@@ -17,6 +17,11 @@
 package com.ericsson.gerrit.plugins.eiffel.listeners;
 
 import java.io.File;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -47,6 +52,17 @@ public abstract class AbstractEventListener implements EventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEventListener.class);
 
+    private static final int CORE_POOL_SIZE = 3;
+    private static final int MAXIMUM_POOL_SIZE = 3;
+    private static final long KEEP_ALIVE = 0;
+    private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
+    private static final int QUEUE_SIZE = 16384;
+
+    private static AtomicBoolean initialized = new AtomicBoolean();
+    private static ThreadPoolExecutor executor;
+
+    private final BlockingQueue<Runnable> queue = new ArrayBlockingQueue<Runnable>(QUEUE_SIZE);
+
     @Inject
     private com.google.gerrit.server.config.PluginConfigFactory pluginConfigFactory;
 
@@ -63,6 +79,13 @@ public abstract class AbstractEventListener implements EventListener {
     public AbstractEventListener(final String pluginName, final File pluginDirectoryPath) {
         this.pluginName = pluginName;
         this.pluginDirectoryPath = pluginDirectoryPath;
+        initializeThreadPoolExecutor();
+    }
+
+    private void initializeThreadPoolExecutor() {
+        if (initialized.compareAndSet(false, true)) {
+            executor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE, TIME_UNIT, queue);
+        }
     }
 
     @Override
@@ -96,8 +119,8 @@ public abstract class AbstractEventListener implements EventListener {
     }
 
     /**
-     * Sends an Eiffel message to the REMReM service.
-     * RetryConfiguration contains the retry policy for the send method.
+     * Sends an Eiffel message to the REMReM service. RetryConfiguration contains the retry policy
+     * for the send method.
      *
      * @param eiffelEvent
      * @param pluginConfig
@@ -107,12 +130,13 @@ public abstract class AbstractEventListener implements EventListener {
         eiffelEventSender.setEiffelEventType(eiffelEvent.getClass().getSimpleName());
         eiffelEventSender.setEiffelEventMessage(eiffelEvent);
 
-        // TODO Queue send calls as async jobs
         Retry policy = retryConfiguration.getRetryPolicy();
         Runnable decoratedRunnable = Decorators.ofRunnable(() -> eiffelEventSender.send())
                                                .withRetry(policy)
                                                .decorate();
-        Try.runRunnable(decoratedRunnable);
+        executor.submit(() -> {
+            Try.runRunnable(decoratedRunnable);
+        });
     }
 
     /**
