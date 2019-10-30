@@ -20,7 +20,7 @@ import java.io.File;
 
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
-import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
+import com.ericsson.gerrit.plugins.eiffel.events.EventType;
 import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
 import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
@@ -77,15 +77,13 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
         eiffelEvent.eventParams.data.gitIdentifier.branch = branch;
         eiffelEvent.eventParams.data.gitIdentifier.repoName = projectName;
 
-        String eiffelSourceChangeCreatedEventType = EiffelSourceChangeCreatedEvent.class.getSimpleName();
-        final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION, eiffelSourceChangeCreatedEventType, pluginDirectoryPath, projectName,
+        final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION, EventType.SCC_EVENT, pluginDirectoryPath, projectName,
                 changeId);
         if (previousVersionLink != null) {
             eiffelEvent.eventParams.links.add(previousVersionLink);
         }
 
-        String eiffelSourceChangeSubmittedEventType = EiffelSourceChangeSubmittedEvent.class.getSimpleName();
-        final Link baseLink = createLink(LINK_TYPE_BASE, eiffelSourceChangeSubmittedEventType, pluginDirectoryPath, projectName, branch);
+        final Link baseLink = createLink(LINK_TYPE_BASE, EventType.SCS_EVENT, pluginDirectoryPath, projectName, branch);
         if (baseLink != null) {
             eiffelEvent.eventParams.links.add(baseLink);
         }

@@ -18,14 +18,10 @@ package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
 import java.io.File;
 
-import org.parboiled.common.StringUtils;
-
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
-import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
+import com.ericsson.gerrit.plugins.eiffel.events.EventType;
 import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
-import com.ericsson.gerrit.plugins.eiffel.state.State;
-import com.ericsson.gerrit.plugins.eiffel.state.StateFactory;
 import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
 import com.google.gerrit.server.events.ChangeMergedEvent;
@@ -56,12 +52,6 @@ public final class EiffelSourceChangeSubmittedEventGenerator extends EiffelEvent
         final String email = patchSetAttribute.author.email;
         final String changeId = changeMergedEvent.changeKey.toString();
 
-        String eventTypeForChangeLink = EiffelSourceChangeCreatedEvent.class.getSimpleName();
-        final Link changeLink = createLink(LINK_TYPE_CHANGE, eventTypeForChangeLink, pluginDirectoryPath, projectName, changeId);
-
-        String eventTypeForPreviousVersionLink = EiffelSourceChangeSubmittedEvent.class.getSimpleName();
-        final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION, eventTypeForPreviousVersionLink, pluginDirectoryPath, projectName, branch);
-
         EiffelSourceChangeSubmittedEvent eiffelEvent = new EiffelSourceChangeSubmittedEvent();
         eiffelEvent.msgParams.meta.type = TYPE;
         eiffelEvent.msgParams.meta.source.name = META_SOURCE_NAME;
@@ -77,10 +67,12 @@ public final class EiffelSourceChangeSubmittedEventGenerator extends EiffelEvent
         eiffelEvent.eventParams.data.gitIdentifier.branch = branch;
         eiffelEvent.eventParams.data.gitIdentifier.repoName = projectName;
 
+        final Link changeLink = createLink(LINK_TYPE_CHANGE, EventType.SCC_EVENT, pluginDirectoryPath, projectName, changeId);
         if (changeLink != null) {
             eiffelEvent.eventParams.links.add(changeLink);
         }
 
+        final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION, EventType.SCS_EVENT, pluginDirectoryPath, projectName, branch);
         if (previousVersionLink != null) {
             eiffelEvent.eventParams.links.add(previousVersionLink);
         }

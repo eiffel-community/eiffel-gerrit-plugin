@@ -15,7 +15,7 @@
    limitations under the License.
 */
 
-package com.ericsson.gerrit.plugins.eiffel.state;
+package com.ericsson.gerrit.plugins.eiffel.storage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,23 +28,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
 import com.ericsson.gerrit.plugins.eiffel.handlers.DataBaseHandler;
-import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
 import com.ericsson.gerrit.plugins.eiffel.handlers.Table;
 
-public abstract class State {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(State.class);
+public abstract class EventStorage {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(EventStorage.class);
     protected static final String FILE_ENDING = "db";
 
     protected File pluginDir;
 
-    public State(File pluginDir) {
+    public EventStorage(File pluginDir) {
         this.pluginDir = pluginDir;
     }
 
     public abstract String getEventId(String project, String tableColumnName) throws NoSuchElementException, ConnectException, FileNotFoundException;
 
-    public abstract void setState(String eiffelEventId, EiffelEvent eiffelEvent)
+    public abstract void saveEventId(String eiffelEventId, EiffelEvent eiffelEvent)
             throws NoSuchElementException, SQLException, ConnectException;
 
     protected String getLastSubmittedEiffelEvent(String project, String tableColumnName,
@@ -61,7 +61,6 @@ public abstract class State {
             throw new NoSuchElementException(
                     "Database did not return any value for this query\n" + "Exception Message:" + e.getMessage());
         }
-
     }
 
     protected void setLastSubmittedEiffelEvent(String project, String tableColumnName,

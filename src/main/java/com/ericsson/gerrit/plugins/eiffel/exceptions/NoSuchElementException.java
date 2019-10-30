@@ -15,7 +15,7 @@
    limitations under the License.
 */
 
-package com.ericsson.gerrit.plugins.eiffel.handlers;
+package com.ericsson.gerrit.plugins.eiffel.exceptions;
 
 public class NoSuchElementException extends Exception {
     public NoSuchElementException(String message) {

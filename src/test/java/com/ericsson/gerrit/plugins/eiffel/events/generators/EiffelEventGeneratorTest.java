@@ -27,9 +27,9 @@ import org.slf4j.LoggerFactory;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
-import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
-import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeSubmittedState;
-import com.ericsson.gerrit.plugins.eiffel.state.StateFactory;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.storage.EventStorageFactory;
+import com.ericsson.gerrit.plugins.eiffel.storage.SourceChangeSubmittedStorage;
 import com.google.common.base.Supplier;
 import com.google.gerrit.reviewdb.client.Change.Key;
 import com.google.gerrit.server.data.AccountAttribute;
@@ -42,7 +42,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ EiffelEventGenerator.class, InetAddress.class, StateFactory.class })
+@PrepareForTest({ EiffelEventGenerator.class, InetAddress.class, EventStorageFactory.class })
 public class EiffelEventGeneratorTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EiffelEventGeneratorTest.class);
@@ -149,14 +149,14 @@ public class EiffelEventGeneratorTest {
         changeMergedEvent.changeKey = changeKey;
         pluginDirectory = mock(File.class);
 
-        mockStatic(StateFactory.class);
-        SourceChangeSubmittedState sourceChangeSubmittedState = mock(SourceChangeSubmittedState.class);
+        mockStatic(EventStorageFactory.class);
+        SourceChangeSubmittedStorage sourceChangeSubmittedState = mock(SourceChangeSubmittedStorage.class);
 
         when(supplierChangeAttribute.get()).thenReturn(changeAttribute);
         when(supplierPatchSetAttribute.get()).thenReturn(patchSetAttribute);
         when(changeKey.toString()).thenReturn(CHANGE_ID);
 
-        when(StateFactory.getState(Mockito.any(), Mockito.any())).thenReturn(sourceChangeSubmittedState);
+        when(EventStorageFactory.getEventStorage(Mockito.any(), Mockito.any())).thenReturn(sourceChangeSubmittedState);
         when(sourceChangeSubmittedState.getEventId(Mockito.any(), Mockito.any())).thenReturn("my_event_id");
     }
 

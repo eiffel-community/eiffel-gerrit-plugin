@@ -27,9 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
-import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
-import com.ericsson.gerrit.plugins.eiffel.state.State;
-import com.ericsson.gerrit.plugins.eiffel.state.StateFactory;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.storage.EventStorage;
+import com.ericsson.gerrit.plugins.eiffel.storage.EventStorageFactory;
 
 /**
  * Base class with common functionality for event generators.
@@ -63,10 +63,12 @@ public class EiffelEventGenerator {
         }
     }
 
-    protected static Link createLink(String linkType, String linkedEiffelEventType, File pluginDirectoryPath, final String projectName,
+    protected static Link createLink(final String linkType, final String linkedEiffelEventType,
+            final File pluginDirectoryPath, final String projectName,
             final String tableColumnName) {
-        State state = StateFactory.getState(pluginDirectoryPath, linkedEiffelEventType);
-        String lastEiffelEvent = getEiffelEventIdFromState(state, projectName, tableColumnName);
+        try {
+        EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDirectoryPath, linkedEiffelEventType);
+        String lastEiffelEvent = getEiffelEventIdFromState(eventStorage, projectName, tableColumnName);
 
         if (!StringUtils.isEmpty(lastEiffelEvent)) {
             Link link = new Link();
@@ -75,12 +77,17 @@ public class EiffelEventGenerator {
 
             return link;
         }
+
+        } catch(IllegalArgumentException e) {
+            LOGGER.error("Failed creating link.", e);
+        }
         return null;
     }
 
-    protected static String getEiffelEventIdFromState(State state, String projectName, String tableColumnName) {
+    protected static String getEiffelEventIdFromState(final EventStorage eventStorage, final String projectName,
+            String tableColumnName) {
         try {
-            String eventId = state.getEventId(projectName, tableColumnName);
+            String eventId = eventStorage.getEventId(projectName, tableColumnName);
             return eventId;
         } catch (NoSuchElementException e) {
             return null;

@@ -58,7 +58,7 @@ public class RetryRequestTest {
         counter.setValue(0);
 
         RetryConfiguration retryConfiguration = new RetryConfiguration();
-        EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig, httpRequest);
+        EiffelEventSender eiffelEventSender = new EiffelEventSender(FILE_DIR, pluginConfig, httpRequest);
         eiffelEventSender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
         eiffelEventSender.setEiffelEventType(EIFFEL_TYPE);
 
@@ -109,11 +109,11 @@ public class RetryRequestTest {
     private void setUpMocksAndActionsForMethodInvoke() throws Exception {
         PowerMockito.mockStatic(EiffelSourceChangeSubmittedEventGenerator.class);
         Mockito.when(
-                EiffelSourceChangeSubmittedEventGenerator.generate(changeMergedEvent, pluginConfig))
+                EiffelSourceChangeSubmittedEventGenerator.generate(changeMergedEvent, pluginConfig, FILE_DIR))
                .thenReturn(eiffelEvent);
-        EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
+        EiffelEventSender sender = new EiffelEventSender(FILE_DIR, pluginConfig, httpRequest);
         PowerMockito.whenNew(EiffelEventSender.class)
-                    .withArguments(pluginConfig)
+                    .withArguments(FILE_DIR, pluginConfig)
                     .thenReturn(sender);
     }
 }

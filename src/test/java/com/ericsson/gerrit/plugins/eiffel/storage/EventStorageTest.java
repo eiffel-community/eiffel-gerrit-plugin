@@ -1,4 +1,4 @@
-package com.ericsson.gerrit.plugins.eiffel.state;
+package com.ericsson.gerrit.plugins.eiffel.storage;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -17,20 +17,23 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
 import com.ericsson.gerrit.plugins.eiffel.handlers.DataBaseHandler;
-import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
 import com.ericsson.gerrit.plugins.eiffel.handlers.Table;
+import com.ericsson.gerrit.plugins.eiffel.storage.EventStorageFactory;
+import com.ericsson.gerrit.plugins.eiffel.storage.SourceChangeCreatedStorage;
+import com.ericsson.gerrit.plugins.eiffel.storage.SourceChangeSubmittedStorage;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(fullyQualifiedNames = "com.ericsson.gerrit.plugins.eiffel.*")
-public class StateTest {
+public class EventStorageTest {
 
     private static final String FILE_ENDING = "db";
     private static final String PROJECT = "project_test";
     private static final String BRANCH = "branch_test";
     private DataBaseHandler dbHandler;
-    private SourceChangeCreatedState sourceChangeCreatedState;
-    private SourceChangeSubmittedState sourceChangeSubmittedState;
+    private SourceChangeCreatedStorage sourceChangeCreatedState;
+    private SourceChangeSubmittedStorage sourceChangeSubmittedState;
 
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
@@ -47,8 +50,8 @@ public class StateTest {
         String fileName = String.format("%s.%s", PROJECT, FILE_ENDING);
         PowerMockito.whenNew(DataBaseHandler.class).withParameterTypes(File.class, String.class).withArguments(Mockito.any())
                 .thenReturn(dbHandler);
-        sourceChangeCreatedState = (SourceChangeCreatedState) StateFactory.getState(tmpFolderPath, "EiffelSourceChangeCreatedEvent");
-        sourceChangeSubmittedState = (SourceChangeSubmittedState) StateFactory.getState(tmpFolderPath, "EiffelSourceChangeSubmittedEvent");
+        sourceChangeCreatedState = (SourceChangeCreatedStorage) EventStorageFactory.getEventStorage(tmpFolderPath, "EiffelSourceChangeCreatedEvent");
+        sourceChangeSubmittedState = (SourceChangeSubmittedStorage) EventStorageFactory.getEventStorage(tmpFolderPath, "EiffelSourceChangeSubmittedEvent");
     }
 
     @Test

@@ -26,6 +26,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(fullyQualifiedNames = "com.ericsson.gerrit.plugins.eiffel.*")
 public class DataBaseHandlerTest {

@@ -15,24 +15,25 @@
    limitations under the License.
 */
 
-package com.ericsson.gerrit.plugins.eiffel.state;
+package com.ericsson.gerrit.plugins.eiffel.storage;
 
 import java.io.File;
 
-public class StateFactory {
-    public static State getState(File pluginDir, String eventType) {
-        try {
-            switch (eventType) {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class EventStorageFactory {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(EventStorageFactory.class);
+
+    public static EventStorage getEventStorage(File pluginDir, String eventType) {
+        switch (eventType) {
             case "EiffelSourceChangeCreatedEvent":
-                return new SourceChangeCreatedState(pluginDir);
+                return new SourceChangeCreatedStorage(pluginDir);
             case "EiffelSourceChangeSubmittedEvent":
-                return new SourceChangeSubmittedState(pluginDir);
-            }
-        } catch (Exception e) {
-            // TODO Change this
-            return null;
+                return new SourceChangeSubmittedStorage(pluginDir);
         }
-        return null;
+
+        throw new IllegalArgumentException("The eventtype does not exist " + eventType + ".");
     }
 
 }

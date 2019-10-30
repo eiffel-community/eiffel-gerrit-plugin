@@ -35,9 +35,9 @@ import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguratio
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.HttpRequestFailedException;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.MissingConfigurationException;
-import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
-import com.ericsson.gerrit.plugins.eiffel.state.State;
-import com.ericsson.gerrit.plugins.eiffel.state.StateFactory;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.storage.EventStorage;
+import com.ericsson.gerrit.plugins.eiffel.storage.EventStorageFactory;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -80,8 +80,8 @@ public class EiffelEventSender {
         try {
             verifyConfiguration();
             String generatedEventId = generateAndPublish();
-            State stateAccessor = StateFactory.getState(pluginDir, eiffelEvent.msgParams.meta.type);
-            stateAccessor.setState(generatedEventId, eiffelEvent);
+            EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDir, eiffelEvent.msgParams.meta.type);
+            eventStorage.saveEventId(generatedEventId, eiffelEvent);
 
         } catch (URISyntaxException | MissingConfigurationException | NoSuchElementException e) {
             LOGGER.error("Failed to send eiffel message.", e);

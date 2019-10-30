@@ -31,6 +31,8 @@ import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
+
 /**
  * This is the database handler class. At initiation it checks if the name given
  * exist as a db file, if not it gets created together with required tables. At
@@ -44,31 +46,15 @@ public class DataBaseHandler {
     private static final String EVENT_ID_KEY = "eventId";
     private final String databaseFile;
 
-    /**
-     * Constructor that takes plugin directory path as String and plugin name as
-     * String.
-     *
-     * @param pluginDir
-     * @param filename
-     * @throws ConnectException
-     */
-    public DataBaseHandler(final String pluginDir, final String filename) throws ConnectException {
-        final Path filePath = Paths.get(pluginDir, filename);
+    public DataBaseHandler(final String pluginDir, final String fileName) throws ConnectException {
+        final Path filePath = Paths.get(pluginDir, fileName);
         this.databaseFile = String.format("jdbc:sqlite:%s", filePath);
         createNewDatabase();
         createTables();
     }
 
-    /**
-     * Constructor that takes plugin directory path as File and plugin name as
-     * String.
-     *
-     * @param pluginDir
-     * @param filename
-     * @throws ConnectException
-     */
-    public DataBaseHandler(final File pluginDir, final String filename) throws ConnectException {
-        this(pluginDir.toString(), filename);
+    public DataBaseHandler(final File pluginDir, final String fileName) throws ConnectException {
+        this(pluginDir.toString(), fileName);
     }
 
     /**
@@ -108,14 +94,14 @@ public class DataBaseHandler {
      *
      * @param table
      * @param keyValue
-     * @param eiffelevent
+     * @param eiffelEvent
      * @throws ConnectException
      * @throws SQLException
      */
-    public void updateInto(final Table table, final String keyValue, final String eiffelevent)
+    public void updateInto(final Table table, final String keyValue, final String eiffelEvent)
             throws ConnectException, SQLException {
         String sqlUpdateStatement = String.format("UPDATE %s SET %s=? WHERE %s=?", table, EVENT_ID_KEY, table.keyName);
-        executeUpdate(sqlUpdateStatement, keyValue, eiffelevent);
+        executeUpdate(sqlUpdateStatement, keyValue, eiffelEvent);
     }
 
     /**
@@ -124,15 +110,15 @@ public class DataBaseHandler {
      *
      * @param table
      * @param keyValue
-     * @param eiffelevent
+     * @param value
      * @throws SQLException
      * @throws ConnectException
      */
-    public void insertInto(final Table table, final String keyValue, final String eiffelevent)
+    public void insertInto(final Table table, final String keyValue, final String value)
             throws SQLException, ConnectException {
         String sqlInsertStatement = String.format("INSERT INTO %s(%s,%s) VALUES(?,?)", table, EVENT_ID_KEY,
                 table.keyName);
-        executeUpdate(sqlInsertStatement, keyValue, eiffelevent);
+        executeUpdate(sqlInsertStatement, keyValue, value);
 
     }
 
@@ -210,14 +196,14 @@ public class DataBaseHandler {
      *
      * @param sqlStatement
      * @param keyValue
-     * @param eiffelevent
+     * @param eiffelEvent
      * @throws ConnectException
      * @throws SQLException
      */
-    private void executeUpdate(final String sqlStatement, final String keyValue, final String eiffelevent)
+    private void executeUpdate(final String sqlStatement, final String keyValue, final String eiffelEvent)
             throws ConnectException, SQLException {
         try (PreparedStatement preparedStatement = prepareStatmentForResourceBlock(sqlStatement)) {
-            preparedStatement.setString(1, eiffelevent);
+            preparedStatement.setString(1, eiffelEvent);
             preparedStatement.setString(2, keyValue);
             int updateCount = preparedStatement.executeUpdate();
 
@@ -231,7 +217,7 @@ public class DataBaseHandler {
         }
     }
 
-    public void createTable(Table table, Statement statement) throws ConnectException, SQLException {
+    public void createTable(final Table table, final Statement statement) throws ConnectException, SQLException {
         String sqlCreateStatement = String.format("CREATE TABLE IF NOT EXISTS %s (%s text PRIMARY KEY, %s text)", table,
                 table.keyName, EVENT_ID_KEY);
         statement.execute(sqlCreateStatement);

@@ -15,7 +15,7 @@
    limitations under the License.
 */
 
-package com.ericsson.gerrit.plugins.eiffel.state;
+package com.ericsson.gerrit.plugins.eiffel.storage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,12 +24,12 @@ import java.sql.SQLException;
 
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
-import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
 import com.ericsson.gerrit.plugins.eiffel.handlers.Table;
 
-public class SourceChangeSubmittedState extends State {
+public class SourceChangeSubmittedStorage extends EventStorage {
 
-    public SourceChangeSubmittedState(File pluginDir) {
+    public SourceChangeSubmittedStorage(File pluginDir) {
         super(pluginDir);
     }
 
@@ -39,7 +39,7 @@ public class SourceChangeSubmittedState extends State {
     }
 
     @Override
-    public void setState(String eiffelEventId, EiffelEvent eiffelEvent)
+    public void saveEventId(String eiffelEventId, EiffelEvent eiffelEvent)
             throws NoSuchElementException, ConnectException, SQLException {
         EiffelSourceChangeSubmittedEvent eiffelSourceChangeSubmittedEvent = (EiffelSourceChangeSubmittedEvent) eiffelEvent;
         String projectName = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.repoName;
