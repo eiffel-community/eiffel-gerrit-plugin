@@ -84,7 +84,8 @@ public abstract class AbstractEventListener implements EventListener {
 
     private void initializeThreadPoolExecutor() {
         if (initialized.compareAndSet(false, true)) {
-            executor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE, TIME_UNIT, queue);
+            executor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
+                    TIME_UNIT, queue);
         }
     }
 
