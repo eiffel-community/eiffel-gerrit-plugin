@@ -118,10 +118,10 @@ public class EiffelEventSender {
     }
 
     private String getGeneratedEventId(final ResponseEntity response) {
-        String jsonBody = response.getBody();
-        JsonObject responseBody = new JsonParser().parse(jsonBody).getAsJsonObject();
-        JsonArray events = responseBody.get("events").getAsJsonArray();
-        String generatedEventId = events.get(0).getAsJsonObject().get("id").getAsString();
+        final String jsonBody = response.getBody();
+        final JsonObject responseBody = new JsonParser().parse(jsonBody).getAsJsonObject();
+        final JsonArray events = responseBody.get("events").getAsJsonArray();
+        final String generatedEventId = events.get(0).getAsJsonObject().get("id").getAsString();
         return generatedEventId;
     }
 

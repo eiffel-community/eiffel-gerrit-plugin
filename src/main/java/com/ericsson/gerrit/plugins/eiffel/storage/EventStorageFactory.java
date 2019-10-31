@@ -34,7 +34,7 @@ public class EventStorageFactory {
             case EventType.SCS_EVENT:
                 return new SourceChangeSubmittedStorage(pluginDir);
             default:
-                throw new IllegalArgumentException("The eventtype does not exist " + eventType + ".");
+                throw new IllegalArgumentException("The event type does not exist " + eventType + ".");
         }
     }
 
