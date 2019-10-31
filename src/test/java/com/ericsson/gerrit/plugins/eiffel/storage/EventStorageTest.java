@@ -25,7 +25,6 @@ import com.ericsson.gerrit.plugins.eiffel.handlers.Table;
 @PrepareForTest(fullyQualifiedNames = "com.ericsson.gerrit.plugins.eiffel.*")
 public class EventStorageTest {
 
-    private static final String FILE_ENDING = "db";
     private static final String PROJECT = "project_test";
     private static final String BRANCH = "branch_test";
     private DataBaseHandler dbHandler;
