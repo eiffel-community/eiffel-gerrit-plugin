@@ -67,12 +67,14 @@ public final class EiffelSourceChangeSubmittedEventGenerator extends EiffelEvent
         eiffelEvent.eventParams.data.gitIdentifier.branch = branch;
         eiffelEvent.eventParams.data.gitIdentifier.repoName = projectName;
 
-        final Link changeLink = createLink(LINK_TYPE_CHANGE, EventType.SCC_EVENT, pluginDirectoryPath, projectName, changeId);
+        String previousSourceChangeCreatedEvent = getPreviousEiffelEvent(EventType.SCC_EVENT, projectName, changeId, pluginDirectoryPath);
+        final Link changeLink = createLink(LINK_TYPE_CHANGE, previousSourceChangeCreatedEvent);
         if (changeLink != null) {
             eiffelEvent.eventParams.links.add(changeLink);
         }
 
-        final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION, EventType.SCS_EVENT, pluginDirectoryPath, projectName, branch);
+        String previousSourceChangeSubmittedEvent = getPreviousEiffelEvent(EventType.SCS_EVENT, projectName, branch, pluginDirectoryPath);
+        final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION, previousSourceChangeSubmittedEvent);
         if (previousVersionLink != null) {
             eiffelEvent.eventParams.links.add(previousVersionLink);
         }

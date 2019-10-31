@@ -22,7 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
-import org.parboiled.common.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,13 +63,18 @@ public class EiffelEventGenerator {
         }
     }
 
-    protected static Link createLink(final String linkType, final String linkedEiffelEventType,
-            final File pluginDirectoryPath, final String projectName,
-            final String tableColumnName) {
+    protected static String getPreviousEiffelEvent(String linkedEiffelEventType, String projectName, String tableColumnName, File pluginDirectoryPath) {
         try {
-        EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDirectoryPath, linkedEiffelEventType);
-        String lastEiffelEvent = getEiffelEventIdFromState(eventStorage, projectName, tableColumnName);
+            EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDirectoryPath, linkedEiffelEventType);
+            String lastEiffelEvent = getEiffelEventIdFromStorage(eventStorage, projectName, tableColumnName);
+            return lastEiffelEvent;
+        } catch(IllegalArgumentException e) {
+            LOGGER.error("Failed creating link.", e);
+            return "";
+        }
+    }
 
+    protected static Link createLink(final String linkType, String lastEiffelEvent) {
         if (!StringUtils.isEmpty(lastEiffelEvent)) {
             Link link = new Link();
             link.type = linkType;
@@ -77,14 +82,10 @@ public class EiffelEventGenerator {
 
             return link;
         }
-
-        } catch(IllegalArgumentException e) {
-            LOGGER.error("Failed creating link.", e);
-        }
         return null;
     }
 
-    protected static String getEiffelEventIdFromState(final EventStorage eventStorage, final String projectName,
+    protected static String getEiffelEventIdFromStorage(final EventStorage eventStorage, final String projectName,
             String tableColumnName) {
         try {
             String eventId = eventStorage.getEventId(projectName, tableColumnName);

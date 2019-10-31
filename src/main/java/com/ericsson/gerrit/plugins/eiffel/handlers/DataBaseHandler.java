@@ -131,6 +131,7 @@ public class DataBaseHandler {
     private void createNewDatabase() throws ConnectException {
         try (Connection sqlConnection = connect()) {
             if (sqlConnection != null) {
+                //When getMetaData is called, it will create the .db file
                 sqlConnection.getMetaData();
                 sqlConnection.close();
             }
@@ -217,7 +218,7 @@ public class DataBaseHandler {
         }
     }
 
-    public void createTable(final Table table, final Statement statement) throws ConnectException, SQLException {
+    private void createTable(final Table table, final Statement statement) throws ConnectException, SQLException {
         String sqlCreateStatement = String.format("CREATE TABLE IF NOT EXISTS %s (%s text PRIMARY KEY, %s text)", table,
                 table.keyName, EVENT_ID_KEY);
         statement.execute(sqlCreateStatement);
