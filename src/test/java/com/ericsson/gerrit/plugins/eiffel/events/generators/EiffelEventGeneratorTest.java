@@ -74,7 +74,6 @@ public class EiffelEventGeneratorTest {
     private PatchSetAttribute patchSetAttribute;
     private AccountAttribute accountAttribute;
     private Key changeKey;
-    private String changeIdAttribute;
 
     private File pluginDirectory;
 

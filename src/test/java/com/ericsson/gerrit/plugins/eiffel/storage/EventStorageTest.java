@@ -20,9 +20,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
 import com.ericsson.gerrit.plugins.eiffel.handlers.DataBaseHandler;
 import com.ericsson.gerrit.plugins.eiffel.handlers.Table;
-import com.ericsson.gerrit.plugins.eiffel.storage.EventStorageFactory;
-import com.ericsson.gerrit.plugins.eiffel.storage.SourceChangeCreatedStorage;
-import com.ericsson.gerrit.plugins.eiffel.storage.SourceChangeSubmittedStorage;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(fullyQualifiedNames = "com.ericsson.gerrit.plugins.eiffel.*")
@@ -47,7 +44,6 @@ public class EventStorageTest {
     public void init() throws Exception {
         tmpFolderPath = testFolder.newFolder();
         dbHandler = Mockito.mock(DataBaseHandler.class);
-        String fileName = String.format("%s.%s", PROJECT, FILE_ENDING);
         PowerMockito.whenNew(DataBaseHandler.class).withParameterTypes(File.class, String.class).withArguments(Mockito.any())
                 .thenReturn(dbHandler);
         sourceChangeCreatedState = (SourceChangeCreatedStorage) EventStorageFactory.getEventStorage(tmpFolderPath, "EiffelSourceChangeCreatedEvent");
