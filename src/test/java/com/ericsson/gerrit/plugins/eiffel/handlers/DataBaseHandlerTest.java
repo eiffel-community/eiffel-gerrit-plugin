@@ -31,14 +31,15 @@ import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(fullyQualifiedNames = "com.ericsson.gerrit.plugins.eiffel.*")
 public class DataBaseHandlerTest {
-    private final String branch = "my_test_branch";
-    private final String scsTableKey = "branch";
-    private final String sccTableKey = "changeId";
+    private static final String BRANCH = "my_test_branch";
+    private static final String FAULTY_BRANCH = "faulty_branch";
+    private static final String SCS_TABLE_KEY = "branch";
+    private static final String SCC_TABLE_KEY = "changeId";
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
-    private DataBaseHandler dbHandler;
+    private DatabaseHandler dbHandler;
 
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
@@ -46,7 +47,7 @@ public class DataBaseHandlerTest {
     @Before
     public void init() throws Exception {
         File tmpFolderPath = testFolder.newFolder();
-        dbHandler = new DataBaseHandler(tmpFolderPath, "test_file_name.db");
+        dbHandler = new DatabaseHandler(tmpFolderPath, "project_name");
     }
 
     /**
@@ -56,11 +57,12 @@ public class DataBaseHandlerTest {
      */
     @Test(expected = ConnectException.class)
     public void testFailingToConnectToDbThrowsError() throws Exception {
-        new DataBaseHandler("dir_should_not_exist", "test_file_name.db");
+        final File pluginDir = new File("dir_should_not_exist");
+        new DatabaseHandler(pluginDir, "project_name");
     }
 
     /**
-     * This test inserts and event id for a branch and fetches it to ensure it both
+     * This test inserts an event id for a branch and fetches it to ensure it both
      * got inserted and fetched correctly.
      *
      * @throws Exception
@@ -68,8 +70,8 @@ public class DataBaseHandlerTest {
     @Test
     public void testInsertAndGetEventID() throws Exception {
         String eiffelEventId = generateEiffelEventId();
-        dbHandler.insertInto(Table.SCS_TABLE, branch, eiffelEventId);
-        String eventId = dbHandler.getEventID(Table.SCS_TABLE, branch);
+        dbHandler.insertInto(Table.SCS_TABLE, BRANCH, eiffelEventId);
+        String eventId = dbHandler.getEventID(Table.SCS_TABLE, BRANCH);
         assertEquals("Expect fetched event ID", eiffelEventId, eventId);
     }
 
@@ -83,10 +85,10 @@ public class DataBaseHandlerTest {
         String firstEiffelEventId = generateEiffelEventId();
         String secondEiffelEventId = generateEiffelEventId();
 
-        dbHandler.insertInto(Table.SCS_TABLE, branch, firstEiffelEventId);
-        dbHandler.updateInto(Table.SCS_TABLE, branch, secondEiffelEventId);
+        dbHandler.insertInto(Table.SCS_TABLE, BRANCH, firstEiffelEventId);
+        dbHandler.updateInto(Table.SCS_TABLE, BRANCH, secondEiffelEventId);
 
-        String eventId = dbHandler.getEventID(Table.SCS_TABLE, branch);
+        String eventId = dbHandler.getEventID(Table.SCS_TABLE, BRANCH);
         assertFalse(firstEiffelEventId.equals(eventId));
         assertEquals("Expect fetched event ID", secondEiffelEventId, eventId);
     }
@@ -100,10 +102,10 @@ public class DataBaseHandlerTest {
     public void testInsertIntoExistingFails() throws Exception {
         String firstEiffelEventId = generateEiffelEventId();
         String secondEiffelEventId = generateEiffelEventId();
-        dbHandler.insertInto(Table.SCS_TABLE, branch, firstEiffelEventId);
+        dbHandler.insertInto(Table.SCS_TABLE, BRANCH, firstEiffelEventId);
 
         try {
-            dbHandler.insertInto(Table.SCS_TABLE, branch, secondEiffelEventId);
+            dbHandler.insertInto(Table.SCS_TABLE, BRANCH, secondEiffelEventId);
             assertEquals("Expected the call to throw and Exception but none was thrown!", true, false);
         } catch (SQLException e) {
             // test passed!
@@ -118,7 +120,7 @@ public class DataBaseHandlerTest {
      */
     @Test(expected = NoSuchElementException.class)
     public void testGetNoneExistingEventIdReturnsNull() throws Exception {
-        dbHandler.getEventID(Table.SCS_TABLE, branch);
+        dbHandler.getEventID(Table.SCS_TABLE, FAULTY_BRANCH);
     }
 
     /**
@@ -129,8 +131,8 @@ public class DataBaseHandlerTest {
         Table scsTable = Table.SCS_TABLE;
         Table sccTable = Table.SCC_TABLE;
 
-        assertEquals("Table.SCS_TABLE tabler key should be", scsTableKey, scsTable.getKeyName());
-        assertEquals("Table.SCC_TABLE tabler key should be", sccTableKey, sccTable.getKeyName());
+        assertEquals("Table.SCS_TABLE tabler key should be", SCS_TABLE_KEY, scsTable.getKeyName());
+        assertEquals("Table.SCC_TABLE tabler key should be", SCC_TABLE_KEY, sccTable.getKeyName());
 
     }
 
@@ -153,23 +155,16 @@ public class DataBaseHandlerTest {
         PowerMockito.mockStatic(DriverManager.class);
         BDDMockito.given(DriverManager.getConnection(Mockito.any())).willReturn(connection);
 
-        if (result.next()) {
-            Mockito.doReturn(preparedStatement).when(connection).prepareStatement(Mockito.any());
-            Mockito.doReturn(result).when(preparedStatement).executeQuery();
-        } else {
-            throw new NoSuchElementException("Mocking ResultSet class was unsuccessful...!");
-        }
+        Mockito.doReturn(preparedStatement).when(connection).prepareStatement(Mockito.any());
+        Mockito.doReturn(result).when(preparedStatement).executeQuery();
 
         // When mocking an exception while executing getEventID the function should
         // return an empty String,
         // exception may be thrown when no values was found and should be empty.
-        if (result.next()) {
-            Mockito.when(result.next()).thenThrow(new SQLException("Exception thrown by test"));
-            exception.expect(RuntimeException.class);
-            dbHandler.getEventID(Table.SCS_TABLE, branch);
-        } else {
-            throw new NoSuchElementException("Mocking ResultSet class was unsuccessful...!");
-        }
+        Mockito.when(result.next()).thenThrow(new SQLException("Exception thrown by test"));
+        exception.expect(RuntimeException.class);
+        dbHandler.getEventID(Table.SCS_TABLE, BRANCH);
+
 
         // When we initiate a new DataBaseHandler we throw SQLExceptions, those
         // exceptions should be caught
@@ -178,23 +173,23 @@ public class DataBaseHandlerTest {
         Mockito.doReturn(statement).when(connection).createStatement();
         Mockito.when(statement.execute(Mockito.any())).thenThrow(new SQLException("Exception thrown by test"));
         File tmpFolderPath = testFolder.newFolder();
-        new DataBaseHandler(tmpFolderPath, "test_file_name.db");
+        new DatabaseHandler(tmpFolderPath, "project_name");
 
         // When doing updateInto on the database handler we throw some exceptions and
         // ensures they are
         // correctly sent back to the user.
         try {
             Mockito.when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Exception thrown by test"));
-            dbHandler.updateInto(Table.SCS_TABLE, branch, "event_id");
-            assertEquals("Expected executeUpdate to throw and Exception but none was thrown!", true, false);
+            dbHandler.updateInto(Table.SCS_TABLE, BRANCH, "event_id");
+            assertEquals("Expected executeUpdate to throw an Exception but none was thrown!", true, false);
         } catch (SQLException e) {
             // test passed!
         }
 
         try {
             Mockito.when(preparedStatement.executeUpdate()).thenReturn(0);
-            dbHandler.updateInto(Table.SCS_TABLE, branch, "event_id");
-            assertEquals("Expected executeUpdate to throw and Exception but none was thrown!", true, false);
+            dbHandler.updateInto(Table.SCS_TABLE, BRANCH, "event_id");
+            assertEquals("Expected executeUpdate to throw an Exception but none was thrown!", true, false);
         } catch (SQLException e) {
             // test passed!
         }
@@ -202,8 +197,8 @@ public class DataBaseHandlerTest {
         try {
             Mockito.when(connection.prepareStatement(Mockito.any()))
                     .thenThrow(new SQLException("Exception thrown by test"));
-            dbHandler.updateInto(Table.SCS_TABLE, branch, "event_id");
-            assertEquals("Expected prepareStatement to throw and Exception but none was thrown!", true, false);
+            dbHandler.updateInto(Table.SCS_TABLE, BRANCH, "event_id");
+            assertEquals("Expected prepareStatement to throw an Exception but none was thrown!", true, false);
         } catch (SQLException e) {
             // test passed!
         }

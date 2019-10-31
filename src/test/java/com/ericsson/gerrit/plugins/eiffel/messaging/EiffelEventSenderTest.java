@@ -34,37 +34,37 @@ public class EiffelEventSenderTest {
         setUpMockObjects();
     }
 
-     @Test
-     public void testEventSender() throws Exception {
-         setUpMockActions();
+    @Test
+    public void testEventSender() throws Exception {
+        setUpMockActions();
 
-         EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
-         sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
-         sender.setEiffelEventType(EIFFEL_TYPE);
+        EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
+        sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
+        sender.setEiffelEventType(EIFFEL_TYPE);
 
-         Assertions.assertThatCode(() -> { Whitebox.invokeMethod(sender, "generateAndPublish");
-         }).doesNotThrowAnyException();
-     }
+        Assertions.assertThatCode(() -> { Whitebox.invokeMethod(sender, "generateAndPublish");
+        }).doesNotThrowAnyException();
+    }
 
-     @Test(expected = MissingConfigurationException.class)
-     public void testEventSenderWithMissingConfiguration() throws Exception {
-         EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
-         sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
-         sender.setEiffelEventType("");
+    @Test(expected = MissingConfigurationException.class)
+    public void testEventSenderWithMissingConfiguration() throws Exception {
+        EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
+        sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
+        sender.setEiffelEventType("");
 
-         Whitebox.invokeMethod(sender, "verifyConfiguration");
-     }
+        Whitebox.invokeMethod(sender, "verifyConfiguration");
+    }
 
-     @Test(expected = HttpRequestFailedException.class)
-     public void testEventSenderWithBadStatus() throws Exception {
-         setUpMockActionsWithBadStatus();
+    @Test(expected = HttpRequestFailedException.class)
+    public void testEventSenderWithBadStatus() throws Exception {
+        setUpMockActionsWithBadStatus();
 
-         EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
-         sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
-         sender.setEiffelEventType(EIFFEL_TYPE);
+        EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
+        sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
+        sender.setEiffelEventType(EIFFEL_TYPE);
 
-         Whitebox.invokeMethod(sender, "generateAndPublish");
-     }
+        Whitebox.invokeMethod(sender, "generateAndPublish");
+    }
 
     private void setUpMockObjects() throws URISyntaxException, IOException {
         httpRequest = Mockito.mock(HttpRequest.class);

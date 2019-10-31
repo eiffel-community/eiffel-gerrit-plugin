@@ -35,7 +35,7 @@ public class SourceChangeSubmittedStorage extends EventStorage {
 
     @Override
     public String getEventId(String project, String branch) throws NoSuchElementException, ConnectException, FileNotFoundException {
-        return getLastSubmittedEiffelEvent(project, branch, Table.SCS_TABLE);
+        return getLastSavedEiffelEvent(project, branch, Table.SCS_TABLE);
     }
 
     @Override
@@ -43,8 +43,8 @@ public class SourceChangeSubmittedStorage extends EventStorage {
             throws NoSuchElementException, ConnectException, SQLException {
         EiffelSourceChangeSubmittedEvent eiffelSourceChangeSubmittedEvent = (EiffelSourceChangeSubmittedEvent) eiffelEvent;
         String projectName = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.repoName;
-        String branch = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.branch;
+        String searchCriteria = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.branch;
 
-        setLastSubmittedEiffelEvent(projectName, branch, eiffelEventId, Table.SCS_TABLE);
+        findAndUpdateEiffelEvent(projectName, searchCriteria, eiffelEventId, Table.SCS_TABLE);
     }
 }

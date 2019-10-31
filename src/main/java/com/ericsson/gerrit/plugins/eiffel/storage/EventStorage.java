@@ -20,8 +20,6 @@ package com.ericsson.gerrit.plugins.eiffel.storage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 
 import org.slf4j.Logger;
@@ -29,94 +27,59 @@ import org.slf4j.LoggerFactory;
 
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
-import com.ericsson.gerrit.plugins.eiffel.handlers.DataBaseHandler;
+import com.ericsson.gerrit.plugins.eiffel.handlers.DatabaseHandler;
 import com.ericsson.gerrit.plugins.eiffel.handlers.Table;
 
 public abstract class EventStorage {
     protected static final Logger LOGGER = LoggerFactory.getLogger(EventStorage.class);
-    protected static final String FILE_ENDING = "db";
-
     protected File pluginDir;
 
     public EventStorage(File pluginDir) {
         this.pluginDir = pluginDir;
     }
 
-    public abstract String getEventId(String project, String tableColumnName) throws NoSuchElementException, ConnectException, FileNotFoundException;
+    public abstract String getEventId(String project, String searchCriteria) throws NoSuchElementException, ConnectException, FileNotFoundException;
 
     public abstract void saveEventId(String eiffelEventId, EiffelEvent eiffelEvent)
             throws NoSuchElementException, SQLException, ConnectException;
 
-    protected String getLastSubmittedEiffelEvent(String project, String tableColumnName,
+    protected String getLastSavedEiffelEvent(String project, String searchCriteria,
             Table tableName)
             throws NoSuchElementException, FileNotFoundException, ConnectException {
         try {
-            File parentDir = new File(buildParentFilePath(pluginDir, project));
-            if (!(parentDir.exists())) {
-                throw new FileNotFoundException(parentDir.getName() + " could not be created.");
-            }
-
-            return getEventId(project, tableColumnName, tableName);
+            return getEventId(project, searchCriteria, tableName);
         } catch (NoSuchElementException e) {
             throw new NoSuchElementException(
                     "Database did not return any value for this query\n" + "Exception Message:" + e.getMessage());
         }
     }
 
-    protected void setLastSubmittedEiffelEvent(String project, String tableColumnName,
+    protected void findAndUpdateEiffelEvent(String project, String searchCriteria,
             String eiffelEvent,
             Table tableName) throws NoSuchElementException, ConnectException, SQLException {
-        String fileName = String.format("%s.%s", project, FILE_ENDING);
-        DataBaseHandler dBHandler = new DataBaseHandler(pluginDir, fileName);
-        String parentPath = buildParentFilePath(pluginDir, project);
-        createParentDirsIfNecessary(parentPath);
+        DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
 
-        saveEventToDatabase(project, tableColumnName, eiffelEvent, tableName, dBHandler);
+        saveEventToDatabase(project, searchCriteria, eiffelEvent, tableName, dBHandler);
     }
 
-    private void saveEventToDatabase(String project, String tableColumnName, String eiffelEvent,
-            Table tableName, DataBaseHandler dBHandler) throws ConnectException, SQLException {
-        String oldEvent = getOldEventId(dBHandler, tableName, tableColumnName);
+    private void saveEventToDatabase(String project, String searchCriteria, String eiffelEvent,
+            Table tableName, DatabaseHandler dBHandler) throws ConnectException, SQLException {
+        String oldEvent = getOldEventId(dBHandler, tableName, searchCriteria);
 
         if (!oldEvent.isEmpty()) {
-            dBHandler.updateInto(tableName, tableColumnName, eiffelEvent);
+            dBHandler.updateInto(tableName, searchCriteria, eiffelEvent);
             LOGGER.info("Replaced old event id '{}' with new event if '{}', for project '{}', and branch '{}'.",
-                    oldEvent, eiffelEvent, project, tableColumnName);
+                    oldEvent, eiffelEvent, project, searchCriteria);
         } else {
-            dBHandler.insertInto(tableName, tableColumnName, eiffelEvent);
+            dBHandler.insertInto(tableName, searchCriteria, eiffelEvent);
             LOGGER.info("Saved eiffel event with id '{}', for project '{}', and branch '{}'.", eiffelEvent, project,
-                    tableColumnName);
+                    searchCriteria);
         }
     }
 
-    /**
-     * Creates parent directories of a project if they don't exist and is included
-     * in the project name.
-     *
-     * @param path
-     */
-    protected void createParentDirsIfNecessary(String path) {
-        File directory = new File(path);
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-    }
-
-    /**
-     * Builds the absolute file path to the parent of a project
-     *
-     * @param project
-     * @return
-     */
-    protected String buildParentFilePath(File pluginDir, String project) {
-        String relativeParentPath = generateRelativeParentPath(project);
-        Path absolutePath = Paths.get(pluginDir.getAbsolutePath(), relativeParentPath);
-        return absolutePath.toString();
-    }
-
-    private String getOldEventId(DataBaseHandler dBHandler, Table tableName, String tableColumnName) throws ConnectException {
+    private String getOldEventId(DatabaseHandler dBHandler, Table tableName, String searchCriteria) throws ConnectException {
         try {
-            String oldEvent = dBHandler.getEventID(tableName, tableColumnName);
+            String oldEvent = dBHandler.getEventID(tableName, searchCriteria);
             return oldEvent;
         } catch (NoSuchElementException e) {
             LOGGER.debug("No previous event was saved, creating a new entry");
@@ -124,24 +87,12 @@ public abstract class EventStorage {
         }
     }
 
-    private String getEventId(String project, String tableColumnName,
+    private String getEventId(String project, String searchCriteria,
             Table tableName) throws NoSuchElementException, ConnectException {
-        String fileName = String.format("%s.%s", project, FILE_ENDING);
-        DataBaseHandler dBHandler = new DataBaseHandler(pluginDir, fileName);
-        String eventId = dBHandler.getEventID(tableName, tableColumnName);
+        DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
+        String eventId = dBHandler.getEventID(tableName, searchCriteria);
         LOGGER.info("Fetched old event with id '{}', for project '{}', and branch '{}'", eventId, project,
-                tableColumnName);
+                searchCriteria);
         return eventId;
-    }
-
-    private String generateRelativeParentPath(String project) {
-        int lastIndexOfSlash = project.lastIndexOf("/");
-
-        String relativeParentPath = "";
-        boolean projectContainsParent = lastIndexOfSlash != -1;
-        if (projectContainsParent) {
-            relativeParentPath = project.substring(0, lastIndexOfSlash);
-        }
-        return relativeParentPath;
     }
 }

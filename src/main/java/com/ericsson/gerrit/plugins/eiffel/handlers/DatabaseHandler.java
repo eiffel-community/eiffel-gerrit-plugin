@@ -41,40 +41,44 @@ import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
  * function.
  *
  */
-public class DataBaseHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataBaseHandler.class);
+public class DatabaseHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHandler.class);
     private static final String EVENT_ID_KEY = "eventId";
-    private final String databaseFile;
+    protected static final String FILE_ENDING = "db";
 
-    public DataBaseHandler(final String pluginDir, final String fileName) throws ConnectException {
-        final Path filePath = Paths.get(pluginDir, fileName);
+    private final String databaseFile;
+    private File pluginDir;
+    private String project;
+
+    public DatabaseHandler(final File pluginDir, final String project) throws ConnectException {
+        String fileName = String.format("%s.%s", project, FILE_ENDING);
+
+        final Path filePath = Paths.get(pluginDir.toString(), fileName);
         this.databaseFile = String.format("jdbc:sqlite:%s", filePath);
+        this.pluginDir = pluginDir;
+        this.project = project;
         createNewDatabase();
         createTables();
     }
 
-    public DataBaseHandler(final File pluginDir, final String fileName) throws ConnectException {
-        this(pluginDir.toString(), fileName);
-    }
-
     /**
      * This function returns an event id if exists for a specific table depending on
-     * the keyValue
+     * the searchCriteria
      *
      * @param table
-     * @param keyValue
+     * @param searchCriteria
      * @return eventId
      * @throws ConnectException
      * @throws NoSuchElementException
      */
-    public String getEventID(final Table table, final String keyValue) throws ConnectException, NoSuchElementException {
+    public String getEventID(final Table table, final String searchCriteria) throws ConnectException, NoSuchElementException {
         String eventID = "";
 
-        String sqlSelectStatement = String.format("SELECT * FROM %s WHERE %s=?", table, table.keyName);
+        String sqlSelectStatement = String.format("SELECT %s FROM %s WHERE %s=?", EVENT_ID_KEY, table, table.keyName);
         try (Connection connection = connect();
                 PreparedStatement preparedStatement = connection.prepareStatement(sqlSelectStatement)) {
 
-            preparedStatement.setString(1, keyValue);
+            preparedStatement.setString(1, searchCriteria);
             eventID = executeQuery(preparedStatement);
 
         } catch (SQLException e) {
@@ -82,43 +86,44 @@ public class DataBaseHandler {
         }
 
         if (eventID.isEmpty()) {
-            throw new NoSuchElementException("Database did not return any value for this query");
+            throw new NoSuchElementException("Database did not return any value for this query. Table: "
+                    + table + ",KeyName: " + table.keyName + ",searchCriteria: " + searchCriteria);
         }
 
         return eventID;
     }
 
     /**
-     * This function updates value to the given table. The keyValue value is
+     * This function updates value to the given table. The searchCriteria value is
      * different depending on Table (branch name for scs and change-id for scc)
      *
      * @param table
-     * @param keyValue
+     * @param searchCriteria
      * @param eiffelEvent
      * @throws ConnectException
      * @throws SQLException
      */
-    public void updateInto(final Table table, final String keyValue, final String eiffelEvent)
+    public void updateInto(final Table table, final String searchCriteria, final String eiffelEvent)
             throws ConnectException, SQLException {
         String sqlUpdateStatement = String.format("UPDATE %s SET %s=? WHERE %s=?", table, EVENT_ID_KEY, table.keyName);
-        executeUpdate(sqlUpdateStatement, keyValue, eiffelEvent);
+        executeUpdate(sqlUpdateStatement, searchCriteria, eiffelEvent);
     }
 
     /**
-     * This function inserts values to the given table. The keyValue value is
+     * This function inserts values to the given table. The key value is
      * different depending on Table (branch name for scs and change-id for scc)
      *
      * @param table
-     * @param keyValue
+     * @param key
      * @param value
      * @throws SQLException
      * @throws ConnectException
      */
-    public void insertInto(final Table table, final String keyValue, final String value)
+    public void insertInto(final Table table, final String key, final String value)
             throws SQLException, ConnectException {
         String sqlInsertStatement = String.format("INSERT INTO %s(%s,%s) VALUES(?,?)", table, EVENT_ID_KEY,
                 table.keyName);
-        executeUpdate(sqlInsertStatement, keyValue, value);
+        executeUpdate(sqlInsertStatement, key, value);
 
     }
 
@@ -131,6 +136,9 @@ public class DataBaseHandler {
     private void createNewDatabase() throws ConnectException {
         try (Connection sqlConnection = connect()) {
             if (sqlConnection != null) {
+                String parentPath = buildParentFilePath();
+                createParentDirsIfNecessary(parentPath);
+
                 //When getMetaData is called, it will create the .db file
                 sqlConnection.getMetaData();
                 sqlConnection.close();
@@ -143,7 +151,7 @@ public class DataBaseHandler {
 
     /**
      * This function loops the values in the Table enum and executes the create
-     * table command for each table and creates it in the database if it not already
+     * table command for each table and creates it in the database if it does not already
      * exist.
      *
      * @throws ConnectException
@@ -201,11 +209,11 @@ public class DataBaseHandler {
      * @throws ConnectException
      * @throws SQLException
      */
-    private void executeUpdate(final String sqlStatement, final String keyValue, final String eiffelEvent)
+    private void executeUpdate(final String sqlStatement, final String searchCriteria, final String eiffelEvent)
             throws ConnectException, SQLException {
-        try (PreparedStatement preparedStatement = prepareStatmentForResourceBlock(sqlStatement)) {
+        try (PreparedStatement preparedStatement = prepareStatementForResourceBlock(sqlStatement)) {
             preparedStatement.setString(1, eiffelEvent);
-            preparedStatement.setString(2, keyValue);
+            preparedStatement.setString(2, searchCriteria);
             int updateCount = preparedStatement.executeUpdate();
 
             if (updateCount == 0) {
@@ -213,9 +221,45 @@ public class DataBaseHandler {
             }
 
         } catch (SQLException e) {
-            LOGGER.error("Error when trying to add value into database: {}\n{}", e.getMessage(), e);
+            LOGGER.error("Error when trying to INSERT/ADD/UPDATE value into database: {}\n{}", e.getMessage(), e);
             throw e;
         }
+    }
+
+    /**
+     * Creates parent directories of a project if they don't exist and is included
+     * in the project name.
+     *
+     * @param path
+     */
+    protected void createParentDirsIfNecessary(String path) {
+        File directory = new File(path);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+    }
+
+    /**
+     * Builds the absolute file path to the parent of a project
+     *
+     * @param project
+     * @return
+     */
+    protected String buildParentFilePath() {
+        String relativeParentPath = generateRelativeParentPath(project);
+        Path absolutePath = Paths.get(pluginDir.getAbsolutePath(), relativeParentPath);
+        return absolutePath.toString();
+    }
+
+    private String generateRelativeParentPath(String project) {
+        int lastIndexOfSlash = project.lastIndexOf("/");
+
+        String relativeParentPath = "";
+        boolean projectContainsParent = lastIndexOfSlash != -1;
+        if (projectContainsParent) {
+            relativeParentPath = project.substring(0, lastIndexOfSlash);
+        }
+        return relativeParentPath;
     }
 
     private void createTable(final Table table, final Statement statement) throws ConnectException, SQLException {
@@ -224,7 +268,7 @@ public class DataBaseHandler {
         statement.execute(sqlCreateStatement);
     }
 
-    private PreparedStatement prepareStatmentForResourceBlock(final String sqlStatement)
+    private PreparedStatement prepareStatementForResourceBlock(final String sqlStatement)
             throws ConnectException, SQLException {
         Connection connection = connect();
         return connection.prepareStatement(sqlStatement);

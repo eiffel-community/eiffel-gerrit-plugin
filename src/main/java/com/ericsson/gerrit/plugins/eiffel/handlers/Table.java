@@ -22,8 +22,8 @@ public enum Table {
 
     final String keyName;
 
-    Table(String keyValue) {
-        this.keyName = keyValue;
+    Table(String keyName) {
+        this.keyName = keyName;
     }
 
     public String getKeyName() {

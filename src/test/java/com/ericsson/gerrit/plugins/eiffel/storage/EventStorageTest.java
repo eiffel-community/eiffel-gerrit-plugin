@@ -18,7 +18,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
-import com.ericsson.gerrit.plugins.eiffel.handlers.DataBaseHandler;
+import com.ericsson.gerrit.plugins.eiffel.handlers.DatabaseHandler;
 import com.ericsson.gerrit.plugins.eiffel.handlers.Table;
 
 @RunWith(PowerMockRunner.class)
@@ -27,7 +27,7 @@ public class EventStorageTest {
 
     private static final String PROJECT = "project_test";
     private static final String BRANCH = "branch_test";
-    private DataBaseHandler dbHandler;
+    private DatabaseHandler dbHandler;
     private SourceChangeCreatedStorage sourceChangeCreatedState;
     private SourceChangeSubmittedStorage sourceChangeSubmittedState;
 
@@ -42,8 +42,8 @@ public class EventStorageTest {
     @Before
     public void init() throws Exception {
         tmpFolderPath = testFolder.newFolder();
-        dbHandler = Mockito.mock(DataBaseHandler.class);
-        PowerMockito.whenNew(DataBaseHandler.class).withParameterTypes(File.class, String.class).withArguments(Mockito.any())
+        dbHandler = Mockito.mock(DatabaseHandler.class);
+        PowerMockito.whenNew(DatabaseHandler.class).withParameterTypes(File.class, String.class).withArguments(Mockito.any())
                 .thenReturn(dbHandler);
         sourceChangeCreatedState = (SourceChangeCreatedStorage) EventStorageFactory.getEventStorage(tmpFolderPath, "EiffelSourceChangeCreatedEvent");
         sourceChangeSubmittedState = (SourceChangeSubmittedStorage) EventStorageFactory.getEventStorage(tmpFolderPath, "EiffelSourceChangeSubmittedEvent");
@@ -54,7 +54,7 @@ public class EventStorageTest {
         String expectedParentPath = tmpFolderPath.toString();
 
         Mockito.when(dbHandler.getEventID(Table.SCC_TABLE, BRANCH)).thenReturn("");
-        sourceChangeCreatedState.setLastSubmittedEiffelEvent(PROJECT, BRANCH, "{eiffel_event}", Table.SCC_TABLE);
+        sourceChangeCreatedState.findAndUpdateEiffelEvent(PROJECT, BRANCH, "{eiffel_event}", Table.SCC_TABLE);
 
         File parentDirectory = new File(expectedParentPath);
         assertTrue(parentDirectory.exists());
@@ -64,13 +64,13 @@ public class EventStorageTest {
     public void testgetLastSentEvent() throws Exception {
         Mockito.when(dbHandler.getEventID(Mockito.any(), Mockito.any())).thenReturn("eventID");
 
-        String eventId = sourceChangeSubmittedState.getLastSubmittedEiffelEvent(PROJECT, BRANCH, Table.SCS_TABLE);
+        String eventId = sourceChangeSubmittedState.getLastSavedEiffelEvent(PROJECT, BRANCH, Table.SCS_TABLE);
         assertEquals("Table.SCS_TABLE tabler key should be", "eventID", eventId);
 
         Mockito.when(dbHandler.getEventID(Table.SCS_TABLE, ""))
                 .thenThrow(new NoSuchElementException("Exception thrown by test"));
         exception.expect(NoSuchElementException.class);
-        sourceChangeSubmittedState.getLastSubmittedEiffelEvent("", "", Table.SCS_TABLE);
+        sourceChangeSubmittedState.getLastSavedEiffelEvent("", "", Table.SCS_TABLE);
     }
 
     @Test
@@ -78,7 +78,7 @@ public class EventStorageTest {
         Mockito.when(dbHandler.getEventID(Table.SCS_TABLE, BRANCH)).thenReturn("old-event-id");
 
         String eventId = "event-id";
-        sourceChangeSubmittedState.setLastSubmittedEiffelEvent(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
+        sourceChangeSubmittedState.findAndUpdateEiffelEvent(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
         Mockito.verify(dbHandler).updateInto(Table.SCS_TABLE, BRANCH, eventId);
         Mockito.verify(dbHandler, Mockito.never()).insertInto(Mockito.any(), Mockito.any(), Mockito.any());
 
@@ -89,7 +89,7 @@ public class EventStorageTest {
         Mockito.when(dbHandler.getEventID(Table.SCS_TABLE, BRANCH)).thenReturn("");
 
         String eventId = "event-id";
-        sourceChangeSubmittedState.setLastSubmittedEiffelEvent(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
+        sourceChangeSubmittedState.findAndUpdateEiffelEvent(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
         Mockito.verify(dbHandler, Mockito.never()).updateInto(Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.verify(dbHandler).insertInto(Table.SCS_TABLE, BRANCH, eventId);
 
@@ -102,7 +102,7 @@ public class EventStorageTest {
         String eventId = "event-id";
 
         exception.expect(ConnectException.class);
-        sourceChangeSubmittedState.setLastSubmittedEiffelEvent(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
+        sourceChangeSubmittedState.findAndUpdateEiffelEvent(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
 
         Mockito.verify(dbHandler, Mockito.never()).updateInto(Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.verify(dbHandler, Mockito.never()).insertInto(Mockito.any(), Mockito.any(), Mockito.any());

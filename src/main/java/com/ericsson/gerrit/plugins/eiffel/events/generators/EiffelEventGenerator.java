@@ -63,10 +63,10 @@ public class EiffelEventGenerator {
         }
     }
 
-    protected static String getPreviousEiffelEvent(String linkedEiffelEventType, String projectName, String tableColumnName, File pluginDirectoryPath) {
+    protected static String getPreviousEiffelEvent(String linkedEiffelEventType, String projectName, String searchCriteria, File pluginDirectoryPath) {
         try {
             EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDirectoryPath, linkedEiffelEventType);
-            String lastEiffelEvent = getEiffelEventIdFromStorage(eventStorage, projectName, tableColumnName);
+            String lastEiffelEvent = getEiffelEventIdFromStorage(eventStorage, projectName, searchCriteria);
             return lastEiffelEvent;
         } catch(IllegalArgumentException e) {
             LOGGER.error("Failed creating link.", e);
@@ -86,9 +86,9 @@ public class EiffelEventGenerator {
     }
 
     protected static String getEiffelEventIdFromStorage(final EventStorage eventStorage, final String projectName,
-            String tableColumnName) {
+            String searchCriteria) {
         try {
-            String eventId = eventStorage.getEventId(projectName, tableColumnName);
+            String eventId = eventStorage.getEventId(projectName, searchCriteria);
             return eventId;
         } catch (NoSuchElementException e) {
             return null;
