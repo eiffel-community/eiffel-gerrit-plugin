@@ -49,7 +49,7 @@ public class EiffelEventGenerator {
         }
     }
 
-    protected static String createRepoURI(String url, String projectName) {
+    protected static String createRepoURI(final String url, final String projectName) {
         try {
             URI changeUri = new URI(url);
             String hostName = changeUri.getHost();
@@ -63,7 +63,8 @@ public class EiffelEventGenerator {
         }
     }
 
-    protected static String getPreviousEiffelEvent(String linkedEiffelEventType, String projectName, String searchCriteria, File pluginDirectoryPath) {
+    protected static String getPreviousEiffelEvent(final String linkedEiffelEventType, final String projectName,
+            final String searchCriteria, final File pluginDirectoryPath) {
         try {
             EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDirectoryPath, linkedEiffelEventType);
             String lastEiffelEvent = getEiffelEventIdFromStorage(eventStorage, projectName, searchCriteria);
@@ -74,7 +75,7 @@ public class EiffelEventGenerator {
         }
     }
 
-    protected static Link createLink(final String linkType, String lastEiffelEvent) {
+    protected static Link createLink(final String linkType, final String lastEiffelEvent) {
         if (!StringUtils.isEmpty(lastEiffelEvent)) {
             Link link = new Link();
             link.type = linkType;
@@ -86,7 +87,7 @@ public class EiffelEventGenerator {
     }
 
     protected static String getEiffelEventIdFromStorage(final EventStorage eventStorage, final String projectName,
-            String searchCriteria) {
+            final String searchCriteria) {
         try {
             String eventId = eventStorage.getEventId(projectName, searchCriteria);
             return eventId;
@@ -98,7 +99,7 @@ public class EiffelEventGenerator {
         }
     }
 
-    private static String getSshBaseUrl(String host) throws URISyntaxException {
+    private static String getSshBaseUrl(final String host) throws URISyntaxException {
         URI uri;
         uri = new URI("ssh", null, host, DEFAULT_SSH_PORT, "/", null, null);
         return uri.toString();

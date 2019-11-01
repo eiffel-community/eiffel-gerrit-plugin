@@ -82,7 +82,7 @@ public abstract class EventStorage {
             String oldEvent = dBHandler.getEventID(tableName, searchCriteria);
             return oldEvent;
         } catch (NoSuchElementException e) {
-            LOGGER.debug("No previous event was saved, creating a new entry");
+            LOGGER.debug("No old event found");
             return "";
         }
     }

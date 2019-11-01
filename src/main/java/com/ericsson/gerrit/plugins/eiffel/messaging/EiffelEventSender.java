@@ -96,8 +96,8 @@ public class EiffelEventSender {
         }
     }
 
-    public EiffelEventSender setEiffelEventMessage(final EiffelEvent eiffelMessage) {
-        this.eiffelEvent = eiffelMessage;
+    public EiffelEventSender setEiffelEventMessage(final EiffelEvent eiffelEvent) {
+        this.eiffelEvent = eiffelEvent;
         return this;
     }
 

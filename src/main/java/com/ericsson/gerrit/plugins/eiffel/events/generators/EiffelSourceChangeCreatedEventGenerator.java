@@ -39,6 +39,7 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
      *
      * @param patchSetCreatedEvent
      * @param pluginConfig
+     * @param pluginDirectoryPath
      * @return EiffelSourceChangeCreatedEvent
      */
     public static EiffelSourceChangeCreatedEvent generate(PatchSetCreatedEvent patchSetCreatedEvent,
