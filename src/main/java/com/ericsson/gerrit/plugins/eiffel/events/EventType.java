@@ -15,18 +15,10 @@
    limitations under the License.
 */
 
-package com.ericsson.gerrit.plugins.eiffel.handlers;
+package com.ericsson.gerrit.plugins.eiffel.events;
 
-public enum Table {
-    SCS_TABLE("branch"), SCC_TABLE("changeId");
+public class EventType {
+    public static final String SCC_EVENT = "EiffelSourceChangeCreatedEvent";
+    public static final String SCS_EVENT = "EiffelSourceChangeSubmittedEvent";
 
-    final String keyName;
-
-    Table(String keyName) {
-        this.keyName = keyName;
-    }
-
-    public String getKeyName() {
-        return this.keyName;
-    }
 }

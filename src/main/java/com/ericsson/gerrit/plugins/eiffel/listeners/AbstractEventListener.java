@@ -23,12 +23,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
+import com.ericsson.gerrit.plugins.eiffel.configuration.RetryConfiguration;
+import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
+import com.ericsson.gerrit.plugins.eiffel.messaging.EiffelEventSender;
 import com.google.gerrit.common.EventListener;
 import com.google.gerrit.reviewdb.client.Project;
 import com.google.gerrit.server.config.CanonicalWebUrl;
 import com.google.gerrit.server.events.ChangeEvent;
 import com.google.gerrit.server.events.Event;
 import com.google.inject.Inject;
+
+import io.github.resilience4j.decorators.Decorators;
+import io.github.resilience4j.retry.Retry;
+import io.vavr.control.Try;
 
 /**
  * Abstract class implemented by the Gerrit event listeners, enforces needed listener methods and
@@ -42,6 +49,9 @@ public abstract class AbstractEventListener implements EventListener {
 
     @Inject
     private com.google.gerrit.server.config.PluginConfigFactory pluginConfigFactory;
+
+    @Inject
+    private RetryConfiguration retryConfiguration;
 
     @Inject
     @CanonicalWebUrl
@@ -83,6 +93,26 @@ public abstract class AbstractEventListener implements EventListener {
                 projectNameKey, pluginConfigFactory);
         pluginConfig.setPluginDirectoryPath(pluginDirectoryPath);
         return pluginConfig;
+    }
+
+    /**
+     * Sends an Eiffel message to the REMReM service.
+     * RetryConfiguration contains the retry policy for the send method.
+     *
+     * @param eiffelEvent
+     * @param pluginConfig
+     */
+    public void sendEiffelEvent(EiffelEvent eiffelEvent, EiffelPluginConfiguration pluginConfig) {
+        EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginDirectoryPath, pluginConfig);
+        eiffelEventSender.setEiffelEventType(eiffelEvent.getClass().getSimpleName());
+        eiffelEventSender.setEiffelEventMessage(eiffelEvent);
+
+        // TODO Queue send calls as async jobs
+        Retry policy = retryConfiguration.getRetryPolicy();
+        Runnable decoratedRunnable = Decorators.ofRunnable(() -> eiffelEventSender.send())
+                                               .withRetry(policy)
+                                               .decorate();
+        Try.runRunnable(decoratedRunnable);
     }
 
     /**
@@ -130,7 +160,7 @@ public abstract class AbstractEventListener implements EventListener {
 
     private boolean isBranchNameInConfiguredFilter(final String branch, final String filter,
             final String project) {
-        final String[] filterList = filter.split("\\s+");
+        final String[] filterList = filter.split(",");
         for (final String regExString : filterList) {
             if (branch.matches(regExString)) {
                 return true;

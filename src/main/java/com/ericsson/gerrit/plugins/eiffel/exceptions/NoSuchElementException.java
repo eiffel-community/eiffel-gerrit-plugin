@@ -15,18 +15,11 @@
    limitations under the License.
 */
 
-package com.ericsson.gerrit.plugins.eiffel.handlers;
+package com.ericsson.gerrit.plugins.eiffel.exceptions;
 
-public enum Table {
-    SCS_TABLE("branch"), SCC_TABLE("changeId");
-
-    final String keyName;
-
-    Table(String keyName) {
-        this.keyName = keyName;
+public class NoSuchElementException extends Exception {
+    public NoSuchElementException(String message) {
+        super(message);
     }
 
-    public String getKeyName() {
-        return this.keyName;
-    }
 }

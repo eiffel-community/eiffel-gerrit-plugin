@@ -16,17 +16,20 @@
 */
 package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ericsson.gerrit.plugins.eiffel.handlers.NoSuchElementException;
-import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeCreatedState;
-import com.ericsson.gerrit.plugins.eiffel.state.SourceChangeSubmittedState;
+import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.storage.EventStorage;
+import com.ericsson.gerrit.plugins.eiffel.storage.EventStorageFactory;
 
 /**
  * Base class with common functionality for event generators.
@@ -60,24 +63,33 @@ public class EiffelEventGenerator {
         }
     }
 
-    protected static String getLastSourceChangeSubmittedEiffelEventId(String projectName, String branch,
-            SourceChangeSubmittedState stateAccessor) {
+    protected static String getPreviousEiffelEvent(String linkedEiffelEventType, String projectName, String searchCriteria, File pluginDirectoryPath) {
         try {
-            String latestEiffelSourceChangeSubmittedEventId = stateAccessor.getEventId(projectName, branch);
-            return latestEiffelSourceChangeSubmittedEventId;
-        } catch (NoSuchElementException e) {
-            return null;
-        } catch (Exception e) {
-            LOGGER.error("Could not get last submitted eiffel event id.", e);
-            return null;
+            EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDirectoryPath, linkedEiffelEventType);
+            String lastEiffelEvent = getEiffelEventIdFromStorage(eventStorage, projectName, searchCriteria);
+            return lastEiffelEvent;
+        } catch(IllegalArgumentException e) {
+            LOGGER.error("Failed creating link.", e);
+            return "";
         }
     }
 
-    protected static String getLastSourceChangeCreatedEiffelEvent(final String projectName, final String changeId,
-            SourceChangeCreatedState stateAccessor) {
+    protected static Link createLink(final String linkType, String lastEiffelEvent) {
+        if (!StringUtils.isEmpty(lastEiffelEvent)) {
+            Link link = new Link();
+            link.type = linkType;
+            link.target = lastEiffelEvent;
+
+            return link;
+        }
+        return null;
+    }
+
+    protected static String getEiffelEventIdFromStorage(final EventStorage eventStorage, final String projectName,
+            String searchCriteria) {
         try {
-            String latestEiffelSourceChangeCreatedEventId = stateAccessor.getEventId(projectName, changeId);
-            return latestEiffelSourceChangeCreatedEventId;
+            String eventId = eventStorage.getEventId(projectName, searchCriteria);
+            return eventId;
         } catch (NoSuchElementException e) {
             return null;
         } catch (Exception e) {
