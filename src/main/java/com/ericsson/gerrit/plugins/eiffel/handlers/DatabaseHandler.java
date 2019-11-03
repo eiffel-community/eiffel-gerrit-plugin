@@ -103,7 +103,7 @@ public class DatabaseHandler {
     public void updateInto(final Table table, final String searchCriteria, final String eiffelEvent)
             throws ConnectException, SQLException {
         String sqlUpdateStatement = String.format("UPDATE %s SET %s=? WHERE %s=?", table, EVENT_ID_KEY, table.keyName);
-        executeUpdate(sqlUpdateStatement, searchCriteria, eiffelEvent);
+        prepareAndExecuteStatement(sqlUpdateStatement, searchCriteria, eiffelEvent);
     }
 
     /**
@@ -120,7 +120,7 @@ public class DatabaseHandler {
             throws SQLException, ConnectException {
         String sqlInsertStatement = String.format("INSERT INTO %s(%s,%s) VALUES(?,?)", table, EVENT_ID_KEY,
                 table.keyName);
-        executeUpdate(sqlInsertStatement, key, value);
+        prepareAndExecuteStatement(sqlInsertStatement, key, value);
 
     }
 
@@ -206,7 +206,7 @@ public class DatabaseHandler {
      * @throws ConnectException
      * @throws SQLException
      */
-    private void executeUpdate(final String sqlStatement, final String searchCriteria, final String eiffelEvent)
+    private void prepareAndExecuteStatement(final String sqlStatement, final String searchCriteria, final String eiffelEvent)
             throws ConnectException, SQLException {
         try (PreparedStatement preparedStatement = prepareStatementForResourceBlock(sqlStatement)) {
             preparedStatement.setString(1, eiffelEvent);
