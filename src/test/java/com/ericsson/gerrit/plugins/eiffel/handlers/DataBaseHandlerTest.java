@@ -150,18 +150,24 @@ public class DataBaseHandlerTest {
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
         Statement statement = mock(Statement.class);
         ResultSet result = mock(ResultSet.class);
+        Mockito.doReturn(true).when(result).next();
 
 
         PowerMockito.mockStatic(DriverManager.class);
         BDDMockito.given(DriverManager.getConnection(Mockito.any())).willReturn(connection);
 
         Mockito.doReturn(preparedStatement).when(connection).prepareStatement(Mockito.any());
+        if (result.next()) {
         Mockito.doReturn(result).when(preparedStatement).executeQuery();
+        }
 
         // When mocking an exception while executing getEventID the function should
         // return an empty String,
         // exception may be thrown when no values was found and should be empty.
+        if (result.next()) {
         Mockito.when(result.next()).thenThrow(new SQLException("Exception thrown by test"));
+        }
+
         exception.expect(RuntimeException.class);
         dbHandler.getEventID(Table.SCS_TABLE, BRANCH);
 
