@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.http.HttpStatus;
@@ -24,6 +25,7 @@ import com.ericsson.gerrit.plugins.eiffel.configuration.RetryConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.generators.EiffelSourceChangeSubmittedEventGenerator;
+import com.ericsson.gerrit.plugins.eiffel.listeners.AbstractEventListener;
 import com.ericsson.gerrit.plugins.eiffel.listeners.ChangeMergedEventListener;
 import com.google.gerrit.server.events.ChangeMergedEvent;
 
@@ -66,9 +68,7 @@ public class RetryRequestTest {
         Runnable decoratedRunnable = Decorators.ofRunnable(() -> {
             counter.setValue(counter.getValue().intValue() + 1);
             eiffelEventSender.send();
-        })
-                                               .withRetry(policy)
-                                               .decorate();
+        }).withRetry(policy).decorate();
         Try.runRunnable(decoratedRunnable);
 
         int expectedValue = retryConfiguration.getMaxAttempts();
@@ -88,6 +88,30 @@ public class RetryRequestTest {
         Whitebox.setInternalState(listener, "retryConfiguration", retryConfiguration);
         Whitebox.invokeMethod(listener, "sendEiffelEvent", eiffelEvent,
                 pluginConfig);
+
+        ThreadPoolExecutor executor = Whitebox.<ThreadPoolExecutor>getInternalState(
+                AbstractEventListener.class, "executor");
+        int expectedValue = 1;
+        int actualValue = executor.getActiveCount();
+        String errorMessage = String.format("Expected active jobs to be %d but was %d",
+                expectedValue, actualValue);
+        assertEquals(errorMessage, expectedValue, actualValue);
+
+        boolean finished = false;
+        long stopTime = System.currentTimeMillis() + 30000;
+        while (!finished && stopTime > System.currentTimeMillis()) {
+            if (executor.getActiveCount() > 0) {
+                Thread.sleep(1000);
+            } else {
+                finished = true;
+            }
+        }
+
+        expectedValue = 0;
+        actualValue = executor.getActiveCount();
+        errorMessage = String.format("Expected active jobs to be %d but was %d",
+                expectedValue, actualValue);
+        assertEquals(errorMessage, expectedValue, actualValue);
     }
 
     private void setUpMockObjects() throws URISyntaxException, IOException {
