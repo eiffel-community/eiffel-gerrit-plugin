@@ -18,17 +18,13 @@
 package com.ericsson.gerrit.plugins.eiffel;
 
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
-import com.ericsson.gerrit.plugins.eiffel.handlers.MessageQueueHandler;
 import com.ericsson.gerrit.plugins.eiffel.listeners.ChangeMergedEventListener;
 import com.ericsson.gerrit.plugins.eiffel.listeners.PatchsetCreatedEventListener;
 import com.google.gerrit.common.EventListener;
 import com.google.gerrit.extensions.annotations.Exports;
-import com.google.gerrit.extensions.events.LifecycleListener;
 import com.google.gerrit.extensions.registration.DynamicSet;
-import com.google.inject.AbstractModule;
-import com.google.inject.Scopes;
-import com.google.inject.internal.UniqueAnnotations;
 import com.google.gerrit.server.config.ProjectConfigEntry;
+import com.google.inject.AbstractModule;
 
 /**
  * This class that registers the plugin in gerrit.
@@ -44,15 +40,8 @@ public class GerritModule extends AbstractModule {
     @Override
     @CoberturaIgnore
     protected void configure() {
-        bindMessageQueueHandler();
         bindGerritEventListeners();
         bindPluginConfiguration();
-    }
-
-    private void bindMessageQueueHandler() {
-        bind(MessageQueueHandler.class).in(Scopes.SINGLETON);
-        bind(LifecycleListener.class).annotatedWith(UniqueAnnotations.create())
-                                     .to(MessageQueueHandler.class);
     }
 
     private void bindGerritEventListeners() {
