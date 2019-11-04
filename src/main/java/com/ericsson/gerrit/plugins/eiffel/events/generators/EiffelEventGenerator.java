@@ -70,7 +70,7 @@ public class EiffelEventGenerator {
             String lastEiffelEvent = getEiffelEventIdFromStorage(eventStorage, projectName, searchCriteria);
             return lastEiffelEvent;
         } catch(IllegalArgumentException e) {
-            LOGGER.error("Could not get previous eiffel event.", e);
+            LOGGER.error("Could not get previous Eiffel event.", e);
             return "";
         }
     }
@@ -98,7 +98,7 @@ public class EiffelEventGenerator {
             String eventId = eventStorage.getEventId(projectName, searchCriteria);
             return eventId;
         } catch (NoSuchElementException e) {
-            LOGGER.debug("Event Storage didnt return any value for this query.", e);
+            LOGGER.debug("Event Storage did not return any value for this query.", e);
             return null;
         } catch (Exception e) {
             LOGGER.error("Could not get last submitted eiffel event id.", e);

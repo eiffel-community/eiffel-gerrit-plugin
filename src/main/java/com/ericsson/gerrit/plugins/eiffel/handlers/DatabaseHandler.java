@@ -41,14 +41,14 @@ import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
 public class DatabaseHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHandler.class);
     private static final String EVENT_ID_KEY = "eventId";
-    protected static final String FILE_ENDING = "db";
+    protected static final String FILE_TYPE_EXTENSION = "db";
 
     private final String databaseFile;
     private File pluginDir;
     private String project;
 
     public DatabaseHandler(final File pluginDir, final String project) throws ConnectException {
-        String fileName = String.format("%s.%s", project, FILE_ENDING);
+        String fileName = String.format("%s.%s", project, FILE_TYPE_EXTENSION);
 
         final Path filePath = Paths.get(pluginDir.toString(), fileName);
         this.databaseFile = String.format("jdbc:sqlite:%s", filePath);
