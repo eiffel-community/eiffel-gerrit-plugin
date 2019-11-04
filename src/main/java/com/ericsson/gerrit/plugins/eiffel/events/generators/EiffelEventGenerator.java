@@ -86,24 +86,23 @@ public class EiffelEventGenerator {
         return null;
     }
 
-    protected static String getEiffelEventIdFromStorage(final EventStorage eventStorage, final String projectName,
+    private static String getSshBaseUrl(final String host) throws URISyntaxException {
+        URI uri;
+        uri = new URI("ssh", null, host, DEFAULT_SSH_PORT, "/", null, null);
+        return uri.toString();
+    }
+
+    private static String getEiffelEventIdFromStorage(final EventStorage eventStorage, final String projectName,
             final String searchCriteria) {
         try {
             String eventId = eventStorage.getEventId(projectName, searchCriteria);
             return eventId;
         } catch (NoSuchElementException e) {
-            LOGGER.debug(
-                    "Event Storage didnt return any value for this query.", e);
+            LOGGER.debug("Event Storage didnt return any value for this query.", e);
             return null;
         } catch (Exception e) {
             LOGGER.error("Could not get last submitted eiffel event id.", e);
             return null;
         }
-    }
-
-    private static String getSshBaseUrl(final String host) throws URISyntaxException {
-        URI uri;
-        uri = new URI("ssh", null, host, DEFAULT_SSH_PORT, "/", null, null);
-        return uri.toString();
     }
 }

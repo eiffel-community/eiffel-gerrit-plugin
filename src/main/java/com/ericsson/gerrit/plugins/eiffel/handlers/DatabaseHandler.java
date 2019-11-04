@@ -142,7 +142,7 @@ public class DatabaseHandler {
             }
 
         } catch (SQLException e) {
-            LOGGER.error("Error when trying to create new database: {}\n{}", e.getMessage(), e);
+            LOGGER.error("Error when trying to create new database.", e);
         }
     }
 
@@ -160,7 +160,7 @@ public class DatabaseHandler {
             }
             LOGGER.debug("Created tables successfully");
         } catch (SQLException e) {
-            LOGGER.error("Error while creating Tables in database: {}\n{}", e.getMessage(), e);
+            LOGGER.error("Error while creating Tables in database.", e);
         }
     }
 
@@ -176,7 +176,7 @@ public class DatabaseHandler {
             return DriverManager.getConnection(this.databaseFile);
         } catch (SQLException | ClassNotFoundException e) {
             throw new ConnectException(
-                    String.format("Failed to create a database connection. %s\n%s", e.getMessage(), e));
+                    String.format("Failed to create a database connection.", e));
         }
     }
 
@@ -218,7 +218,9 @@ public class DatabaseHandler {
             }
 
         } catch (SQLException e) {
-            LOGGER.error("Error when trying to INSERT/ADD/UPDATE value into database: {}\n{}", e.getMessage(), e);
+            LOGGER.error(
+                    "Error when trying to INSERT/ADD/UPDATE value into database using sqlStatement: {} and search criteria {} and eiffel event {}",
+                    sqlStatement, searchCriteria, eiffelEvent, e);
             throw e;
         }
     }
