@@ -38,32 +38,26 @@ public abstract class EventStorage {
         this.pluginDir = pluginDir;
     }
 
-    public abstract String getEventId(String project, String searchCriteria) throws NoSuchElementException, ConnectException, FileNotFoundException;
+    public abstract String getEventId(String project, String searchCriteria)
+            throws NoSuchElementException, ConnectException, FileNotFoundException;
 
     public abstract void saveEventId(String eiffelEventId, EiffelEvent eiffelEvent)
             throws NoSuchElementException, SQLException, ConnectException;
 
-    protected String getLastSavedEiffelEvent(String project, String searchCriteria,
-            Table tableName)
+    protected String getLastSavedEiffelEvent(String project, String searchCriteria, Table tableName)
             throws NoSuchElementException, FileNotFoundException, ConnectException {
-        try {
-            return getEventId(project, searchCriteria, tableName);
-        } catch (NoSuchElementException e) {
-            throw new NoSuchElementException(
-                    "Database did not return any value for this query\n" + "Exception Message:" + e.getMessage());
-        }
+        return getEventId(project, searchCriteria, tableName);
     }
 
-    protected void findAndUpdateEiffelEvent(String project, String searchCriteria,
-            String eiffelEvent,
-            Table tableName) throws NoSuchElementException, ConnectException, SQLException {
+    protected void findAndUpdateEiffelEvent(String project, String searchCriteria, String eiffelEvent, Table tableName)
+            throws NoSuchElementException, ConnectException, SQLException {
         DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
 
         saveEventToDatabase(project, searchCriteria, eiffelEvent, tableName, dBHandler);
     }
 
-    private void saveEventToDatabase(String project, String searchCriteria, String eiffelEvent,
-            Table tableName, DatabaseHandler dBHandler) throws ConnectException, SQLException {
+    private void saveEventToDatabase(String project, String searchCriteria, String eiffelEvent, Table tableName,
+            DatabaseHandler dBHandler) throws ConnectException, SQLException {
         String oldEvent = getOldEventId(dBHandler, tableName, searchCriteria);
 
         if (!oldEvent.isEmpty()) {
@@ -77,7 +71,8 @@ public abstract class EventStorage {
         }
     }
 
-    private String getOldEventId(DatabaseHandler dBHandler, Table tableName, String searchCriteria) throws ConnectException {
+    private String getOldEventId(DatabaseHandler dBHandler, Table tableName, String searchCriteria)
+            throws ConnectException {
         try {
             String oldEvent = dBHandler.getEventID(tableName, searchCriteria);
             return oldEvent;
@@ -87,8 +82,8 @@ public abstract class EventStorage {
         }
     }
 
-    private String getEventId(String project, String searchCriteria,
-            Table tableName) throws NoSuchElementException, ConnectException {
+    private String getEventId(String project, String searchCriteria, Table tableName)
+            throws NoSuchElementException, ConnectException {
         DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
         String eventId = dBHandler.getEventID(tableName, searchCriteria);
         LOGGER.info("Fetched old event with id '{}', for project '{}', and branch '{}'", eventId, project,
