@@ -84,7 +84,8 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
             eiffelEvent.eventParams.links.add(previousVersionLink);
         }
 
-        String previousSourceChangeSubmittedEvent = getPreviousEiffelEvent(EventType.SCS_EVENT, projectName, changeId, pluginDirectoryPath);
+        String previousSourceChangeSubmittedEvent = getPreviousEiffelEvent(EventType.SCS_EVENT, projectName, branch,
+                pluginDirectoryPath);
         final Link baseLink = createLink(LINK_TYPE_BASE, previousSourceChangeSubmittedEvent);
         if (baseLink != null) {
             eiffelEvent.eventParams.links.add(baseLink);

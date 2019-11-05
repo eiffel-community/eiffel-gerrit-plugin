@@ -14,10 +14,13 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -29,6 +32,7 @@ import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
 import com.ericsson.gerrit.plugins.eiffel.storage.EventStorageFactory;
+import com.ericsson.gerrit.plugins.eiffel.storage.SourceChangeCreatedStorage;
 import com.ericsson.gerrit.plugins.eiffel.storage.SourceChangeSubmittedStorage;
 import com.google.common.base.Supplier;
 import com.google.gerrit.reviewdb.client.Change.Key;
@@ -76,6 +80,11 @@ public class EiffelEventGeneratorTest {
     private Key changeKey;
 
     private File pluginDirectory;
+
+    @Captor
+    ArgumentCaptor<String> keyCaptor;
+    @Captor
+    ArgumentCaptor<String> valueCaptor;
 
     @Before
     public void setUp() throws ConnectException, FileNotFoundException, NoSuchElementException {
@@ -132,6 +141,112 @@ public class EiffelEventGeneratorTest {
         String repoURI = EiffelEventGenerator.createRepoURI(NULL_HOST, PROJECT);
 
         assertNull("Repo URI should have been set to null", repoURI);
+    }
+
+    @Test
+    public void testGetPreviousEiffelEventInSourceChangeCreated()
+            throws ConnectException, FileNotFoundException, NoSuchElementException {
+        populatePatchSetCreatedEvent();
+
+        SourceChangeCreatedStorage sourceChangeCreatedState = mock(SourceChangeCreatedStorage.class);
+        when(EventStorageFactory.getEventStorage(Mockito.any(), Mockito.any())).thenReturn(sourceChangeCreatedState);
+
+        EiffelSourceChangeCreatedEventGenerator.generate(patchSetCreatedEvent, pluginConfig, pluginDirectory);
+
+        Mockito.verify(sourceChangeCreatedState, Mockito.times(2)).getEventId(keyCaptor.capture(),
+                valueCaptor.capture());
+
+        List<String> parametersCalledWith = valueCaptor.getAllValues();
+        assertEquals("Incorrect parameter, should have been a changeID", CHANGE_ID, parametersCalledWith.get(0));
+        assertEquals("Incorrect parameter, should have been a branch.", BRANCH, parametersCalledWith.get(1));
+    }
+
+    @Test
+    public void testGetPreviousEiffelEventInSourceChangeSubmitted()
+            throws ConnectException, FileNotFoundException, NoSuchElementException {
+        populateChangeMergedEvent();
+
+        SourceChangeSubmittedStorage sourceChangeSubmittedState = mock(SourceChangeSubmittedStorage.class);
+        when(EventStorageFactory.getEventStorage(Mockito.any(), Mockito.any())).thenReturn(sourceChangeSubmittedState);
+
+        EiffelSourceChangeSubmittedEventGenerator.generate(changeMergedEvent, pluginConfig, pluginDirectory);
+
+        Mockito.verify(sourceChangeSubmittedState, Mockito.times(2)).getEventId(keyCaptor.capture(),
+                valueCaptor.capture());
+
+        List<String> parametersCalledWith = valueCaptor.getAllValues();
+        assertEquals("Incorrect parameter, should have been a changeID", CHANGE_ID, parametersCalledWith.get(0));
+        assertEquals("Incorrect parameter, should have been a branch.", BRANCH, parametersCalledWith.get(1));
+    }
+
+    @Test
+    public void testCreateLinksForSCCWithNoPreviousEventIdSaved()
+            throws ConnectException, FileNotFoundException, NoSuchElementException {
+        populatePatchSetCreatedEvent();
+
+        SourceChangeCreatedStorage sourceChangeCreatedState = mock(SourceChangeCreatedStorage.class);
+        when(EventStorageFactory.getEventStorage(Mockito.any(), Mockito.any())).thenReturn(sourceChangeCreatedState);
+        when(sourceChangeCreatedState.getEventId(Mockito.any(), Mockito.any()))
+                .thenThrow(new NoSuchElementException("exception"));
+
+        EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator
+                .generate(patchSetCreatedEvent, pluginConfig, pluginDirectory);
+        assertEquals("No links should have been created.", 0, eiffelEvent.eventParams.links.size());
+    }
+
+    @Test
+    public void testCreateLinksForSCSWithNoPreviousEventIdSaved()
+            throws ConnectException, FileNotFoundException, NoSuchElementException {
+        populateChangeMergedEvent();
+
+        SourceChangeSubmittedStorage sourceChangeSubmittedState = mock(SourceChangeSubmittedStorage.class);
+        when(EventStorageFactory.getEventStorage(Mockito.any(), Mockito.any())).thenReturn(sourceChangeSubmittedState);
+        when(sourceChangeSubmittedState.getEventId(Mockito.any(), Mockito.any()))
+                .thenThrow(new NoSuchElementException("exception"));
+
+        EiffelSourceChangeSubmittedEvent eiffelEvent = EiffelSourceChangeSubmittedEventGenerator
+                .generate(changeMergedEvent, pluginConfig, pluginDirectory);
+        assertEquals("No links should have been created.", 0, eiffelEvent.eventParams.links.size());
+    }
+
+    @Test
+    public void testCreateLinksForSCCWithPreviousEventIdSaved()
+            throws ConnectException, FileNotFoundException, NoSuchElementException {
+        populatePatchSetCreatedEvent();
+
+        SourceChangeCreatedStorage sourceChangeCreatedState = mock(SourceChangeCreatedStorage.class);
+        when(EventStorageFactory.getEventStorage(Mockito.any(), Mockito.any())).thenReturn(sourceChangeCreatedState);
+        when(sourceChangeCreatedState.getEventId(Mockito.any(), Mockito.any())).thenReturn("previous-event-id");
+
+        EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator
+                .generate(patchSetCreatedEvent, pluginConfig, pluginDirectory);
+
+        String expectedTypePreviousVersion = "PREVIOUS_VERSION";
+        String expectedTypeBase = "BASE";
+
+        String message = "Incorrect link type.";
+        assertEquals(message, expectedTypePreviousVersion, eiffelEvent.eventParams.links.get(0).type);
+        assertEquals(message, expectedTypeBase, eiffelEvent.eventParams.links.get(1).type);
+    }
+
+    @Test
+    public void testCreateLinksForSCSWithPreviousEventIdSaved()
+            throws ConnectException, FileNotFoundException, NoSuchElementException {
+        populateChangeMergedEvent();
+
+        SourceChangeSubmittedStorage sourceChangeSubmittedState = mock(SourceChangeSubmittedStorage.class);
+        when(EventStorageFactory.getEventStorage(Mockito.any(), Mockito.any())).thenReturn(sourceChangeSubmittedState);
+        when(sourceChangeSubmittedState.getEventId(Mockito.any(), Mockito.any())).thenReturn("previous-event-id");
+
+        EiffelSourceChangeSubmittedEvent eiffelEvent = EiffelSourceChangeSubmittedEventGenerator
+                .generate(changeMergedEvent, pluginConfig, pluginDirectory);
+
+        String expectedTypeChange = "CHANGE";
+        String expectedTypePreviousVersion = "PREVIOUS_VERSION";
+
+        String message = "Incorrect link type.";
+        assertEquals(message, expectedTypeChange, eiffelEvent.eventParams.links.get(0).type);
+        assertEquals(message, expectedTypePreviousVersion, eiffelEvent.eventParams.links.get(1).type);
     }
 
     @SuppressWarnings("unchecked")
