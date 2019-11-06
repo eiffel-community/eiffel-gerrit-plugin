@@ -82,9 +82,9 @@ public class EiffelEventGeneratorTest {
     private File pluginDirectory;
 
     @Captor
-    ArgumentCaptor<String> keyCaptor;
+    private ArgumentCaptor<String> keyCaptor;
     @Captor
-    ArgumentCaptor<String> valueCaptor;
+    private ArgumentCaptor<String> valueCaptor;
 
     @Before
     public void setUp() throws ConnectException, FileNotFoundException, NoSuchElementException {
