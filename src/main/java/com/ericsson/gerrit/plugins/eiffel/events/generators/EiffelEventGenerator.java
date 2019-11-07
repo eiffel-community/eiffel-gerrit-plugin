@@ -16,16 +16,28 @@
 */
 package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
+import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.storage.EventStorage;
+import com.ericsson.gerrit.plugins.eiffel.storage.EventStorageFactory;
 
 /**
  * Base class with common functionality for event generators.
  *
  */
 public class EiffelEventGenerator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EiffelEventGenerator.class);
+
     protected static final String META_SOURCE_NAME = "Eiffel Gerrit Plugin";
     private static final int DEFAULT_SSH_PORT = 29418;
 
@@ -37,7 +49,7 @@ public class EiffelEventGenerator {
         }
     }
 
-    protected static String createRepoURI(String url, String projectName) {
+    protected static String createRepoURI(final String url, final String projectName) {
         try {
             URI changeUri = new URI(url);
             String hostName = changeUri.getHost();
@@ -51,9 +63,46 @@ public class EiffelEventGenerator {
         }
     }
 
-    private static String getSshBaseUrl(String host) throws URISyntaxException {
+    protected static String getPreviousEiffelEvent(final String linkedEiffelEventType, final String projectName,
+            final String searchCriteria, final File pluginDirectoryPath) {
+        try {
+            EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDirectoryPath, linkedEiffelEventType);
+            String lastEiffelEvent = getEiffelEventIdFromStorage(eventStorage, projectName, searchCriteria);
+            return lastEiffelEvent;
+        } catch(IllegalArgumentException e) {
+            LOGGER.error("Could not get previous Eiffel event.", e);
+            return "";
+        }
+    }
+
+    protected static Link createLink(final String linkType, final String lastEiffelEvent) {
+        if (!StringUtils.isEmpty(lastEiffelEvent)) {
+            Link link = new Link();
+            link.type = linkType;
+            link.target = lastEiffelEvent;
+
+            return link;
+        }
+        return null;
+    }
+
+    private static String getSshBaseUrl(final String host) throws URISyntaxException {
         URI uri;
         uri = new URI("ssh", null, host, DEFAULT_SSH_PORT, "/", null, null);
         return uri.toString();
+    }
+
+    private static String getEiffelEventIdFromStorage(final EventStorage eventStorage, final String projectName,
+            final String searchCriteria) {
+        try {
+            String eventId = eventStorage.getEventId(projectName, searchCriteria);
+            return eventId;
+        } catch (NoSuchElementException e) {
+            LOGGER.debug("Event Storage did not return any value for this query.", e);
+            return null;
+        } catch (Exception e) {
+            LOGGER.error("Could not get last submitted eiffel event id.", e);
+            return null;
+        }
     }
 }

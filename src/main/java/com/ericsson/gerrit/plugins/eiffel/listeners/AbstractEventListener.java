@@ -120,7 +120,7 @@ public abstract class AbstractEventListener implements EventListener {
      * @param pluginConfig
      */
     public void sendEiffelEvent(EiffelEvent eiffelEvent, EiffelPluginConfiguration pluginConfig) {
-        EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig);
+        EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginDirectoryPath, pluginConfig);
         eiffelEventSender.setEiffelEventType(eiffelEvent.getClass().getSimpleName());
         eiffelEventSender.setEiffelEventMessage(eiffelEvent);
 

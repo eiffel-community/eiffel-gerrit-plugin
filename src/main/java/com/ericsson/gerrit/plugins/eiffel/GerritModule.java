@@ -26,6 +26,7 @@ import com.google.gerrit.extensions.registration.DynamicSet;
 import com.google.gerrit.server.config.ProjectConfigEntry;
 import com.google.inject.AbstractModule;
 
+
 /**
  * This class that registers the plugin in gerrit.
  *

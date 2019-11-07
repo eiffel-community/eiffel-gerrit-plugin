@@ -14,19 +14,11 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
+
 package com.ericsson.gerrit.plugins.eiffel.events;
 
-import com.ericsson.gerrit.plugins.eiffel.events.models.EiffelSourceChangeCreatedEventParams;
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
+public class EventType {
+    public static final String SCC_EVENT = "EiffelSourceChangeCreatedEvent";
+    public static final String SCS_EVENT = "EiffelSourceChangeSubmittedEvent";
 
-/**
- * This Eiffel event model represents the EiffelSourceChangeCreatedEvent structure used by REMReM
- * and is populated with information from the patchset-created gerrit event.
- *
- */
-public class EiffelSourceChangeCreatedEvent extends EiffelEvent {
-    @SerializedName("eventParams")
-    @Expose
-    public EiffelSourceChangeCreatedEventParams eventParams = new EiffelSourceChangeCreatedEventParams();
 }

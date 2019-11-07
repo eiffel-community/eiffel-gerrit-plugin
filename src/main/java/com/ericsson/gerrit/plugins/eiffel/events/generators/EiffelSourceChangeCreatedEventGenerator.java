@@ -16,8 +16,12 @@
 */
 package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
+import java.io.File;
+
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
+import com.ericsson.gerrit.plugins.eiffel.events.EventType;
+import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
 import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
 import com.google.gerrit.server.events.PatchSetCreatedEvent;
@@ -26,6 +30,8 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
 
     private static final String TYPE = "EiffelSourceChangeCreatedEvent";
     private static final String TRACKER = "Gerrit";
+    private static final String LINK_TYPE_PREVIOUS_VERSION = "PREVIOUS_VERSION";
+    private static final String LINK_TYPE_BASE = "BASE";
 
     /**
      * Extracts information from the PatchSetCreatedEvent and generates an
@@ -33,10 +39,11 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
      *
      * @param patchSetCreatedEvent
      * @param pluginConfig
+     * @param pluginDirectoryPath
      * @return EiffelSourceChangeCreatedEvent
      */
     public static EiffelSourceChangeCreatedEvent generate(PatchSetCreatedEvent patchSetCreatedEvent,
-            EiffelPluginConfiguration pluginConfig) {
+            EiffelPluginConfiguration pluginConfig, File pluginDirectoryPath) {
         final ChangeAttribute changeAttribute = patchSetCreatedEvent.change.get();
         final PatchSetAttribute patchSetAttribute = patchSetCreatedEvent.patchSet.get();
         final String projectName = changeAttribute.project;
@@ -71,15 +78,18 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
         eiffelEvent.eventParams.data.gitIdentifier.branch = branch;
         eiffelEvent.eventParams.data.gitIdentifier.repoName = projectName;
 
-        // TODO
-        // String latestEiffelSourceChangeCreatedEventId =
-        // getLatestEiffelSourceChangeCreatedEventId();
-        // setPreviousVersionLink(latestEiffelSourceChangeCreatedEventId);
+        String previousSourceChangeCreatedEvent = getPreviousEiffelEvent(EventType.SCC_EVENT, projectName, changeId, pluginDirectoryPath);
+        final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION, previousSourceChangeCreatedEvent);
+        if (previousVersionLink != null) {
+            eiffelEvent.eventParams.links.add(previousVersionLink);
+        }
 
-        // String latestEiffelSourceChangeSubmittedEventId =
-        // getLatestEiffelSourceChangeSubmittedEventId();
-        // setBaseLink(latestEiffelSourceChangeSubmittedEventId);
-
+        String previousSourceChangeSubmittedEvent = getPreviousEiffelEvent(EventType.SCS_EVENT, projectName, branch,
+                pluginDirectoryPath);
+        final Link baseLink = createLink(LINK_TYPE_BASE, previousSourceChangeSubmittedEvent);
+        if (baseLink != null) {
+            eiffelEvent.eventParams.links.add(baseLink);
+        }
         return eiffelEvent;
     }
 }

@@ -1,11 +1,11 @@
 package com.ericsson.gerrit.plugins.eiffel.messaging;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
 import org.apache.http.HttpStatus;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -23,6 +23,7 @@ public class EiffelEventSenderTest {
     private EiffelPluginConfiguration pluginConfig;
     private HttpRequest httpRequest;
     private ResponseEntity response;
+    private File pluginDir;
 
     private static final String EIFFEL_TYPE = "EiffelSourceChangeCreatedEvent";
     private static final int STATUS_OK = HttpStatus.SC_OK;
@@ -37,27 +38,28 @@ public class EiffelEventSenderTest {
     public void testEventSender() throws Exception {
         setUpMockActions();
 
-        EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
+        EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
         sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
         sender.setEiffelEventType(EIFFEL_TYPE);
 
-        assertThatCode(() -> { Whitebox.invokeMethod(sender, "generateAndPublish"); }).doesNotThrowAnyException();
+        Assertions.assertThatCode(() -> { Whitebox.invokeMethod(sender, "generateAndPublish");
+        }).doesNotThrowAnyException();
     }
 
-    @Test(expected = MissingConfigurationException.class)  
+    @Test(expected = MissingConfigurationException.class)
     public void testEventSenderWithMissingConfiguration() throws Exception {
-        EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
+        EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
         sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
         sender.setEiffelEventType("");
 
         Whitebox.invokeMethod(sender, "verifyConfiguration");
     }
 
-    @Test(expected = HttpRequestFailedException.class)  
+    @Test(expected = HttpRequestFailedException.class)
     public void testEventSenderWithBadStatus() throws Exception {
         setUpMockActionsWithBadStatus();
 
-        EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
+        EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
         sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
         sender.setEiffelEventType(EIFFEL_TYPE);
 
@@ -68,12 +70,13 @@ public class EiffelEventSenderTest {
         httpRequest = Mockito.mock(HttpRequest.class);
         pluginConfig = Mockito.mock(EiffelPluginConfiguration.class);
         response = Mockito.mock(ResponseEntity.class);
+        pluginDir = Mockito.mock(File.class);
     }
 
     private void setUpMockActions() throws URISyntaxException, IOException {
         Mockito.when(httpRequest.performRequest()).thenReturn(response);
         Mockito.when(response.getStatusCode()).thenReturn(STATUS_OK);
-        Mockito.when(response.getBody()).thenReturn("");
+        Mockito.when(response.getBody()).thenReturn("{'events': [{'id': 'my_id'}]}");
         Mockito.when(pluginConfig.getRemremPublishURL()).thenReturn("");
         Mockito.when(pluginConfig.getRemremUsername()).thenReturn("");
         Mockito.when(pluginConfig.getRemremPassword()).thenReturn("");

@@ -14,6 +14,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
+
 package com.ericsson.gerrit.plugins.eiffel.events;
 
-public interface EiffelEvent {}
+import com.ericsson.gerrit.plugins.eiffel.events.models.MsgParams;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
+public abstract class EiffelEvent {
+    @SerializedName("msgParams")
+    @Expose
+    public MsgParams msgParams = new MsgParams();
+}

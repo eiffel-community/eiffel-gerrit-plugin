@@ -16,14 +16,20 @@
 */
 package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
+import java.io.File;
+
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
+import com.ericsson.gerrit.plugins.eiffel.events.EventType;
+import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
 import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
 import com.google.gerrit.server.events.ChangeMergedEvent;
 
 public final class EiffelSourceChangeSubmittedEventGenerator extends EiffelEventGenerator {
     private static final String TYPE = "EiffelSourceChangeSubmittedEvent";
+    private static final String LINK_TYPE_PREVIOUS_VERSION = "PREVIOUS_VERSION";
+    private static final String LINK_TYPE_CHANGE = "CHANGE";
 
     /**
      * Extracts information from the ChangeMergedEvent and generates an
@@ -34,7 +40,7 @@ public final class EiffelSourceChangeSubmittedEventGenerator extends EiffelEvent
      * @return EiffelSourceChangeSubmittedEvent
      */
     public static EiffelSourceChangeSubmittedEvent generate(ChangeMergedEvent changeMergedEvent,
-            EiffelPluginConfiguration pluginConfig) {
+            EiffelPluginConfiguration pluginConfigPatchSetCreatedEvent, File pluginDirectoryPath) {
         final ChangeAttribute changeAttribute = changeMergedEvent.change.get();
         final PatchSetAttribute patchSetAttribute = changeMergedEvent.patchSet.get();
         final String commitId = changeMergedEvent.newRev;
@@ -44,6 +50,7 @@ public final class EiffelSourceChangeSubmittedEventGenerator extends EiffelEvent
         final String name = patchSetAttribute.author.name;
         final String username = patchSetAttribute.author.username;
         final String email = patchSetAttribute.author.email;
+        final String changeId = changeMergedEvent.changeKey.toString();
 
         EiffelSourceChangeSubmittedEvent eiffelEvent = new EiffelSourceChangeSubmittedEvent();
         eiffelEvent.msgParams.meta.type = TYPE;
@@ -60,14 +67,17 @@ public final class EiffelSourceChangeSubmittedEventGenerator extends EiffelEvent
         eiffelEvent.eventParams.data.gitIdentifier.branch = branch;
         eiffelEvent.eventParams.data.gitIdentifier.repoName = projectName;
 
-        // TODO
-        // String latestEiffelSourceChangeSubmittedEventId =
-        // getLatestEiffelSourceChangeSubmittedEventId();
-        // setPreviousVersionLink(latestEiffelSourceChangeSubmittedEventId);
+        String previousSourceChangeCreatedEvent = getPreviousEiffelEvent(EventType.SCC_EVENT, projectName, changeId, pluginDirectoryPath);
+        final Link changeLink = createLink(LINK_TYPE_CHANGE, previousSourceChangeCreatedEvent);
+        if (changeLink != null) {
+            eiffelEvent.eventParams.links.add(changeLink);
+        }
 
-        // String coheringEiffelSourceChangeCreatedEventId =
-        // getCoheringEiffelSourceChangeSubmittedEventId(commitId?);
-        // setChangeLink(coheringEiffelSourceChangeCreatedEventId);
+        String previousSourceChangeSubmittedEvent = getPreviousEiffelEvent(EventType.SCS_EVENT, projectName, branch, pluginDirectoryPath);
+        final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION, previousSourceChangeSubmittedEvent);
+        if (previousVersionLink != null) {
+            eiffelEvent.eventParams.links.add(previousVersionLink);
+        }
 
         return eiffelEvent;
     }
