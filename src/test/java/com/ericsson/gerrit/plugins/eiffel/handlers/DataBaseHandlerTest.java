@@ -67,7 +67,10 @@ public class DataBaseHandlerTest {
 
         new DatabaseHandler(tmpFolderPath, projectName);
         List<String> arguments = argumentCapture.getAllValues();
-        assertEquals("Incorrect parent file path.", tmpFolderPath + "/parent_project", arguments.get(0));
+
+        String expectedFilePath = tmpFolderPath.getPath().replace("\\", "/") + "/parent_project";
+        String actualFilePath = arguments.get(0).replace("\\", "/");
+        assertEquals("Incorrect parent file path.", expectedFilePath, actualFilePath);
     }
 
     /**
