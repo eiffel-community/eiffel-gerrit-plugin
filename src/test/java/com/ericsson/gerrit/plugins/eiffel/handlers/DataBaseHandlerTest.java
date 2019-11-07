@@ -5,13 +5,13 @@ import static org.junit.Assert.assertFalse;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
 import java.io.File;
-import java.net.ConnectException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.Before;
@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -51,14 +52,22 @@ public class DataBaseHandlerTest {
     }
 
     /**
-     * An exception should be raised if connection to Db cannot be established.
+     * Tests that the parent file path is created as expected
      *
      * @throws Exception
      */
-    @Test(expected = ConnectException.class)
-    public void testFailingToConnectToDbThrowsError() throws Exception {
-        final File pluginDir = new File("dir_should_not_exist");
-        new DatabaseHandler(pluginDir, "project_name");
+    @Test
+    public void testBuildParentFilePath() throws Exception {
+        String projectName = "parent_project/project_name";
+        File tmpFolderPath = testFolder.newFolder();
+        File file = new File(tmpFolderPath + "/parent_project");
+        ArgumentCaptor<String> argumentCapture = ArgumentCaptor.forClass(String.class);
+
+        PowerMockito.whenNew(File.class).withParameterTypes(String.class).withArguments(argumentCapture.capture()).thenReturn(file);
+
+        new DatabaseHandler(tmpFolderPath, projectName);
+        List<String> arguments = argumentCapture.getAllValues();
+        assertEquals("Incorrect parent file path.", tmpFolderPath + "/parent_project", arguments.get(0));
     }
 
     /**
@@ -94,6 +103,24 @@ public class DataBaseHandlerTest {
     }
 
     /**
+     * Tries to update but no rows updated, should throw SQLException
+     *
+     * @throws Exception
+     */
+    @Test(expected = SQLException.class)
+    public void testNoneUpdatedRows() throws Exception {
+        Connection connection = mock(Connection.class);
+        PreparedStatement preparedStatement = mock(PreparedStatement.class);
+        PowerMockito.mockStatic(DriverManager.class);
+
+        Mockito.when(DriverManager.getConnection(Mockito.any())).thenReturn(connection);
+        Mockito.when(connection.prepareStatement(Mockito.any())).thenReturn(preparedStatement);
+        Mockito.when(preparedStatement.executeUpdate()).thenReturn(0);
+
+        dbHandler.updateInto(Table.SCS_TABLE, BRANCH, "my-eiffel-event");
+    }
+
+    /**
      * Insert should fail if value and key already exist
      *
      * @throws Exception
@@ -119,9 +146,26 @@ public class DataBaseHandlerTest {
      * @throws Exception
      */
     @Test(expected = NoSuchElementException.class)
-    public void testGetNoneExistingEventIdReturnsNull() throws Exception {
+    public void testGetNoneExistingEventIdReturnsEmpty() throws Exception {
         dbHandler.getEventID(Table.SCS_TABLE, FAULTY_BRANCH);
     }
+
+    /**
+     * If sqlException is thrown within GetEventId, it should be caught and rethrown as NoSuchElementException
+     *
+     * @throws Exception
+     */
+    @Test(expected = NoSuchElementException.class)
+    public void testGetEventIdSqlError() throws Exception {
+        Connection connection = mock(Connection.class);
+
+        PowerMockito.mockStatic(DriverManager.class);
+        BDDMockito.given(DriverManager.getConnection(Mockito.any())).willReturn(connection);
+        Mockito.when(connection.prepareStatement(Mockito.any())).thenThrow(new SQLException());
+
+        dbHandler.getEventID(Table.SCS_TABLE, FAULTY_BRANCH);
+    }
+
 
     /**
      * Test Table enum
@@ -135,7 +179,6 @@ public class DataBaseHandlerTest {
         assertEquals("Table.SCC_TABLE tabler key should be", SCC_TABLE_KEY, sccTable.getKeyName());
 
     }
-
     /**
      * Test throwing several exceptions and ensure they cause the class to return
      * correct values and or the exception is correctly caught. Exceptions caused by
@@ -143,7 +186,7 @@ public class DataBaseHandlerTest {
      *
      * @throws Exception
      */
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testExceptionsIsThrown() throws Exception {
         // Prepare mocks
         Connection connection = mock(Connection.class);
@@ -152,7 +195,7 @@ public class DataBaseHandlerTest {
         ResultSet result = mock(ResultSet.class);
 
         PowerMockito.mockStatic(DriverManager.class);
-        BDDMockito.given(DriverManager.getConnection(Mockito.any())).willReturn(connection);
+        Mockito.when(DriverManager.getConnection(Mockito.any())).thenReturn(connection);
 
         Mockito.doReturn(preparedStatement).when(connection).prepareStatement(Mockito.any());
         Mockito.doReturn(result).when(preparedStatement).executeQuery();
@@ -160,11 +203,13 @@ public class DataBaseHandlerTest {
         // When mocking an exception while executing getEventID the function should
         // return an empty String,
         // exception may be thrown when no values was found and should be empty.
-        Mockito.when(result.next()).thenThrow(new SQLException("Exception thrown by test"));
 
-        exception.expect(RuntimeException.class);
-        dbHandler.getEventID(Table.SCS_TABLE, BRANCH);
-
+        try {
+            dbHandler.getEventID(Table.SCS_TABLE, BRANCH);
+            assertEquals("Expected getEventId to throw an Exception but none was thrown!", true, false);
+        } catch (NoSuchElementException e) {
+            // test passed!
+        }
 
         // When we initiate a new DataBaseHandler we throw SQLExceptions, those
         // exceptions should be caught

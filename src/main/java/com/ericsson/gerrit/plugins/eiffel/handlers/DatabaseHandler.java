@@ -54,6 +54,10 @@ public class DatabaseHandler {
         this.databaseFile = String.format("jdbc:sqlite:%s", filePath);
         this.pluginDir = pluginDir;
         this.project = project;
+
+        String parentPath = buildParentFilePath();
+        createParentDirsIfNecessary(parentPath);
+
         createNewDatabase();
         createTables();
     }
@@ -133,9 +137,6 @@ public class DatabaseHandler {
     private void createNewDatabase() throws ConnectException {
         try (Connection sqlConnection = connect()) {
             if (sqlConnection != null) {
-                String parentPath = buildParentFilePath();
-                createParentDirsIfNecessary(parentPath);
-
                 //When getMetaData is called, it will create the .db file
                 sqlConnection.getMetaData();
                 sqlConnection.close();
