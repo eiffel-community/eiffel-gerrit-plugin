@@ -62,11 +62,11 @@ public abstract class EventStorage {
 
         if (!oldEvent.isEmpty()) {
             dBHandler.updateInto(tableName, searchCriteria, eiffelEvent);
-            LOGGER.info("Replaced old event id '{}' with new event if '{}', for project '{}', and branch '{}'.",
+            LOGGER.info("Replaced old event id '{}' with new event if '{}', for project '{}', and searchCriteria '{}'.",
                     oldEvent, eiffelEvent, project, searchCriteria);
         } else {
             dBHandler.insertInto(tableName, searchCriteria, eiffelEvent);
-            LOGGER.info("Saved eiffel event with id '{}', for project '{}', and branch '{}'.", eiffelEvent, project,
+            LOGGER.info("Saved eiffel event with id '{}', for project '{}', and searchCriteria '{}'.", eiffelEvent, project,
                     searchCriteria);
         }
     }
@@ -86,7 +86,7 @@ public abstract class EventStorage {
             throws NoSuchElementException, ConnectException {
         DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
         String eventId = dBHandler.getEventID(tableName, searchCriteria);
-        LOGGER.info("Fetched old event with id '{}', for project '{}', and branch '{}'", eventId, project,
+        LOGGER.info("Fetched old event with id '{}', for project '{}', and searchCritera '{}'", eventId, project,
                 searchCriteria);
         return eventId;
     }
