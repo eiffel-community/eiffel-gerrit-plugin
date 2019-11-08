@@ -41,7 +41,9 @@ import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.data.AccountAttribute;
 import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
+import com.google.gerrit.server.events.ChangeMergedEvent;
 import com.google.gerrit.server.events.PatchSetCreatedEvent;
+import com.google.gerrit.server.events.PatchSetEvent;
 import com.google.gerrit.server.project.NoSuchProjectException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -69,7 +71,7 @@ public class LinkingSteps {
     private JsonArray linksFromLastEvent;
     private ArrayList<AbstractEventListener> listeners;
     DynamicItem<EventDispatcher> instance;
-    private PatchSetCreatedEvent eventToSend;
+    private PatchSetEvent eventToSend;
     private Path tempDirPath;
 
     @Before()
@@ -98,7 +100,6 @@ public class LinkingSteps {
         server.stop();
         mockClient.close();
 
-
         Path dbPath = tempDirPath.resolve(PROJECT_NAME + ".db");
         Files.delete(dbPath);
         Files.delete(tempDirPath);
@@ -109,11 +110,12 @@ public class LinkingSteps {
 
     @Given("^a SCS event with id \"([^\"]*)\" was sent on \"([^\"]*)\"$")
     public void aSCSEventWithIdWasSentOn(String id, String branch) throws Throwable {
-        eventToSend = buildPatchSetCreatedEvent(PROJECT_NAME, "changeId", branch);
+        eventToSend = buildChangeMergedEvent(PROJECT_NAME, "changeId", branch);
         JSONObject body = buildResponse(id);
         mockClient.when(request().withMethod("POST"))
                   .respond(response().withBody(body.toString()).withStatusCode(200));
         callOnEvent(eventToSend);
+        Thread.sleep(1000); // TODO: get the threadpool excutor and wait for the sending
         mockClient.verify(request().withPath("/generateAndPublish/"));
 
     }
@@ -126,6 +128,7 @@ public class LinkingSteps {
     @Then("^a SCC event with id \"([^\"]*)\" is sent$")
     public void aSCCEventWithIdIsSent(String id) throws Throwable {
         JSONObject body = buildResponse(id);
+        mockClient.clear(null); // TODO: Why null
         mockClient.when(request().withMethod("POST"))
                   .respond(response().withBody(body.toString()).withStatusCode(200));
 
@@ -133,9 +136,10 @@ public class LinkingSteps {
         assertThat(mockClient.isRunning(), is(true));
         callOnEvent(eventToSend);
 
-        Thread.sleep(1000); //TODO: get the threadpool excutor and wait for the sending
+        Thread.sleep(1000); // TODO: get the threadpool excutor and wait for the sending
         mockClient.verify(request().withPath("/generateAndPublish/"));
-        String retrieveRecordedRequests = mockClient.retrieveRecordedRequests(null,
+        String retrieveRecordedRequests = mockClient.retrieveRecordedRequests(null, // TODO: Why
+                                                                                    // null
                 Format.JSON);
         /**
          * Recorded Request looks like this
@@ -171,27 +175,9 @@ public class LinkingSteps {
 
     }
 
-    private JSONObject buildResponse(String id) {
-        JSONObject event = new JSONObject();
-        event.put("id", id);
-        JSONArray events = new JSONArray();
-        events.put(event);
-        JSONObject body = new JSONObject();
-        body.put("events", events);
-        return body;
-    }
-
     @And("^BASE links to event \"([^\"]*)\"$")
     public void baseLinksToEvent(String id) throws Throwable {
-        JsonObject link = new JsonObject();
-        for (JsonElement jsonElement : linksFromLastEvent) {
-            link = jsonElement.getAsJsonObject();
-            if (link.has("BASE")) {
-                break;
-            }
-        }
-
-        assertThat(link.get("BASE"), is(equalTo(id)));
+        assertLinksHasTypeWithId("BASE", id);
     }
 
     @When("^user \"([^\"]*)\" submits the change to \"([^\"]*)\"$")
@@ -203,16 +189,20 @@ public class LinkingSteps {
     }
 
     @And("^CHANGE links to event \"([^\"]*)\"$")
-    public void changeLinksToEvent(String arg1) throws Throwable {
+    public void changeLinksToEvent(String id) throws Throwable {
+        assertLinksHasTypeWithId("CHANGE", id);
     }
 
     @And("^PREVIOUS_VERSION links to event \"([^\"]*)\"$")
-    public void previous_versionLinksToEvent(String arg1) throws Throwable {
+    public void previous_versionLinksToEvent(String id) throws Throwable {
+        assertLinksHasTypeWithId("PREVIOUS_VERSION", id);
+
     }
 
     @Given("^no SCS event was sent on \"([^\"]*)\"$")
-    public void noSCSEventWasSentOn(String arg1) throws Throwable {
-//        setup();
+    public void noSCSEventWasSentOn(String branch) throws Throwable {
+        server.verifyZeroInteractions();
+        mockClient.verifyZeroInteractions();
     }
 
     @And("^no BASE link set$")
@@ -223,9 +213,32 @@ public class LinkingSteps {
     public void userUploadsANewPatchset(String arg1) throws Throwable {
     }
 
-//    @And("^BASE links to event \"([^\"]*)\"$")
-//    public void BASE_links_to_event(String id) throws Throwable {
-//    }
+    private void assertLinksHasTypeWithId(String type, String id) {
+        /*
+         * Links look like this: [{\"type\":\"BASE\",\"target\":\"SCS1\"}]
+         */
+        JsonObject link = new JsonObject();
+        for (JsonElement jsonElement : linksFromLastEvent) {
+            JsonObject possibleLink = jsonElement.getAsJsonObject();
+            if (possibleLink.get("type").getAsString().equals(type)) {
+                link = possibleLink;
+                break;
+            }
+        }
+    
+        assertThat(String.format("The event has a %s link", type), link.has("target"), is(true));
+        assertThat(link.get("target").getAsString(), is(equalTo(id)));
+    }
+
+    private JSONObject buildResponse(String id) {
+        JSONObject event = new JSONObject();
+        event.put("id", id);
+        JSONArray events = new JSONArray();
+        events.put(event);
+        JSONObject body = new JSONObject();
+        body.put("events", events);
+        return body;
+    }
 
     private PatchSetCreatedEvent buildPatchSetCreatedEvent(String projectName, String changeId,
             String branch) {
@@ -238,6 +251,7 @@ public class LinkingSteps {
 
         PatchSetAttribute patchSetAttribute = mock(PatchSetAttribute.class);
         patchSetAttribute.author = new AccountAttribute();
+        @SuppressWarnings("unchecked")
         Supplier<PatchSetAttribute> patchSetAttributeSupplier = mock(Supplier.class);
         when(patchSetAttributeSupplier.get()).thenReturn(patchSetAttribute);
 
@@ -253,19 +267,44 @@ public class LinkingSteps {
         return patchSetCreatedEvent;
     }
 
-    private void callOnEvent(PatchSetCreatedEvent patchSetCreatedEvent) {
+    private ChangeMergedEvent buildChangeMergedEvent(String projectName, String changeId,
+            String branch) {
+        ChangeAttribute changeAttribute = new ChangeAttribute();
+        changeAttribute.project = projectName;
+        changeAttribute.branch = branch;
+        @SuppressWarnings("unchecked")
+        Supplier<ChangeAttribute> changeAttributeSupplier = mock(Supplier.class);
+        when(changeAttributeSupplier.get()).thenReturn(changeAttribute);
+
+        PatchSetAttribute patchSetAttribute = mock(PatchSetAttribute.class);
+        patchSetAttribute.author = new AccountAttribute();
+        @SuppressWarnings("unchecked")
+        Supplier<PatchSetAttribute> patchSetAttributeSupplier = mock(Supplier.class);
+        when(patchSetAttributeSupplier.get()).thenReturn(patchSetAttribute);
+
+        Key changeKey = mock(Key.class);
+        when(changeKey.toString()).thenReturn(changeId);
+
+        ChangeMergedEvent changeMergeEvent = mock(ChangeMergedEvent.class);
+        changeMergeEvent.change = changeAttributeSupplier;
+        changeMergeEvent.patchSet = patchSetAttributeSupplier;
+        changeMergeEvent.changeKey = changeKey;
+
+        when(changeMergeEvent.getProjectNameKey()).thenReturn(mock(NameKey.class));
+        return changeMergeEvent;
+    }
+
+    private void callOnEvent(PatchSetEvent patchSetEvent) {
         for (AbstractEventListener abstractEventListener : listeners) {
-            abstractEventListener.onEvent(patchSetCreatedEvent);
+            abstractEventListener.onEvent(patchSetEvent);
         }
     }
 
     private class ModuleDependencis extends AbstractModule {
 
-        private final String PLUGIN_NAME = "plugin";
         private final String[] FILTER = null;
         private final String[] FLOW_CONTEXT = null;
         private final boolean ENABLED_TRUE = true;
-        private final boolean ENABLED_FALSE = false;
         private final String REMREM_PUBLISH_URL = "http://" + BASE_URL + ":" + PORT;
         private final String REMREM_USERNAME = "dummyUser";
         private final String REMREM_PASSWORD = "dummypassword";
@@ -300,21 +339,11 @@ public class LinkingSteps {
             try {
                 when(pluginConfigFactory.getFromProjectConfig(Mockito.any(NameKey.class),
                         Mockito.any(String.class))).thenReturn(pluginConfig);
-//                when(pluginConfigFactory.getFromProjectConfig(Mockito.any(NameKey.class),
-//                        Mockito.any(String.class))).thenThrow(new RuntimeException("wweeee"));
             } catch (NoSuchProjectException e) {
                 throw new RuntimeException(e);
             }
             bind(PluginConfigFactory.class).toInstance(pluginConfigFactory);
             bind(String.class).annotatedWith(CanonicalWebUrl.class).toInstance("web-url");
-
-//            bind(ProjectCache.class).toInstance(mock(ProjectCache.class));
-//            bind(ProjectState.Factory.class).toInstance(mock(ProjectState.Factory.class));
-//            bind(SecureStore.class).toInstance(mock(SecureStore.class));
-//            bind(Config.class).annotatedWith(GerritServerConfig.class)
-//                              .toInstance(mock(Config.class));
-//            bind(Path.class).annotatedWith(SitePath.class).toInstance(mock(Path.class));
-//            bind(SitePaths.class).toInstance(mock(SitePaths.class));
 
         }
 
