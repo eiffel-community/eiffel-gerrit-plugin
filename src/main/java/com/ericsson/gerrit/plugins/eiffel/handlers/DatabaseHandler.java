@@ -46,6 +46,9 @@ public class DatabaseHandler {
     private final String databaseFile;
     private File pluginDir;
     private String project;
+    private Connection connection;
+    
+//    Connection connection;
 
     public DatabaseHandler(final File pluginDir, final String project) throws ConnectException {
         String fileName = String.format("%s.%s", project, FILE_TYPE_EXTENSION);
@@ -223,6 +226,9 @@ public class DatabaseHandler {
                     "Error when trying to INSERT/ADD/UPDATE value into database using sqlStatement: {} and search criteria {} and eiffel event {}",
                     sqlStatement, searchCriteria, eiffelEvent, e);
             throw e;
+        }finally {
+            //TODO: make this more robust
+            connection.close();
         }
     }
 
@@ -270,7 +276,7 @@ public class DatabaseHandler {
 
     private PreparedStatement prepareStatementForResourceBlock(final String sqlStatement)
             throws ConnectException, SQLException {
-        Connection connection = connect();
+        connection = connect();
         return connection.prepareStatement(sqlStatement);
     }
 }

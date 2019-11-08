@@ -5,6 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,6 +17,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,11 +48,21 @@ public class DataBaseHandlerTest {
 
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
+    private File tmpFolderPath;
 
     @Before
     public void init() throws Exception {
-        File tmpFolderPath = testFolder.newFolder();
+        tmpFolderPath = testFolder.newFolder();
         dbHandler = new DatabaseHandler(tmpFolderPath, "project_name");
+    }
+
+    @After
+    public void tearDown() throws IOException {
+
+        //TODO: explain why we do this
+        Path dbfile = tmpFolderPath.toPath().resolve("project_name.db");
+        Files.delete(dbfile);
+        Files.delete(tmpFolderPath.toPath());
     }
 
     /**
