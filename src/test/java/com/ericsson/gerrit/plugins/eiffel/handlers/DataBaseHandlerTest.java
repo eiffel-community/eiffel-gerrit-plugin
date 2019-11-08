@@ -58,10 +58,11 @@ public class DataBaseHandlerTest {
 
     @After
     public void tearDown() throws IOException {
-
-        //TODO: explain why we do this
+        // By trying to delete the file we know if we have any open connections
         Path dbfile = tmpFolderPath.toPath().resolve("project_name.db");
         Files.delete(dbfile);
+
+        // By trying to delete the folder we know that we only have one file there
         Files.delete(tmpFolderPath.toPath());
     }
 

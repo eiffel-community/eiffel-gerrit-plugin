@@ -46,9 +46,6 @@ public class DatabaseHandler {
     private final String databaseFile;
     private File pluginDir;
     private String project;
-    private Connection connection;
-    
-//    Connection connection;
 
     public DatabaseHandler(final File pluginDir, final String project) throws ConnectException {
         String fileName = String.format("%s.%s", project, FILE_TYPE_EXTENSION);
@@ -212,7 +209,9 @@ public class DatabaseHandler {
      */
     private void prepareAndExecuteStatement(final String sqlStatement, final String searchCriteria, final String eiffelEvent)
             throws ConnectException, SQLException {
-        try (PreparedStatement preparedStatement = prepareStatementForResourceBlock(sqlStatement)) {
+        // We must declare the connection here to get to auto close
+        try (Connection connection = connect();
+                PreparedStatement preparedStatement = connection.prepareStatement(sqlStatement)) {
             preparedStatement.setString(1, eiffelEvent);
             preparedStatement.setString(2, searchCriteria);
             int updateCount = preparedStatement.executeUpdate();
@@ -226,9 +225,6 @@ public class DatabaseHandler {
                     "Error when trying to INSERT/ADD/UPDATE value into database using sqlStatement: {} and search criteria {} and eiffel event {}",
                     sqlStatement, searchCriteria, eiffelEvent, e);
             throw e;
-        }finally {
-            //TODO: make this more robust
-            connection.close();
         }
     }
 
@@ -272,11 +268,5 @@ public class DatabaseHandler {
         String sqlCreateStatement = String.format("CREATE TABLE IF NOT EXISTS %s (%s text PRIMARY KEY, %s text)", table,
                 table.keyName, EVENT_ID_KEY);
         statement.execute(sqlCreateStatement);
-    }
-
-    private PreparedStatement prepareStatementForResourceBlock(final String sqlStatement)
-            throws ConnectException, SQLException {
-        connection = connect();
-        return connection.prepareStatement(sqlStatement);
     }
 }
