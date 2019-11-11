@@ -49,24 +49,25 @@ public abstract class EventStorage {
         return getEventId(project, searchCriteria, tableName);
     }
 
-    protected void findAndUpdateEiffelEvent(String project, String searchCriteria, String eiffelEvent, Table tableName)
+    protected void saveEiffelEventId(String project, String searchCriteria, String eiffelEvent, Table tableName)
             throws NoSuchElementException, ConnectException, SQLException {
         DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
-
-        saveEventToDatabase(project, searchCriteria, eiffelEvent, tableName, dBHandler);
+        String oldEventId = getOldEventId(dBHandler, tableName, searchCriteria);
+        saveOrUpdate(project, searchCriteria, eiffelEvent, tableName, dBHandler, oldEventId);
     }
 
-    private void saveEventToDatabase(String project, String searchCriteria, String eiffelEvent, Table tableName,
-            DatabaseHandler dBHandler) throws ConnectException, SQLException {
-        String oldEvent = getOldEventId(dBHandler, tableName, searchCriteria);
-
-        if (!oldEvent.isEmpty()) {
+    private void saveOrUpdate(String project, String searchCriteria, String eiffelEvent,
+            Table tableName, DatabaseHandler dBHandler, String oldEventId)
+            throws ConnectException, SQLException {
+        if (!oldEventId.isEmpty()) {
             dBHandler.updateInto(tableName, searchCriteria, eiffelEvent);
             LOGGER.info("Replaced old event id '{}' with new event if '{}', for project '{}', and searchCriteria '{}'.",
-                    oldEvent, eiffelEvent, project, searchCriteria);
+                    oldEventId, eiffelEvent, project, searchCriteria);
         } else {
             dBHandler.insertInto(tableName, searchCriteria, eiffelEvent);
-            LOGGER.info("Saved eiffel event with id '{}', for project '{}', and searchCriteria '{}'.", eiffelEvent, project,
+            LOGGER.info(
+                    "Saved eiffel event with id '{}', for project '{}', and searchCriteria '{}'.",
+                    eiffelEvent, project,
                     searchCriteria);
         }
     }

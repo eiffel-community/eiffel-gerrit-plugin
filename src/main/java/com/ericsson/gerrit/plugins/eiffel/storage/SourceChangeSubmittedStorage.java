@@ -45,6 +45,6 @@ public class SourceChangeSubmittedStorage extends EventStorage {
         String projectName = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.repoName;
         String searchCriteria = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.branch;
 
-        findAndUpdateEiffelEvent(projectName, searchCriteria, eiffelEventId, Table.SCS_TABLE);
+        saveEiffelEventId(projectName, searchCriteria, eiffelEventId, Table.SCS_TABLE);
     }
 }
