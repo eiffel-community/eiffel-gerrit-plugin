@@ -83,7 +83,7 @@ public class DatabaseHandler {
             eventID = executeQuery(preparedStatement);
 
         } catch (SQLException e) {
-            LOGGER.error("Error when trying to fetch values from database: {}\n{}", e.getMessage(), e);
+            LOGGER.error("Error when trying to fetch values from database: {}", e.getMessage(), e);
         }
 
         if (eventID.isEmpty()) {
