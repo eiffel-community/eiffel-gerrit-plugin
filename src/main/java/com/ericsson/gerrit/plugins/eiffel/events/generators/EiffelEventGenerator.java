@@ -21,6 +21,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -61,6 +62,20 @@ public class EiffelEventGenerator {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * Will for a given list of search criteria return the first found event
+     */
+    protected static String getPreviousEiffelEvent(final String linkedEiffelEventType, final String projectName,
+            final List<String> searchCriterias, final File pluginDirectoryPath) {
+        for (String searchCriteria : searchCriterias) {
+            String eiffelEventId = getPreviousEiffelEvent(linkedEiffelEventType, projectName, searchCriteria, pluginDirectoryPath);
+            if (!StringUtils.isEmpty(eiffelEventId)) {
+                return eiffelEventId;
+            }
+        }
+        return null;
     }
 
     protected static String getPreviousEiffelEvent(final String linkedEiffelEventType, final String projectName,

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.generators.EiffelSourceChangeCreatedEventGenerator;
+import com.ericsson.gerrit.plugins.eiffel.git.CommitInformation;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.server.events.Event;
@@ -45,6 +46,9 @@ public class PatchsetCreatedEventListener extends AbstractEventListener {
      * Injecting here as the injection framework will go through this class
      */
     @Inject
+    private CommitInformation commitInformation;
+
+    @Inject
     public PatchsetCreatedEventListener(@PluginName final String pluginName,
             final @PluginData File pluginDirectoryPath) {
         super(pluginName, pluginDirectoryPath);
@@ -63,7 +67,8 @@ public class PatchsetCreatedEventListener extends AbstractEventListener {
                 + "preparing to send a SourceChangeCreated eiffel event.\n{}",
                 patchSetCreatedEvent);
 
-        EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator.generate(patchSetCreatedEvent, pluginConfig, pluginDirectoryPath);
+        EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator.generate(
+                patchSetCreatedEvent, pluginDirectoryPath, commitInformation);
         sendEiffelEvent(eiffelEvent, pluginConfig);
     }
 }
