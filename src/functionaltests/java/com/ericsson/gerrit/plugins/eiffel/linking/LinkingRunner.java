@@ -8,8 +8,8 @@ import cucumber.api.junit.Cucumber;
 @RunWith(Cucumber.class)
 @CucumberOptions(features = "src/functionaltests/resources/features/linking.feature", glue = {
         "com.ericsson.gerrit.plugins.eiffel.linking" }, plugin = { "pretty",
-                "html:target/cucumber-reports/LinkingRunner" })
-//                "html:target/cucumber-reports/LinkingRunner" },tags={"@Test1"})
+//                "html:target/cucumber-reports/LinkingRunner" })
+                "html:target/cucumber-reports/LinkingRunner" },tags={"@Test1"})
 public class LinkingRunner {
 
 }
