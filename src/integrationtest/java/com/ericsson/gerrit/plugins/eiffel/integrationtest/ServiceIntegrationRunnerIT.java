@@ -7,6 +7,6 @@ import cucumber.api.junit.Cucumber;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(plugin = "pretty", features = "src/integrationtest/resources/features/service_integration.feature")
-public class ServiceIntegrationRunner {
+public class ServiceIntegrationRunnerIT {
 
 }
