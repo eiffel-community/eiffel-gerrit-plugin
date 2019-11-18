@@ -38,13 +38,13 @@ import cucumber.api.java.en.Then;
 public class ServiceIntegrationSteps {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceIntegrationSteps.class);
 
-	private final static String RABBITMQ_HOSTNAME = "172.18.0.2";
+	private final static String RABBITMQ_HOSTNAME = "localhost";
 	private final static int RABBITMQ_PORT = 5672;
 	private final static String RABBITMQ_USERNAME = "myuser";
 	private final static String RABBITMQ_PASSWORD = "myuser";
 	private final static String RABBITMQ_QUEUENAME = "gerrit-test-queue";
 	private final static String RABBITMQ_EXCHANGE_NAME = "eiffel.poc";
-	private final static String GERRIT_BASE_URL = "http://172.18.0.2:8080";
+	private final static String GERRIT_BASE_URL = "http://localhost:8080";
 
 	private String projectName;
 	private String gerritAccountCookie;
