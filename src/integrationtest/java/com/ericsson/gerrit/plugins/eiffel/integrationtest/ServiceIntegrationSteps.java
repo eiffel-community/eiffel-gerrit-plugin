@@ -30,7 +30,6 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.GetResponse;
 
-import cucumber.api.PendingException;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -162,8 +161,6 @@ public class ServiceIntegrationSteps {
 
 	private ResponseEntity enableEiffelMessaging(String publishUrl)
 			throws URISyntaxException, ClientProtocolException, IOException {
-		String fullPublishUrl = "http://" + publishUrl;
-
 		String jsonBodyString = "{\"description\":\"Auto generated project\","
 				+ "\"use_contributor_agreements\":\"INHERIT\",\"use_content_merge\":\"INHERIT\","
 				+ "\"use_signed_off_by\":\"INHERIT\",\"require_change_id\":\"INHERIT\","
@@ -171,7 +168,7 @@ public class ServiceIntegrationSteps {
 				+ "\"reject_implicit_merges\":\"INHERIT\",\"submit_type\":\"MERGE_IF_NECESSARY\","
 				+ "\"state\":\"ACTIVE\",\"plugin_config_values\":{\"Eiffel-Integration\":"
 				+ "{\"enabled\":{\"value\":\"true\"},\"filter\":{},\"flow-context\":{},"
-				+ "\"remrem-password\":{},\"remrem-publish-url\":{\"value\":\"" + fullPublishUrl + "\"},"
+				+ "\"remrem-password\":{},\"remrem-publish-url\":{\"value\":\"" + publishUrl + "\"},"
 				+ "\"remrem-username\":{}},\"uploadvalidator\":{\"binaryTypes\":{\"values\":[]},"
 				+ "\"blockedContentType\":{\"values\":[]},\"blockedContentTypeWhitelist\":"
 				+ "{\"value\":\"false\"},\"blockedFileExtension\":{\"values\":[]},"
