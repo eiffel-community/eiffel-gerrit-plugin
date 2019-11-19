@@ -36,7 +36,6 @@ jobs:
       name: integrationTests
       script:
         - ./eiffel-gerrit-plugin-script build start
-        - sleep 120
         - mvn verify -DskipUTs
     - stage: report_coverage
       name: report_coverage

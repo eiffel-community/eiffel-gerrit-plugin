@@ -64,37 +64,10 @@ function do_start {
   source target/env.bash
   docker-compose -f target/docker-compose.yml up -d
 
-  RABBITMQ_CONTAINER_ID=$(docker ps | grep target_rabbitmq | awk '{print $1}')
-  RABBITMQ_API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $RABBITMQ_CONTAINER_ID)
-  GERRIT_CONTAINER_ID=$(docker ps | grep target_gerrit | awk '{print $1}')
-  GERRIT_API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $GERRIT_CONTAINER_ID)
-
-  RABBITMQ_BASE_URL=http://$RABBITMQ_API_HOST:15672
-  GERRIT_BASE_URL=http://$GERRIT_API_HOST:8080
-
-  wait_for_service "$RABBITMQ_BASE_URL" "RABBITMQ"
-  
-  printf "WAITING FOR GERRIT TO START WITH URL: "$GERRIT_BASE_URL
-  echo " "
-
-  gerrit_attempt_counter=0
-  gerrit_max_attempts=60
-
-  until $(curl --output /dev/null --silent --head --fail $GERRIT_BASE_URL); do
-      if [ ${gerrit_attempt_counter} -eq ${gerrit_max_attempts} ];then
-        printf " \e[91m FAILURE! \e[39m"
-        echo " "
-        echo "Gerrit failed to start!"
-        do_stop
-        exit 1
-      fi
-
-      printf '.'
-      gerrit_attempt_counter=$(($gerrit_attempt_counter+1))
-      sleep 2
-  done
-  printf " \e[32m SUCCESS! \e[39m"
-  echo " "
+  wait_for_service "RABBITMQ" "target_rabbitmq" "15672"
+  wait_for_service "GERRIT" "target_gerrit" "8080"
+  wait_for_service "REMREM_PUBLISH" "target_publish" "8080"
+  wait_for_service "REMREM_GENERATE" "target_generate" "8080"
 }
 
 function do_test {
@@ -128,20 +101,24 @@ function do_full_test {
 }
 
 function wait_for_service {
-  base_url="$1"
-  service_name="$2"
-  echo "the url is ${base_url}"
+  service_name="$1"
+  container_name="$2"
+  container_port="$3"
   
   attempt_counter=0
   max_attempts=60
   
-  printf "WAITING FOR $service_name TO START WITH URL: "${base_url}
+  CONTAINER_ID=$(docker ps | grep ${container_name} | awk '{print $1}')
+  API_HOST=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_ID)
+  BASE_URL=http://$API_HOST:${container_port}
+    
+  printf "WAITING FOR $service_name TO START WITH URL: "$BASE_URL
   echo " "
-  until $(curl --output /dev/null --silent --head --fail ${base_url}); do
+  until $(curl --output /dev/null --silent --head --fail $BASE_URL); do
       if [ ${attempt_counter} -eq ${max_attempts} ];then
         printf " \e[91m FAILURE! \e[39m"
         echo " "
-        echo "RabbitMQ failed to start!"
+        echo "$service_name failed to start!"
         do_stop
         exit 1
       fi
