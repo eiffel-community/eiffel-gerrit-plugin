@@ -72,18 +72,22 @@ function do_start {
   RABBITMQ_BASE_URL=http://$RABBITMQ_API_HOST:15672
   GERRIT_BASE_URL=http://$GERRIT_API_HOST:8080
 
+  rabbitmq_attempt_counter=0
+  rabbitmq_max_attempts=60
+
   printf "WAITING FOR RABBITMQ TO START WITH URL: "$RABBITMQ_BASE_URL
+  echo " "
   until $(curl --output /dev/null --silent --head --fail $RABBITMQ_BASE_URL); do
-      if [ ${attempt_counter} -eq ${max_attempts} ];then
+      if [ ${rabbitmq_attempt_counter} -eq ${rabbitmq_max_attempts} ];then
         printf " \e[91m FAILURE! \e[39m"
         echo " "
         echo "RabbitMQ failed to start!"
         do_stop
-        break
+        exit 1
       fi
 
       printf '.'
-      attempt_counter=$(($attempt_counter+1))
+      rabbitmq_attempt_counter=$(($rabbitmq_attempt_counter+1))
       sleep 2
   done
 
@@ -93,11 +97,11 @@ function do_start {
   printf "WAITING FOR GERRIT TO START WITH URL: "$GERRIT_BASE_URL
   echo " "
 
-  attempt_counter=0
-  max_attempts=60
+  gerrit_attempt_counter=0
+  gerrit_max_attempts=60
 
   until $(curl --output /dev/null --silent --head --fail $GERRIT_BASE_URL); do
-      if [ ${attempt_counter} -eq ${max_attempts} ];then
+      if [ ${gerrit_attempt_counter} -eq ${gerrit_max_attempts} ];then
         printf " \e[91m FAILURE! \e[39m"
         echo " "
         echo "Gerrit failed to start!"
@@ -106,7 +110,7 @@ function do_start {
       fi
 
       printf '.'
-      attempt_counter=$(($attempt_counter+1))
+      gerrit_attempt_counter=$(($gerrit_attempt_counter+1))
       sleep 2
   done
   printf " \e[32m SUCCESS! \e[39m"
