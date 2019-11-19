@@ -219,7 +219,9 @@ public class ServiceIntegrationSteps {
 
 		while (System.currentTimeMillis() < stopTime) {
 			try {
+			    LOGGER.error("RabbitMQ queue is", RABBITMQ_QUEUENAME);
 				GetResponse response = channel.basicGet(RABBITMQ_QUEUENAME, true);
+				LOGGER.error("Response is", response.getBody());
 				if (response != null) {
 					messages.add(new String(response.getBody(), "UTF-8"));
 				}
