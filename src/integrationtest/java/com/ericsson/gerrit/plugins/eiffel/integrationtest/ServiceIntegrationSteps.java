@@ -51,10 +51,10 @@ public class ServiceIntegrationSteps {
 
 	@Before
 	public void setUp() throws Exception {
-		cleanUp();
+        declareQueues();
+	    cleanUp();
 		generateGerritAccountCookie();
 		generateGerritXAuthToken();
-		declareQueues();
 	}
 
 	@Given("^a project is created$")
