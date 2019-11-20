@@ -53,9 +53,9 @@ public class ServiceIntegrationSteps {
 	private String gerritAccountCookie;
 	private String gerritXAuthToken;
 
-	String requestBodyString;
-	String endPoint;
-	HttpMethod httpMethod;
+	private String requestBodyString;
+	private String endPoint;
+	private HttpMethod httpMethod;
 
 	@Before
 	public void setUp() throws Exception {
