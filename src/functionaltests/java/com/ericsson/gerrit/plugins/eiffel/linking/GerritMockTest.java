@@ -1,8 +1,14 @@
 package com.ericsson.gerrit.plugins.eiffel.linking;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.powermock.api.mockito.PowerMockito.mock;
+
+import java.io.IOException;
 
 import org.junit.Test;
+
+import com.ericsson.gerrit.plugins.eiffel.git.CommitInformation;
+import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 
 public class GerritMockTest {
 
@@ -45,7 +51,7 @@ public class GerritMockTest {
 
         String changeId2 = gerritMock.createNewChange(user1, branch2);
         assertEquals(changeId2, gerritMock.getChangeId(user1, branch2));
-        
+
         GitCommit update2 = gerritMock.getCommit(changeId2);
         assertEquals(base2.sha, update2.parentSha);
 
@@ -80,7 +86,6 @@ public class GerritMockTest {
         String changeId2 = gerritMock.createNewChange(user2, branch);
         assertEquals(changeId2, gerritMock.getChangeId(user2, branch));
 
-        
         GitCommit update2 = gerritMock.getCommit(changeId2);
         assertEquals(base.sha, update2.parentSha);
 
@@ -90,13 +95,70 @@ public class GerritMockTest {
 
         GitCommit newPatchSet = gerritMock.createNewPatchSet(changeId);
         assertEquals(base.sha, newPatchSet.parentSha);
-        
+
         GitCommit rebase = gerritMock.rebase(changeId);
         assertEquals(rebase.parentSha, merged2.sha);
 
         GitCommit merged = gerritMock.submit(changeId);
         assertEquals(merged2.sha, merged.parentSha);
         assertEquals(merged.sha, gerritMock.getHead(branch).sha);
+    }
 
+    @Test(expected = AssertionError.class)
+    public void createWithoutSubmitFail() {
+        GerritMock gerritMock = new GerritMock();
+
+        String branch = "branch";
+        gerritMock.createBranch(branch);
+
+        gerritMock.createNewChange("user", branch);
+        gerritMock.createNewChange("user", branch);
+    }
+
+    @Test(expected = AssertionError.class)
+    public void submitBeforeRebaseFail() {
+        GerritMock gerritMock = new GerritMock();
+
+        String branch = "branch";
+        gerritMock.createBranch(branch);
+
+        String changeUser1 = gerritMock.createNewChange("user1", branch);
+        String changeUser2 = gerritMock.createNewChange("user2", branch);
+        gerritMock.submit(changeUser2);
+        gerritMock.submit(changeUser1);
+    }
+
+    @Test
+    public void createTwoChages() {
+        GerritMock gerritMock = new GerritMock();
+
+        String branch = "branch";
+        gerritMock.createBranch(branch);
+
+        String user = "user";
+        String change1 = gerritMock.createNewChange(user, branch);
+        assertEquals(change1, gerritMock.getChangeId(user, branch));
+        gerritMock.submit(change1);
+        String change2 = gerritMock.createNewChange(user, branch);
+        assertEquals(change2, gerritMock.getChangeId(user, branch));
+
+    }
+
+    @Test
+    public void setCollectionsExpectation() throws ResourceNotFoundException, IOException {
+
+        GerritMock gerritMock = new GerritMock();
+        String branch = "branch";
+        gerritMock.createBranch(branch);
+        String changeId = gerritMock.createNewChange("user", branch);
+        GitCommit commit = gerritMock.getCommit(changeId);
+
+        CommitInformation commitInformation = mock(CommitInformation.class);
+
+        gerritMock.setExpectionsFor(commitInformation, changeId, "some-project");
+
+        String actualParent = commitInformation.getParentsSHAs(commit.sha, "some-project").get(0);
+        String expectedParent = commit.parentSha;
+        assertEquals(expectedParent, actualParent);
     }
 }

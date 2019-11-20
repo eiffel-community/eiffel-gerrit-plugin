@@ -1,19 +1,27 @@
 package com.ericsson.gerrit.plugins.eiffel.linking;
 
+import static org.powermock.api.mockito.PowerMockito.when;
+
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.ericsson.gerrit.plugins.eiffel.git.CommitInformation;
+import com.ericsson.gerrit.plugins.eiffel.linking.GerritMock.ChangeInfo;
+import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
+
 public class GerritMock {
 
     private Map<String, GitCommit> branches;
-    private Map<String, String> changeIds;
+    private Map<String, String> changeIdsLookup;
     private Map<String, GitCommit> commits;
     private Map<String, ChangeInfo> changeInfos;
 
     public GerritMock() {
         branches = new HashMap<String, GitCommit>();
-        changeIds = new HashMap<String, String>();
+        changeIdsLookup = new HashMap<String, String>();
         commits = new HashMap<String, GitCommit>();
         changeInfos = new HashMap<String, ChangeInfo>();
     }
@@ -23,6 +31,7 @@ public class GerritMock {
     }
 
     public GitCommit getHead(String branch) {
+        assert branches.containsKey(branch);
         return branches.get(branch);
     }
 
@@ -32,11 +41,15 @@ public class GerritMock {
 
     public String createNewChange(String user, String branch) {
         String lookupKey = getLookupKey(user, branch);
-        String changeId = "change-id-" + changeIds.size();
+        String changeId = "change-id-" + changeIdsLookup.size();
 
-        assert !changeIds.containsKey(lookupKey);
-        changeIds.put(lookupKey, changeId);
-        changeInfos.put(changeId, new ChangeInfo(user, branch));
+        assert !changeIdsLookup.containsKey(lookupKey) : lookupKey
+                + " already exists. Forgot to submit it?";
+        changeIdsLookup.put(lookupKey, changeId);
+        ChangeInfo changeInfo = new ChangeInfo();
+        changeInfo.user = user;
+        changeInfo.branch = branch;
+        changeInfos.put(changeId, changeInfo);
 
         GitCommit branchHead = getHead(branch);
         GitCommit changeCommit = getNewCommit(branchHead);
@@ -56,7 +69,7 @@ public class GerritMock {
 
     public String getChangeId(String user, String branch) {
         String lookupKey = getLookupKey(user, branch);
-        return changeIds.get(lookupKey);
+        return changeIdsLookup.get(lookupKey);
     }
 
     public GitCommit rebase(String changeId) {
@@ -73,10 +86,23 @@ public class GerritMock {
         String branch = changeInfos.get(changeId).branch;
 
         // Ensure its rebased
-        assert submittedCommit.parentSha.equals(getHead(branch).sha);
+        assert submittedCommit.parentSha.equals(getHead(branch).sha) : changeId
+                + " is not ready for submit. Reabase it first!";
 
         branches.put(branch, submittedCommit);
+
+        ChangeInfo changeInfo = changeInfos.get(changeId);
+        String lookupKey = getLookupKey(changeInfo.user, changeInfo.branch);
+        changeIdsLookup.remove(lookupKey);
         return submittedCommit;
+    }
+
+    public void setExpectionsFor(CommitInformation commitInformation, String changeId,
+            String projectName)
+            throws ResourceNotFoundException, IOException {
+        GitCommit commit = getCommit(changeId);
+        when(commitInformation.getParentsSHAs(commit.sha, projectName)).thenReturn(
+                Arrays.asList(commit.parentSha));
     }
 
     private GitCommit getNewCommit() {
@@ -91,7 +117,6 @@ public class GerritMock {
         return commit;
     }
 
-
     private String getLookupKey(String user, String branch) {
         return user + branch;
     }
@@ -99,11 +124,6 @@ public class GerritMock {
     class ChangeInfo {
         String branch;
         String user;
-
-        public ChangeInfo(String user, String branch) {
-            this.user = user;
-            this.branch = branch;
-        }
     }
 
 }
