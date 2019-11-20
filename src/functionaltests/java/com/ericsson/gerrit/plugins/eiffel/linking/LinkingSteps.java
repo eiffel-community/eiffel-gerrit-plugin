@@ -27,6 +27,7 @@ import org.mockserver.model.HttpRequest;
 
 import com.ericsson.gerrit.plugins.eiffel.GerritModule;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
+import com.ericsson.gerrit.plugins.eiffel.git.CommitInformation;
 import com.ericsson.gerrit.plugins.eiffel.listeners.AbstractEventListener;
 import com.ericsson.gerrit.plugins.eiffel.listeners.ChangeMergedEventListener;
 import com.ericsson.gerrit.plugins.eiffel.listeners.PatchsetCreatedEventListener;
@@ -61,6 +62,7 @@ import cucumber.api.java.en.When;
 
 public class LinkingSteps {
 
+    private static final String NOT_USED = "not used";
     private static final String PROJECT_NAME = "Test-project";
     private static final int PORT = 7777;
     private static final String BASE_URL = "localhost";
@@ -73,7 +75,8 @@ public class LinkingSteps {
     private PatchSetEvent eventToSend;
     private Path tempDirPath;
     private Map<String, String> eventTypes = getEventMap();
-    private Map<String, String> changeIdLookup = new HashMap<String, String>();
+    private GerritMock gerritMock;
+    private CommitInformation commitInformation;
 
     @Before()
     public void setup() throws IOException, InterruptedException {
@@ -84,8 +87,9 @@ public class LinkingSteps {
          */
         tempDirPath = Files.createTempDirectory("pluginFetureTest");
         File tempDirLocation = tempDirPath.toFile();
-
-        Injector injector = Guice.createInjector(new ModuleDependencis(tempDirLocation),
+        commitInformation = mock(CommitInformation.class);
+        Injector injector = Guice.createInjector(
+                new ModuleDependencis(tempDirLocation, commitInformation),
                 new GerritModule());
 
         listeners = new ArrayList<AbstractEventListener>();
@@ -94,14 +98,14 @@ public class LinkingSteps {
 
         server = ClientAndServer.startClientAndServer(PORT);
         mockClient = new MockServerClient(BASE_URL, PORT);
+
+        gerritMock = new GerritMock();
     }
 
     @After()
     public void afterScenario() throws IOException, InterruptedException {
         server.stop();
         mockClient.close();
-
-        changeIdLookup.clear();
 
         Path dbPath = tempDirPath.resolve(PROJECT_NAME + ".db");
         Files.delete(dbPath);
@@ -112,7 +116,12 @@ public class LinkingSteps {
 
     @Given("^a SCS event with id \"([^\"]*)\" was sent on \"([^\"]*)\"$")
     public void aSCSEventWithIdWasSentOn(String id, String branch) throws Throwable {
-        eventToSend = buildChangeMergedEvent(PROJECT_NAME, "noUserchangeId", branch);
+        gerritMock.createBranch(branch);
+        String changeId = gerritMock.createNewChange("someUser", branch);
+        GitCommit commit = gerritMock.submit(changeId);
+        gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
+
+        eventToSend = buildChangeMergedEvent(PROJECT_NAME, changeId, branch, commit.sha);
         prepareResponse(id);
         callOnEvent(eventToSend);
         Thread.sleep(1000); // TODO: get the threadpool excutor and wait for the sending
@@ -122,6 +131,7 @@ public class LinkingSteps {
 
     @Given("^no SCS event was sent on \"([^\"]*)\"$")
     public void noSCSEventWasSentOn(String branch) throws Throwable {
+        gerritMock.createBranch(branch);
         server.verifyZeroInteractions();
         mockClient.verifyZeroInteractions();
     }
@@ -129,22 +139,34 @@ public class LinkingSteps {
     @When("^user \"([^\"]*)\" creates a new change on \"([^\"]*)\"$")
     public void userCreatesANewChangeOn(String user, String branch) throws Throwable {
         clearTestStates();
-        String changeId = getChangeIdForUser(user);
-        eventToSend = buildPatchSetCreatedEvent(PROJECT_NAME, changeId, branch);
+        String changeId = gerritMock.createNewChange(user, branch);
+        GitCommit commit = gerritMock.getCommit(changeId);
+        gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
+        eventToSend = buildPatchSetCreatedEvent(PROJECT_NAME, changeId, branch, commit.sha);
     }
 
     @When("^user \"([^\"]*)\" submits the change to \"([^\"]*)\"$")
     public void userSubmitsTheChangeTo(String user, String branch) throws Throwable {
         clearTestStates();
-        String changeId = getChangeIdForUser(user);
-        eventToSend = buildChangeMergedEvent(PROJECT_NAME, changeId, branch);
+        String changeId = gerritMock.getChangeId(user, branch);
+        GitCommit commit = gerritMock.submit(changeId);
+        gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
+        eventToSend = buildChangeMergedEvent(PROJECT_NAME, changeId, branch, commit.sha);
     }
 
     @When("^user \"([^\"]*)\" uploads a new patchset to \"([^\"]*)\"$$")
     public void userUploadsANewPatchset(String user, String branch) throws Throwable {
         clearTestStates();
-        String changeId = getChangeIdForUser(user);
-        eventToSend = buildPatchSetCreatedEvent(PROJECT_NAME, changeId, branch);
+        String changeId = gerritMock.getChangeId(user, branch);
+        GitCommit newCommit = gerritMock.createNewPatchSet(changeId);
+        gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
+        eventToSend = buildPatchSetCreatedEvent(PROJECT_NAME, changeId, branch, newCommit.sha);
+    }
+
+    @When("^user \"([^\"]*)\" rebases the change for \"([^\"]*)\"$")
+    public void userRebasesTheChangeFor(String user, String branch) throws Throwable {
+        String changeId = gerritMock.getChangeId(user, branch);
+        gerritMock.rebase(changeId);
     }
 
     @Then("^a \"([^\"]*)\" event with id \"([^\"]*)\" is sent$")
@@ -177,33 +199,34 @@ public class LinkingSteps {
     }
 
     private PatchSetCreatedEvent buildPatchSetCreatedEvent(String projectName, String changeId,
-            String branch) {
+            String branch, String commitSha) {
         Supplier<ChangeAttribute> changeAttributeSupplier = getChangeAttribute(projectName, branch);
-        Supplier<PatchSetAttribute> patchSetAttributeSupplier = getPatSetAttribute();
+        Supplier<PatchSetAttribute> patchSetAttributeSupplier = getPatSetAttribute(commitSha);
         Key changeKey = getChangeKey(changeId);
-    
+
         PatchSetCreatedEvent patchSetCreatedEvent = mock(PatchSetCreatedEvent.class);
         patchSetCreatedEvent.change = changeAttributeSupplier;
         patchSetCreatedEvent.patchSet = patchSetAttributeSupplier;
         patchSetCreatedEvent.changeKey = changeKey;
-    
+
         when(patchSetCreatedEvent.getProjectNameKey()).thenReturn(mock(NameKey.class));
         return patchSetCreatedEvent;
     }
 
     private ChangeMergedEvent buildChangeMergedEvent(String projectName, String changeId,
-            String branch) {
+            String branch, String commitId) {
         Supplier<ChangeAttribute> changeAttributeSupplier = getChangeAttribute(projectName, branch);
         Supplier<PatchSetAttribute> patchSetAttributeSupplier = getPatSetAttribute();
         Key changeKey = getChangeKey(changeId);
-    
-        ChangeMergedEvent changeMergeEvent = mock(ChangeMergedEvent.class);
-        changeMergeEvent.change = changeAttributeSupplier;
-        changeMergeEvent.patchSet = patchSetAttributeSupplier;
-        changeMergeEvent.changeKey = changeKey;
-    
-        when(changeMergeEvent.getProjectNameKey()).thenReturn(mock(NameKey.class));
-        return changeMergeEvent;
+
+        ChangeMergedEvent changeMergedEvent = mock(ChangeMergedEvent.class);
+        changeMergedEvent.change = changeAttributeSupplier;
+        changeMergedEvent.patchSet = patchSetAttributeSupplier;
+        changeMergedEvent.changeKey = changeKey;
+        changeMergedEvent.newRev = commitId;
+
+        when(changeMergedEvent.getProjectNameKey()).thenReturn(mock(NameKey.class));
+        return changeMergedEvent;
     }
 
     private JSONObject buildResponse(String id) {
@@ -220,7 +243,8 @@ public class LinkingSteps {
         JsonObject link = getLink(type, links);
 
         assertThat(String.format("The event has a %s link", type), link.has("target"), is(true));
-        assertThat("We are linking to correct event", link.get("target").getAsString(), is(equalTo(id)));
+        assertThat("We are linking to correct event", link.get("target").getAsString(),
+                is(equalTo(id)));
     }
 
     private JsonObject getLink(String type, JsonArray links) {
@@ -258,16 +282,6 @@ public class LinkingSteps {
                   .respond(response().withBody(body.toString()).withStatusCode(200));
     }
 
-    private String getChangeIdForUser(String user) {
-        if (changeIdLookup.containsKey(user)) {
-            return changeIdLookup.get(user);
-        } else {
-            String changeId = "change-id-" + changeIdLookup.size();
-            changeIdLookup.put(user, changeId);
-            return changeId;
-        }
-    }
-
     private Key getChangeKey(String changeId) {
         Key changeKey = mock(Key.class);
         when(changeKey.toString()).thenReturn(changeId);
@@ -275,8 +289,17 @@ public class LinkingSteps {
     }
 
     private Supplier<PatchSetAttribute> getPatSetAttribute() {
+        return getPatSetAttribute(NOT_USED);
+    }
+
+    private Supplier<PatchSetAttribute> getPatSetAttribute(String commitSha) {
         PatchSetAttribute patchSetAttribute = mock(PatchSetAttribute.class);
         patchSetAttribute.author = new AccountAttribute();
+        boolean shouldHaveRevision = !commitSha.equals(NOT_USED);
+        if (shouldHaveRevision) {
+            patchSetAttribute.revision = commitSha;
+        }
+
         @SuppressWarnings("unchecked")
         Supplier<PatchSetAttribute> patchSetAttributeSupplier = mock(Supplier.class);
         when(patchSetAttributeSupplier.get()).thenReturn(patchSetAttribute);
@@ -353,10 +376,12 @@ public class LinkingSteps {
         private final String REMREM_PUBLISH_URL = "http://" + BASE_URL + ":" + PORT;
         private final String REMREM_USERNAME = "dummyUser";
         private final String REMREM_PASSWORD = "dummypassword";
-        private File file;
+        private File pluginData;
+        private CommitInformation commitInformation;
 
-        public ModuleDependencis(File file) {
-            this.file = file;
+        public ModuleDependencis(File pluginData, CommitInformation commitInformation) {
+            this.pluginData = pluginData;
+            this.commitInformation = commitInformation;
         }
 
         @Override
@@ -364,7 +389,7 @@ public class LinkingSteps {
             String pluginName = "Eiffel-Gerrit-Plugin";
 
             bind(String.class).annotatedWith(PluginName.class).toInstance(pluginName);
-            bind(File.class).annotatedWith(PluginData.class).toInstance(file);
+            bind(File.class).annotatedWith(PluginData.class).toInstance(pluginData);
 
             PluginConfigFactory pluginConfigFactory = mock(PluginConfigFactory.class);
             PluginConfig pluginConfig = mock(PluginConfig.class);
@@ -389,6 +414,8 @@ public class LinkingSteps {
             }
             bind(PluginConfigFactory.class).toInstance(pluginConfigFactory);
             bind(String.class).annotatedWith(CanonicalWebUrl.class).toInstance("web-url");
+
+            bind(CommitInformation.class).toInstance(commitInformation);
 
         }
 
