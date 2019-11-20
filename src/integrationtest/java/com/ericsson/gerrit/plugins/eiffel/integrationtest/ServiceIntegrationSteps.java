@@ -35,248 +35,248 @@ import com.rabbitmq.client.GetResponse;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import cucumber.api.java.en.And;
 
 public class ServiceIntegrationSteps {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceIntegrationSteps.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceIntegrationSteps.class);
 
-    private final static String RABBITMQ_HOSTNAME = "localhost";
-    private final static int RABBITMQ_PORT = 5672;
-    private final static String RABBITMQ_USERNAME = "myuser";
-    private final static String RABBITMQ_PASSWORD = "myuser";
-    private final static String RABBITMQ_QUEUENAME = "gerrit-test-queue";
-    private final static String RABBITMQ_EXCHANGE_NAME = "eiffel-exchange";
-    private final static String GERRIT_BASE_URL = "http://localhost:8080";
+	private final static String RABBITMQ_HOSTNAME = "localhost";
+	private final static int RABBITMQ_PORT = 5672;
+	private final static String RABBITMQ_USERNAME = "myuser";
+	private final static String RABBITMQ_PASSWORD = "myuser";
+	private final static String RABBITMQ_QUEUENAME = "gerrit-test-queue";
+	private final static String RABBITMQ_EXCHANGE_NAME = "eiffel-exchange";
+	private final static String GERRIT_BASE_URL = "http://localhost:8080";
 
-    private String projectName;
-    private String gerritAccountCookie;
-    private String gerritXAuthToken;
+	private String projectName;
+	private String gerritAccountCookie;
+	private String gerritXAuthToken;
 
-    @Before
-    public void setUp() throws Exception {
-        declareQueues();
-        cleanUp();
-        generateGerritAccountCookie();
-        generateGerritXAuthToken();
-    }
+	String requestBodyString;
+	String endPoint;
+	HttpMethod httpMethod;
 
-    @Given("^a project is created$")
-    public void aProjectIsCreated()
-            throws ClientProtocolException, URISyntaxException, IOException {
-        this.projectName = UUID.randomUUID().toString();
-        ResponseEntity response = createProject(projectName);
+	@Before
+	public void setUp() throws Exception {
+		declareQueues();
+		cleanUp();
+		generateGerritAccountCookie();
+		generateGerritXAuthToken();
+	}
 
-        int expected = 201;
-        int actual = response.getStatusCode();
-        assertEquals("Failed to create project", expected, actual);
-    }
+	@Given("^a project is created$")
+	public void aProjectIsCreated() throws ClientProtocolException, URISyntaxException, IOException {
+		this.projectName = UUID.randomUUID().toString();
+		ResponseEntity response = createProject(projectName);
 
-    @Given("^the project is configured to send eiffel events with publish url \"([^\"]*)\"$")
-    public void theProjectIsConfiguredToSendEiffelEventsWithPublishUrl(String publishUrl)
-            throws ClientProtocolException, URISyntaxException, IOException {
-        ResponseEntity response = enableEiffelMessaging(publishUrl);
-        int expected = 200;
-        int actual = response.getStatusCode();
-        assertEquals("Failed to configure project", expected, actual);
-    }
+		int expected = 201;
+		int actual = response.getStatusCode();
+		assertEquals("Failed to create project", expected, actual);
+	}
 
-    @Given("^a change is created$")
-    public void aChangeIsSubmitted()
-            throws ClientProtocolException, URISyntaxException, IOException {
-        ResponseEntity response = submitChange();
-        int expected = 201;
-        int actual = response.getStatusCode();
-        assertEquals("Change is submitted", expected, actual);
-    }
+	@And("^the project is configured to send eiffel events with publish url \"([^\"]*)\"$")
+	public void theProjectIsConfiguredToSendEiffelEventsWithPublishUrl(String publishUrl)
+			throws ClientProtocolException, URISyntaxException, IOException {
+		ResponseEntity response = enableEiffelMessaging(publishUrl);
+		int expected = 200;
+		int actual = response.getStatusCode();
+		assertEquals("Failed to configure project", expected, actual);
+	}
 
-    @Then("^I should find an eiffel event in rabbitmq$")
-    public void iShouldFindAnEiffelEventInRabbitmq() throws IOException, TimeoutException {
-        List<String> messages = consumeMessages(1, 10000);
-        assertEquals(1, messages.size());
-    }
+	@When("^a change is created$")
+	public void aChangeIsSubmitted() throws ClientProtocolException, URISyntaxException, IOException {
+		ResponseEntity response = submitChange();
+		int expected = 201;
+		int actual = response.getStatusCode();
+		assertEquals("Change is submitted", expected, actual);
+	}
 
-    private void generateGerritXAuthToken() throws Exception {
-        try {
-            HttpRequest request = new HttpRequest(HttpMethod.GET);
-            ResponseEntity response;
-            response = request.setBaseUrl(GERRIT_BASE_URL).setHeader("Cookie", gerritAccountCookie)
-                    .setHeader("Referer", "http://localhost:8080/login").setEndpoint("/")
-                    .performRequest();
+	@Then("^I should find an eiffel event in rabbitmq$")
+	public void iShouldFindAnEiffelEventInRabbitmq() throws IOException, TimeoutException {
+		int minMessageCount = 1;
+		long responseWaitTimeout = 10000;
+		List<String> messages = consumeMessages(minMessageCount, responseWaitTimeout);
+		assertEquals("Expecting one message in queue but found" + messages.size(), 1, messages.size());
+	}
 
-            Header[] headers = response.getHeaders();
-            Header gerritAccountHeader = headers[1];
+	private void generateGerritXAuthToken() throws Exception {
+		try {
+			HttpRequest request = new HttpRequest(HttpMethod.GET);
+			ResponseEntity response;
+			response = request.setBaseUrl(GERRIT_BASE_URL).setHeader("Cookie", gerritAccountCookie)
+					.setHeader("Referer", GERRIT_BASE_URL + "/login").setEndpoint("/").performRequest();
 
-            String gerritXAuthHeader = gerritAccountHeader.getValue();
-            String regexp = "XSRF_TOKEN=(.+);";
-            gerritXAuthToken = getFirstMatchGroupFromText(gerritXAuthHeader, regexp);
-        } catch (URISyntaxException e) {
-            String stacktrace = ExceptionUtils.getStackTrace(e);
-            throw new URISyntaxException("Failed to generate gerritXAuthToken", stacktrace);
-        } catch (IOException e) {
-            throw new IOException("Failed to generate gerritXAuthToken", e);
-        }
-    }
+			Header[] headers = response.getHeaders();
+			Header gerritAccountHeader = headers[1];
 
-    private void generateGerritAccountCookie() throws Exception {
-        try {
-            CloseableHttpClient httpClientNoRedirect = HttpClientBuilder.create()
-                    .disableRedirectHandling().build();
-            HttpExecutor httpExecutor = new HttpExecutor(httpClientNoRedirect);
-            HttpRequest requestLogin = new HttpRequest(HttpMethod.GET, httpExecutor);
+			String gerritXAuthHeader = gerritAccountHeader.getValue();
+			String regexp = "XSRF_TOKEN=(.+);";
+			gerritXAuthToken = getFirstMatchGroupFromText(gerritXAuthHeader, regexp);
+		} catch (URISyntaxException e) {
+			String stacktrace = ExceptionUtils.getStackTrace(e);
+			throw new URISyntaxException("Failed to generate gerritXAuthToken", stacktrace);
+		} catch (IOException e) {
+			throw new IOException("Failed to generate gerritXAuthToken", e);
+		}
+	}
 
-            ResponseEntity response = requestLogin.setBaseUrl(GERRIT_BASE_URL)
-                    .setEndpoint("/login/?account_id=1000000")
-                    .addParameter("http.protocol.handle-redirects", "false").performRequest();
+	private void generateGerritAccountCookie() throws Exception {
+		try {
+			CloseableHttpClient httpClientNoRedirect = HttpClientBuilder.create().disableRedirectHandling().build();
+			HttpExecutor httpExecutor = new HttpExecutor(httpClientNoRedirect);
+			HttpRequest requestLogin = new HttpRequest(HttpMethod.GET, httpExecutor);
 
-            Header[] headers = response.getHeaders();
-            Header gerritAccountHeader = headers[4];
-            gerritAccountCookie = gerritAccountHeader.getValue();
-        } catch (URISyntaxException e) {
-            String stacktrace = ExceptionUtils.getStackTrace(e);
-            throw new URISyntaxException("Failed to generate Gerrit account cookie", stacktrace);
-        } catch (IOException e) {
-            throw new IOException("Failed to generate Gerrit account cokkie", e);
-        }
-    }
+			ResponseEntity response = requestLogin.setBaseUrl(GERRIT_BASE_URL).setEndpoint("/login/?account_id=1000000")
+					.addParameter("http.protocol.handle-redirects", "false").performRequest();
 
-    private String getFirstMatchGroupFromText(String text, String regexp) throws Exception {
-        Pattern pattern = Pattern.compile(regexp);
-        Matcher matcher = pattern.matcher(text);
+			Header[] headers = response.getHeaders();
+			Header gerritAccountHeader = headers[4];
+			gerritAccountCookie = gerritAccountHeader.getValue();
+		} catch (URISyntaxException e) {
+			String stacktrace = ExceptionUtils.getStackTrace(e);
+			throw new URISyntaxException("Failed to generate Gerrit account cookie", stacktrace);
+		} catch (IOException e) {
+			throw new IOException("Failed to generate Gerrit account cokkie", e);
+		}
+	}
 
-        matcher.find();
-        String matchedGroup = matcher.group(1);
+	private String getFirstMatchGroupFromText(String text, String regexp) throws Exception {
+		Pattern pattern = Pattern.compile(regexp);
+		Matcher matcher = pattern.matcher(text);
 
-        if (matchedGroup == null) {
-            throw new RegexMatchFailedException("Failed to parse the text: \"" + text + "\" with regexp: \""
-                    + regexp + "\"");
-        }
+		matcher.find();
+		String matchedGroup = matcher.group(1);
 
-        return matchedGroup;
-    }
+		if (matchedGroup == null) {
+			throw new RegexMatchFailedException(
+					"Failed to parse the text: \"" + text + "\" with regexp: \"" + regexp + "\"");
+		}
 
-    private ResponseEntity createProject(String projectName)
-            throws URISyntaxException, ClientProtocolException, IOException {
-        JsonObject generateBody = new JsonObject();
-        generateBody.addProperty("description", "Auto generated project");
-        generateBody.addProperty("submit_type", "INHERIT");
-        generateBody.addProperty("create_empty_commit", true);
+		return matchedGroup;
+	}
 
-        HttpRequest request = new HttpRequest(HttpMethod.PUT);
-        ResponseEntity response;
-        response = request.setHeader("Cookie", gerritAccountCookie)
-                .setHeader("Content-Type", "application/json; charset=UTF-8")
-                .setHeader("Accept", "application/json")
-                .setHeader("X-Gerrit-Auth", gerritXAuthToken).setBaseUrl(GERRIT_BASE_URL)
-                .setEndpoint("/projects/" + projectName).setBody(generateBody.toString())
-                .performRequest();
+	private ResponseEntity createProject(String projectName)
+			throws URISyntaxException, ClientProtocolException, IOException {
+		JsonObject generateBody = new JsonObject();
+		generateBody.addProperty("description", "Auto generated project");
+		generateBody.addProperty("submit_type", "INHERIT");
+		generateBody.addProperty("create_empty_commit", true);
 
-        return response;
-    }
+		requestBodyString = generateBody.toString();
+		endPoint = "/projects/" + projectName;
+		httpMethod = HttpMethod.PUT;
 
-    private ResponseEntity enableEiffelMessaging(String publishUrl)
-            throws URISyntaxException, ClientProtocolException, IOException {
-        String jsonBodyString = "{\"description\":\"Auto generated project\","
-                + "\"use_contributor_agreements\":\"INHERIT\",\"use_content_merge\":\"INHERIT\","
-                + "\"use_signed_off_by\":\"INHERIT\",\"require_change_id\":\"INHERIT\","
-                + "\"create_new_change_for_all_not_in_target\":\"INHERIT\","
-                + "\"reject_implicit_merges\":\"INHERIT\",\"submit_type\":\"MERGE_IF_NECESSARY\","
-                + "\"state\":\"ACTIVE\",\"plugin_config_values\":{\"Eiffel-Integration\":"
-                + "{\"enabled\":{\"value\":\"true\"},\"filter\":{},\"flow-context\":{},"
-                + "\"remrem-password\":{},\"remrem-publish-url\":{\"value\":\"" + publishUrl
-                + "\"},"
-                + "\"remrem-username\":{}},\"uploadvalidator\":{\"binaryTypes\":{\"values\":[]},"
-                + "\"blockedContentType\":{\"values\":[]},\"blockedContentTypeWhitelist\":"
-                + "{\"value\":\"false\"},\"blockedFileExtension\":{\"values\":[]},"
-                + "\"blockedKeywordPattern\":{\"values\":[]},\"invalidFilenamePattern\":"
-                + "{\"values\":[]},\"maxPathLength\":{\"value\":\"0\"},\"project\":"
-                + "{\"values\":[]},\"ref\":{\"values\":[]},\"rejectDuplicatePathnames\":"
-                + "{\"value\":\"false\"},\"rejectDuplicatePathnamesLocale\":{\"value\":\"en\"},"
-                + "\"rejectSubmodule\":{\"value\":\"false\"},\"rejectSymlink\":"
-                + "{\"value\":\"false\"},\"rejectWindowsLineEndings\":{\"value\":\"false\"},"
-                + "\"requiredFooter\":{\"values\":[]}}}}";
+		ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString, httpMethod);
 
-        HttpRequest request = new HttpRequest(HttpMethod.PUT);
-        ResponseEntity response;
-        response = request.setHeader("Cookie", gerritAccountCookie)
-                .setHeader("Content-Type", "application/json; charset=UTF-8")
-                .setHeader("Accept", "application/json")
-                .setHeader("X-Gerrit-Auth", gerritXAuthToken).setBaseUrl(GERRIT_BASE_URL)
-                .setEndpoint("/projects/" + projectName + "/config").setBody(jsonBodyString)
-                .performRequest();
+		return response;
+	}
 
-        return response;
-    }
+	private ResponseEntity enableEiffelMessaging(String publishUrl)
+			throws URISyntaxException, ClientProtocolException, IOException {
+		String jsonBodyString = "{\"description\":\"Auto generated project\","
+				+ "\"use_contributor_agreements\":\"INHERIT\",\"use_content_merge\":\"INHERIT\","
+				+ "\"use_signed_off_by\":\"INHERIT\",\"require_change_id\":\"INHERIT\","
+				+ "\"create_new_change_for_all_not_in_target\":\"INHERIT\","
+				+ "\"reject_implicit_merges\":\"INHERIT\",\"submit_type\":\"MERGE_IF_NECESSARY\","
+				+ "\"state\":\"ACTIVE\",\"plugin_config_values\":{\"Eiffel-Integration\":"
+				+ "{\"enabled\":{\"value\":\"true\"},\"filter\":{},\"flow-context\":{},"
+				+ "\"remrem-password\":{},\"remrem-publish-url\":{\"value\":\"" + publishUrl + "\"},"
+				+ "\"remrem-username\":{}},\"uploadvalidator\":{\"binaryTypes\":{\"values\":[]},"
+				+ "\"blockedContentType\":{\"values\":[]},\"blockedContentTypeWhitelist\":"
+				+ "{\"value\":\"false\"},\"blockedFileExtension\":{\"values\":[]},"
+				+ "\"blockedKeywordPattern\":{\"values\":[]},\"invalidFilenamePattern\":"
+				+ "{\"values\":[]},\"maxPathLength\":{\"value\":\"0\"},\"project\":"
+				+ "{\"values\":[]},\"ref\":{\"values\":[]},\"rejectDuplicatePathnames\":"
+				+ "{\"value\":\"false\"},\"rejectDuplicatePathnamesLocale\":{\"value\":\"en\"},"
+				+ "\"rejectSubmodule\":{\"value\":\"false\"},\"rejectSymlink\":"
+				+ "{\"value\":\"false\"},\"rejectWindowsLineEndings\":{\"value\":\"false\"},"
+				+ "\"requiredFooter\":{\"values\":[]}}}}";
 
-    private ResponseEntity submitChange()
-            throws URISyntaxException, ClientProtocolException, IOException {
-        String jsonBodyString = "{\"project\":\"" + projectName + "\" ,"
-                + "\"subject\" : \"Let's support 100% Gerrit workflow direct in browser\", "
-                + "\"topic\" : \"create-change-in-browser\", " + "\"status\" : \"DRAFT\", "
-                + "\"branch\":\"master\"}";
+		requestBodyString = jsonBodyString;
+		endPoint = "/projects/" + projectName + "/config";
+		httpMethod = HttpMethod.PUT;
 
-        HttpRequest request = new HttpRequest(HttpMethod.POST);
-        ResponseEntity response;
-        response = request.setHeader("Cookie", gerritAccountCookie)
-                .setHeader("Content-Type", "application/json; charset=UTF-8")
-                .setHeader("Accept", "application/json")
-                .setHeader("X-Gerrit-Auth", gerritXAuthToken).setBaseUrl(GERRIT_BASE_URL)
-                .setEndpoint("/changes/").setBody(jsonBodyString).performRequest();
+		ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString, httpMethod);
 
-        return response;
-    }
+		return response;
+	}
 
-    protected List<String> consumeMessages(int messageCount, long timeout)
-            throws IOException, TimeoutException {
-        List<String> messages = new ArrayList<String>();
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(RABBITMQ_HOSTNAME);
-        factory.setPort(RABBITMQ_PORT);
-        factory.setUsername(RABBITMQ_USERNAME);
-        factory.setPassword(RABBITMQ_PASSWORD);
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
+	private ResponseEntity submitChange() throws URISyntaxException, ClientProtocolException, IOException {
+		String jsonBodyString = "{\"project\":\"" + projectName + "\" ,"
+				+ "\"subject\" : \"Let's support 100% Gerrit workflow direct in browser\", "
+				+ "\"topic\" : \"create-change-in-browser\", " + "\"status\" : \"DRAFT\", " + "\"branch\":\"master\"}";
 
-        long stopTime = System.currentTimeMillis() + timeout;
+		requestBodyString = jsonBodyString;
+		endPoint = "/changes/";
+		httpMethod = HttpMethod.POST;
 
-        while (System.currentTimeMillis() < stopTime) {
-            try {
-                GetResponse response = channel.basicGet(RABBITMQ_QUEUENAME, true);
-                if (response != null) {
-                    messages.add(new String(response.getBody(), "UTF-8"));
-                }
+		ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString, httpMethod);
 
-                if (messages.size() == messageCount) {
-                    return messages;
-                }
-            } catch (Exception e) {
-                LOGGER.error("RabbitMQ failed to get from queue", e);
-            }
-        }
+		return response;
+	}
 
-        return messages;
-    }
+	protected List<String> consumeMessages(int messageCount, long timeout) throws IOException, TimeoutException {
+		List<String> messages = new ArrayList<String>();
+		ConnectionFactory factory = createAndSetConnectionFactory();
+		Connection connection = factory.newConnection();
+		Channel channel = connection.createChannel();
 
-    protected void declareQueues() throws IOException, TimeoutException {
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(RABBITMQ_HOSTNAME);
-        factory.setPort(RABBITMQ_PORT);
-        factory.setUsername(RABBITMQ_USERNAME);
-        factory.setPassword(RABBITMQ_PASSWORD);
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
+		long stopTime = System.currentTimeMillis() + timeout;
 
-        final AMQP.Exchange.DeclareOk exchangeOK = channel.exchangeDeclare(RABBITMQ_EXCHANGE_NAME,
-                "topic", true);
-        final AMQP.Queue.DeclareOk queueOK = channel.queueDeclare(RABBITMQ_QUEUENAME, true, false,
-                false, null);
-        final AMQP.Queue.BindOk bindOK = channel.queueBind(RABBITMQ_QUEUENAME,
-                RABBITMQ_EXCHANGE_NAME, "#");
-        assertEquals(true, exchangeOK != null);
-        assertEquals(true, queueOK != null);
-        assertEquals(true, bindOK != null);
-    }
+		while (System.currentTimeMillis() < stopTime) {
+			try {
+				GetResponse response = channel.basicGet(RABBITMQ_QUEUENAME, true);
+				if (response != null) {
+					messages.add(new String(response.getBody(), "UTF-8"));
+				}
 
-    @After
-    public void cleanUp() throws Exception {
-        consumeMessages(100, 2000);
-    }
+				if (messages.size() == messageCount) {
+					return messages;
+				}
+			} catch (Exception e) {
+				LOGGER.error("RabbitMQ failed to get from queue", e);
+			}
+		}
+
+		return messages;
+	}
+
+	protected void declareQueues() throws IOException, TimeoutException {
+		ConnectionFactory factory = createAndSetConnectionFactory();
+		Connection connection = factory.newConnection();
+		Channel channel = connection.createChannel();
+
+		final AMQP.Exchange.DeclareOk exchangeOK = channel.exchangeDeclare(RABBITMQ_EXCHANGE_NAME, "topic", true);
+		final AMQP.Queue.DeclareOk queueOK = channel.queueDeclare(RABBITMQ_QUEUENAME, true, false, false, null);
+		final AMQP.Queue.BindOk bindOK = channel.queueBind(RABBITMQ_QUEUENAME, RABBITMQ_EXCHANGE_NAME, "#");
+		assertEquals("Expecting non-null  but RabbitMQ exchange is " + exchangeOK, true, exchangeOK != null);
+		assertEquals("Expecting non-null but RabbitMQ queue is " + queueOK, true, queueOK != null);
+		assertEquals("Expecting non-null but RabbitMQ binding key is " + bindOK, true, bindOK != null);
+	}
+
+	private ResponseEntity setHeaderAndPerformRequest(String endPoint, String setBodyString, HttpMethod httpMethod)
+			throws URISyntaxException, ClientProtocolException, IOException {
+		HttpRequest request = new HttpRequest(httpMethod);
+		ResponseEntity response;
+		response = request.setHeader("Cookie", gerritAccountCookie)
+				.setHeader("Content-Type", "application/json; charset=UTF-8").setHeader("Accept", "application/json")
+				.setHeader("X-Gerrit-Auth", gerritXAuthToken).setBaseUrl(GERRIT_BASE_URL).setEndpoint(endPoint)
+				.setBody(setBodyString).performRequest();
+		return response;
+	}
+
+	private ConnectionFactory createAndSetConnectionFactory() {
+		ConnectionFactory factory = new ConnectionFactory();
+		factory.setHost(RABBITMQ_HOSTNAME);
+		factory.setPort(RABBITMQ_PORT);
+		factory.setUsername(RABBITMQ_USERNAME);
+		factory.setPassword(RABBITMQ_PASSWORD);
+		return factory;
+	}
+
+	@After
+	public void cleanUp() throws Exception {
+		consumeMessages(100, 2000);
+	}
 }
