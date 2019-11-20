@@ -44,7 +44,7 @@ public class ServiceIntegrationSteps {
     private final static String RABBITMQ_USERNAME = "myuser";
     private final static String RABBITMQ_PASSWORD = "myuser";
     private final static String RABBITMQ_QUEUENAME = "gerrit-test-queue";
-    private final static String RABBITMQ_EXCHANGE_NAME = "eiffel.poc";
+    private final static String RABBITMQ_EXCHANGE_NAME = "eiffel-exchange";
     private final static String GERRIT_BASE_URL = "http://localhost:8080";
 
     private String projectName;
