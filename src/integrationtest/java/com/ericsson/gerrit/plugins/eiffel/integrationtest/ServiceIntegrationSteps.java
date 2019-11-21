@@ -33,10 +33,10 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.GetResponse;
 
 import cucumber.api.java.Before;
+import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import cucumber.api.java.en.And;
 
 public class ServiceIntegrationSteps {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceIntegrationSteps.class);
@@ -100,6 +100,14 @@ public class ServiceIntegrationSteps {
 		assertEquals("Expecting one message in queue but found" + messages.size(), 1, messages.size());
 	}
 
+	 /**
+     * Generates a gerrit XAuth token. Since we are not using HTTP password for the REST API
+     * we need to simulate what the browser is doing when signing in to gerrit. Gerrit XAuth
+     * token is one of the needed cookies that needs to be set in the http header to access
+     * the REST api without using HTTP password.
+     *
+     * @throws Exception
+     */
 	private void generateGerritXAuthToken() throws Exception {
 		try {
 			HttpRequest request = new HttpRequest(HttpMethod.GET);
@@ -121,12 +129,21 @@ public class ServiceIntegrationSteps {
 		}
 	}
 
+	/**
+	 * Generates a gerrit account token. Since we are not using HTTP password for the REST API
+	 * we need to simulate what the browser is doing when signing in to gerrit. Gerrit account
+	 * token is one of the needed cookies that needs to be set in the http header to access
+     * the REST api without using HTTP password.
+     *
+	 * @throws Exception
+	 */
 	private void generateGerritAccountCookie() throws Exception {
 		try {
 			CloseableHttpClient httpClientNoRedirect = HttpClientBuilder.create().disableRedirectHandling().build();
 			HttpExecutor httpExecutor = new HttpExecutor(httpClientNoRedirect);
 			HttpRequest requestLogin = new HttpRequest(HttpMethod.GET, httpExecutor);
 
+			// Account ID 1000000 is the default value for the admin account in gerrit.
 			ResponseEntity response = requestLogin.setBaseUrl(GERRIT_BASE_URL).setEndpoint("/login/?account_id=1000000")
 					.addParameter("http.protocol.handle-redirects", "false").performRequest();
 
