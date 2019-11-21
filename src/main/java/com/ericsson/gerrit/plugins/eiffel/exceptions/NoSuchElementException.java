@@ -18,6 +18,8 @@
 package com.ericsson.gerrit.plugins.eiffel.exceptions;
 
 public class NoSuchElementException extends Exception {
+    private static final long serialVersionUID = 3617813021505426730L;
+
     public NoSuchElementException(String message) {
         super(message);
     }
