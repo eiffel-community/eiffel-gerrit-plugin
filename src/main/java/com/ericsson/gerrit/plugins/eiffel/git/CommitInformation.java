@@ -60,7 +60,7 @@ public class CommitInformation {
      * or commit, an empty list will be returned.
      */
     private List<RevCommit> getParents(final String commitId, final String projectName) {
-        List<RevCommit> parents = Collections.emptyList();;
+        List<RevCommit> parents = Collections.emptyList();
 
         try {
             parents = getParentsFromCommit(commitId, projectName);

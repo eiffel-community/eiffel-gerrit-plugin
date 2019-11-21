@@ -190,7 +190,7 @@ public class LinkingSteps {
     }
 
     @Then("^PREVIOUS_VERSION links to event \"([^\"]*)\"$")
-    public void previous_versionLinksToEvent(String id) throws Throwable {
+    public void previousVersionLinksToEvent(String id) throws Throwable {
         assertLinksHasTypeWithId("PREVIOUS_VERSION", id, linksFromLastEvent);
     }
 
@@ -364,7 +364,7 @@ public class LinkingSteps {
         try {
             waitFor(SECOND_10);
         } catch (InterruptedException e) {
-            throw new RuntimeException("Could not wait for events to be sent");
+            throw new FunctionalTestException("Could not wait for events to be sent", e);
         }
     }
 
@@ -436,7 +436,7 @@ public class LinkingSteps {
                 when(pluginConfigFactory.getFromProjectConfig(Mockito.any(NameKey.class),
                         Mockito.any(String.class))).thenReturn(pluginConfig);
             } catch (NoSuchProjectException e) {
-                throw new RuntimeException(e);
+                throw new FunctionalTestException("Could not setup project configuration mock", e);
             }
             bind(PluginConfigFactory.class).toInstance(pluginConfigFactory);
             bind(String.class).annotatedWith(CanonicalWebUrl.class).toInstance("web-url");

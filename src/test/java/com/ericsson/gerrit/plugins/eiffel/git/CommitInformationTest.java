@@ -18,7 +18,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.ericsson.gerrit.plugins.eiffel.logHelper.LogHelper;
+import com.ericsson.gerrit.plugins.eiffel.loghelper.LogHelper;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
@@ -35,7 +35,7 @@ public class CommitInformationTest {
 
 
     @Before
-    public void setup() {
+    public void setUp() {
         logHelper.setup();
     }
 

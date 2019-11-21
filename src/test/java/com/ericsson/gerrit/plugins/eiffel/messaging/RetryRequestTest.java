@@ -29,7 +29,7 @@ import com.ericsson.gerrit.plugins.eiffel.events.generators.EiffelSourceChangeSu
 import com.ericsson.gerrit.plugins.eiffel.git.CommitInformation;
 import com.ericsson.gerrit.plugins.eiffel.listeners.AbstractEventListener;
 import com.ericsson.gerrit.plugins.eiffel.listeners.ChangeMergedEventListener;
-import com.ericsson.gerrit.plugins.eiffel.logHelper.LogHelper;
+import com.ericsson.gerrit.plugins.eiffel.loghelper.LogHelper;
 import com.google.gerrit.server.events.ChangeMergedEvent;
 
 import io.github.resilience4j.decorators.Decorators;

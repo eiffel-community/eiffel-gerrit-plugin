@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.ericsson.gerrit.plugins.eiffel.git.CommitInformation;
-import com.ericsson.gerrit.plugins.eiffel.linking.GerritMock.ChangeInfo;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 
 public class GerritMock {
@@ -122,8 +121,8 @@ public class GerritMock {
     }
 
     class ChangeInfo {
-        String branch;
-        String user;
+        public String branch;
+        public String user;
     }
 
 }

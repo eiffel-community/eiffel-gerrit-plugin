@@ -32,7 +32,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
-import com.ericsson.gerrit.plugins.eiffel.logHelper.LogHelper;
+import com.ericsson.gerrit.plugins.eiffel.loghelper.LogHelper;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(fullyQualifiedNames = "com.ericsson.gerrit.plugins.eiffel.*")

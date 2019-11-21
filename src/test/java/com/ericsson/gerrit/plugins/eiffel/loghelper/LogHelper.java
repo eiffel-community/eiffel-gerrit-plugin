@@ -1,4 +1,4 @@
-package com.ericsson.gerrit.plugins.eiffel.logHelper;
+package com.ericsson.gerrit.plugins.eiffel.loghelper;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
