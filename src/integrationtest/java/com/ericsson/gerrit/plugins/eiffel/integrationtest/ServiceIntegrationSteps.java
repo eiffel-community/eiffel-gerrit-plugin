@@ -120,7 +120,7 @@ public class ServiceIntegrationSteps {
 
 			String gerritXAuthHeader = gerritAccountHeader.getValue();
 			String regexp = "XSRF_TOKEN=(.+);";
-			gerritXAuthToken = getFirstMatchGroupFromText(gerritXAuthHeader, regexp);
+			this.gerritXAuthToken = getFirstMatchGroupFromText(gerritXAuthHeader, regexp);
 		} catch (URISyntaxException e) {
 			String stacktrace = ExceptionUtils.getStackTrace(e);
 			throw new URISyntaxException("Failed to generate gerritXAuthToken", stacktrace);
@@ -149,7 +149,7 @@ public class ServiceIntegrationSteps {
 
 			Header[] headers = response.getHeaders();
 			Header gerritAccountHeader = headers[4];
-			gerritAccountCookie = gerritAccountHeader.getValue();
+			this.gerritAccountCookie = gerritAccountHeader.getValue();
 		} catch (URISyntaxException e) {
 			String stacktrace = ExceptionUtils.getStackTrace(e);
 			throw new URISyntaxException("Failed to generate Gerrit account cookie", stacktrace);
