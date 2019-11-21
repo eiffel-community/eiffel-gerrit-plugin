@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -24,6 +25,7 @@ import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Format;
 import org.mockserver.model.HttpRequest;
+import org.powermock.reflect.Whitebox;
 
 import com.ericsson.gerrit.plugins.eiffel.GerritModule;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
@@ -62,12 +64,14 @@ import cucumber.api.java.en.When;
 
 public class LinkingSteps {
 
+    private static final int SECOND_10 = 10000;
+    private static final int SECOND_1 = 1000;
     private static final String NOT_USED = "not used";
     private static final String PROJECT_NAME = "Test-project";
     private static final int PORT = 7777;
     private static final String BASE_URL = "localhost";
     private static final HttpRequest ALL_REQUESTS = null;
-    private MockServerClient mockClient;
+    private MockServerClient remRemMock;
     private ClientAndServer server;
 
     private JsonArray linksFromLastEvent;
@@ -97,7 +101,7 @@ public class LinkingSteps {
         listeners.add(injector.getInstance(PatchsetCreatedEventListener.class));
 
         server = ClientAndServer.startClientAndServer(PORT);
-        mockClient = new MockServerClient(BASE_URL, PORT);
+        remRemMock = new MockServerClient(BASE_URL, PORT);
 
         gerritMock = new GerritMock();
     }
@@ -105,7 +109,7 @@ public class LinkingSteps {
     @After()
     public void afterScenario() throws IOException, InterruptedException {
         server.stop();
-        mockClient.close();
+        remRemMock.close();
 
         Path dbPath = tempDirPath.resolve(PROJECT_NAME + ".db");
         Files.delete(dbPath);
@@ -122,10 +126,9 @@ public class LinkingSteps {
         gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
 
         eventToSend = buildChangeMergedEvent(PROJECT_NAME, changeId, branch, commit.sha);
-        prepareResponse(id);
-        callOnEvent(eventToSend);
-        Thread.sleep(1000); // TODO: get the threadpool excutor and wait for the sending
-        mockClient.verify(request().withPath("/generateAndPublish/"));
+        prepareremRemMockResponse(id);
+        callListenersOnEvent(eventToSend);
+        remRemMock.verify(request().withPath("/generateAndPublish/"));
 
     }
 
@@ -133,7 +136,7 @@ public class LinkingSteps {
     public void noSCSEventWasSentOn(String branch) throws Throwable {
         gerritMock.createBranch(branch);
         server.verifyZeroInteractions();
-        mockClient.verifyZeroInteractions();
+        remRemMock.verifyZeroInteractions();
     }
 
     @When("^user \"([^\"]*)\" creates a new change on \"([^\"]*)\"$")
@@ -171,9 +174,8 @@ public class LinkingSteps {
 
     @Then("^a \"([^\"]*)\" event with id \"([^\"]*)\" is sent$")
     public void aEventWithIdIsSent(String eventType, String id) throws Throwable {
-        prepareResponse(id);
-        callOnEvent(eventToSend);
-        Thread.sleep(1000); // TODO: get the threadpool excutor and wait for the sending
+        prepareremRemMockResponse(id);
+        callListenersOnEvent(eventToSend);
         linksFromLastEvent = getLinksFromRequest(eventType);
     }
 
@@ -229,14 +231,10 @@ public class LinkingSteps {
         return changeMergedEvent;
     }
 
-    private JSONObject buildResponse(String id) {
-        JSONObject event = new JSONObject();
-        event.put("id", id);
-        JSONArray events = new JSONArray();
-        events.put(event);
-        JSONObject body = new JSONObject();
-        body.put("events", events);
-        return body;
+    private Key getChangeKey(String changeId) {
+        Key changeKey = mock(Key.class);
+        when(changeKey.toString()).thenReturn(changeId);
+        return changeKey;
     }
 
     private void assertLinksHasTypeWithId(String type, String id, JsonArray links) {
@@ -269,63 +267,16 @@ public class LinkingSteps {
 
     private JsonArray getLinksFromRequest(String eventTypeShort)
             throws InterruptedException, AssertionError {
-        mockClient.verify(request().withPath("/generateAndPublish/"));
-        String retrieveRecordedRequests = mockClient.retrieveRecordedRequests(ALL_REQUESTS,
+        remRemMock.verify(request().withPath("/generateAndPublish/"));
+        String retrieveRecordedRequests = remRemMock.retrieveRecordedRequests(ALL_REQUESTS,
                 Format.JSON);
         return parseLinksFor(retrieveRecordedRequests, eventTypes.get(eventTypeShort));
-    }
-
-    private void prepareResponse(String id) {
-        JSONObject body = buildResponse(id);
-        mockClient.clear(ALL_REQUESTS);
-        mockClient.when(request().withMethod("POST"))
-                  .respond(response().withBody(body.toString()).withStatusCode(200));
-    }
-
-    private Key getChangeKey(String changeId) {
-        Key changeKey = mock(Key.class);
-        when(changeKey.toString()).thenReturn(changeId);
-        return changeKey;
-    }
-
-    private Supplier<PatchSetAttribute> getPatSetAttribute() {
-        return getPatSetAttribute(NOT_USED);
-    }
-
-    private Supplier<PatchSetAttribute> getPatSetAttribute(String commitSha) {
-        PatchSetAttribute patchSetAttribute = mock(PatchSetAttribute.class);
-        patchSetAttribute.author = new AccountAttribute();
-        boolean shouldHaveRevision = !commitSha.equals(NOT_USED);
-        if (shouldHaveRevision) {
-            patchSetAttribute.revision = commitSha;
-        }
-
-        @SuppressWarnings("unchecked")
-        Supplier<PatchSetAttribute> patchSetAttributeSupplier = mock(Supplier.class);
-        when(patchSetAttributeSupplier.get()).thenReturn(patchSetAttribute);
-        return patchSetAttributeSupplier;
-    }
-
-    private Supplier<ChangeAttribute> getChangeAttribute(String projectName, String branch) {
-        ChangeAttribute changeAttribute = new ChangeAttribute();
-        changeAttribute.project = projectName;
-        changeAttribute.branch = branch;
-        @SuppressWarnings("unchecked")
-        Supplier<ChangeAttribute> changeAttributeSupplier = mock(Supplier.class);
-        when(changeAttributeSupplier.get()).thenReturn(changeAttribute);
-        return changeAttributeSupplier;
-    }
-
-    private void callOnEvent(PatchSetEvent patchSetEvent) {
-        for (AbstractEventListener abstractEventListener : listeners) {
-            abstractEventListener.onEvent(patchSetEvent);
-        }
     }
 
     private JsonArray parseLinksFor(String retrieveRecordedRequests, String eventType) {
         /**
          * Recorded Request looks like this
-         * 
+         *
          * <pre>
          * [
          *  {
@@ -359,6 +310,81 @@ public class LinkingSteps {
 
         JsonObject eventParams = parsedBody.get("eventParams").getAsJsonObject();
         return eventParams.get("links").getAsJsonArray();
+    }
+
+    private void prepareremRemMockResponse(String id) {
+        JSONObject body = buildResponseBody(id);
+        remRemMock.clear(ALL_REQUESTS);
+        remRemMock.when(request().withMethod("POST"))
+                  .respond(response().withBody(body.toString()).withStatusCode(200));
+    }
+
+    private JSONObject buildResponseBody(String id) {
+        JSONObject event = new JSONObject();
+        event.put("id", id);
+        JSONArray events = new JSONArray();
+        events.put(event);
+        JSONObject body = new JSONObject();
+        body.put("events", events);
+        return body;
+    }
+
+    private Supplier<PatchSetAttribute> getPatSetAttribute() {
+        return getPatSetAttribute(NOT_USED);
+    }
+
+    private Supplier<PatchSetAttribute> getPatSetAttribute(String commitSha) {
+        PatchSetAttribute patchSetAttribute = mock(PatchSetAttribute.class);
+        patchSetAttribute.author = new AccountAttribute();
+        boolean shouldHaveRevision = !commitSha.equals(NOT_USED);
+        if (shouldHaveRevision) {
+            patchSetAttribute.revision = commitSha;
+        }
+
+        @SuppressWarnings("unchecked")
+        Supplier<PatchSetAttribute> patchSetAttributeSupplier = mock(Supplier.class);
+        when(patchSetAttributeSupplier.get()).thenReturn(patchSetAttribute);
+        return patchSetAttributeSupplier;
+    }
+
+    private Supplier<ChangeAttribute> getChangeAttribute(String projectName, String branch) {
+        ChangeAttribute changeAttribute = new ChangeAttribute();
+        changeAttribute.project = projectName;
+        changeAttribute.branch = branch;
+        @SuppressWarnings("unchecked")
+        Supplier<ChangeAttribute> changeAttributeSupplier = mock(Supplier.class);
+        when(changeAttributeSupplier.get()).thenReturn(changeAttribute);
+        return changeAttributeSupplier;
+    }
+
+    private void callListenersOnEvent(PatchSetEvent patchSetEvent) {
+        for (AbstractEventListener abstractEventListener : listeners) {
+            abstractEventListener.onEvent(patchSetEvent);
+        }
+        try {
+            waitFor(SECOND_10);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Could not wait for events to be sent");
+        }
+    }
+
+    private void waitFor(int maxWaitTimeMillis) throws InterruptedException {
+        ThreadPoolExecutor executor = Whitebox.<ThreadPoolExecutor>getInternalState(
+                AbstractEventListener.class, "executor");
+
+        /*
+         * There is a small possibility that we can reach this place before the executor has started
+         * a thread
+         */
+        boolean finished = false;
+        long stopTime = System.currentTimeMillis() + maxWaitTimeMillis;
+        while (!finished && stopTime > System.currentTimeMillis()) {
+            if (executor.getActiveCount() > 0) {
+                Thread.sleep(SECOND_1);
+            } else {
+                finished = true;
+            }
+        }
     }
 
     private static Map<String, String> getEventMap() {
