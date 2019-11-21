@@ -95,8 +95,8 @@ public class ServiceIntegrationSteps {
 	@Then("^I should find an eiffel event in rabbitmq$")
 	public void iShouldFindAnEiffelEventInRabbitmq() throws IOException, TimeoutException {
 		int minMessageCount = 1;
-		long responseWaitTimeout = 10000;
-		List<String> messages = consumeMessages(minMessageCount, responseWaitTimeout);
+		long responseWaitTimeoutInMillis = 10000;
+		List<String> messages = consumeMessages(minMessageCount, responseWaitTimeoutInMillis);
 		assertEquals("Expecting one message in queue but found" + messages.size(), 1, messages.size());
 	}
 
