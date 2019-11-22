@@ -1,6 +1,6 @@
 sudo: required
 
-dist: xenial
+dist: trusty
 
 language: java
 
@@ -34,7 +34,9 @@ jobs:
         - mvn test
     - stage: test
       name: integrationTests
-      script: skip
+      script:
+        - ./eiffel-gerrit-plugin-script build start
+        - mvn verify -DskipUTs
     - stage: report_coverage
       name: report_coverage
       # Generating test coverage report and publishing to Codacy
