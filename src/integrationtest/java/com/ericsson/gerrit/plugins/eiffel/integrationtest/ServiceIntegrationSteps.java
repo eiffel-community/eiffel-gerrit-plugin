@@ -1,11 +1,7 @@
 package com.ericsson.gerrit.plugins.eiffel.integrationtest;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -31,7 +27,6 @@ import com.ericsson.eiffelcommons.utils.HttpRequest.HttpMethod;
 import com.ericsson.eiffelcommons.utils.ResponseEntity;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.RegexMatchFailedException;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.rabbitmq.client.AMQP;
@@ -69,8 +64,6 @@ public class ServiceIntegrationSteps {
 
     private String uniqueChangeId;
 
-    private String changeNumber;
-
     @Before
     public void setUp() throws Exception {
         declareQueues();
@@ -90,10 +83,15 @@ public class ServiceIntegrationSteps {
         assertEquals("Failed to create project", expected, actual);
     }
 
-    @And("^the project is configured to send eiffel events with publish url \"([^\"]*)\"$")
-    public void theProjectIsConfiguredToSendEiffelEventsWithPublishUrl(String publishUrl)
+    @And("^the project is configured to send eiffel events and submit type is \"([^\"]*)\" and publish url \"([^\"]*)\"$")
+    public void theProjectIsConfiguredToSendEiffelEventsWithPublishUrl(String submitType,
+            String publishUrl)
             throws ClientProtocolException, URISyntaxException, IOException {
-        ResponseEntity response = enableEiffelMessaging(publishUrl);
+        ResponseEntity response = updateProjectConfig(submitType, publishUrl);
+        JsonObject responseBody = new JsonParser().parse(response.getBody()).getAsJsonObject();
+        String actualSubmitTtype = responseBody.get("submit_type").getAsString();
+        assertEquals("Could not set the submit type", submitType, actualSubmitTtype);
+
         int expected = 200;
         int actual = response.getStatusCode();
         assertEquals("Failed to configure project", expected, actual);
@@ -150,10 +148,11 @@ public class ServiceIntegrationSteps {
 
     @And("\"([^\"]*)\" links are found in the event")
     public void linksAreFoundInTheEvent(int numberOfLinks) {
+        assertEquals("Found more/less messages than expected ", 1, messages.size());
         String firstMessage = messages.get(0);
         JsonArray links = parseLinksFor(firstMessage);
 
-        assertEquals("Number of links did not mathc", numberOfLinks, links.size());
+        assertEquals("Number of links did not match", numberOfLinks, links.size());
     }
 
     /**
@@ -254,13 +253,13 @@ public class ServiceIntegrationSteps {
         return response;
     }
 
-    private ResponseEntity enableEiffelMessaging(String publishUrl)
+    private ResponseEntity updateProjectConfig(String submitType, String publishUrl)
             throws URISyntaxException, ClientProtocolException, IOException {
         String jsonBodyString = "{\"description\":\"Auto generated project\","
                 + "\"use_contributor_agreements\":\"INHERIT\",\"use_content_merge\":\"INHERIT\","
                 + "\"use_signed_off_by\":\"INHERIT\",\"require_change_id\":\"INHERIT\","
                 + "\"create_new_change_for_all_not_in_target\":\"INHERIT\","
-                + "\"reject_implicit_merges\":\"INHERIT\",\"submit_type\":\"MERGE_IF_NECESSARY\","
+                + "\"reject_implicit_merges\":\"INHERIT\",\"submit_type\":\"" + submitType + "\","
                 + "\"state\":\"ACTIVE\",\"plugin_config_values\":{\"Eiffel-Integration\":"
                 + "{\"enabled\":{\"value\":\"true\"},\"filter\":{},\"flow-context\":{},"
                 + "\"remrem-password\":{},\"remrem-publish-url\":{\"value\":\"" + publishUrl
@@ -289,7 +288,8 @@ public class ServiceIntegrationSteps {
     private ResponseEntity createChange()
             throws URISyntaxException, ClientProtocolException, IOException {
         String jsonBodyString = "{\"project\":\"" + projectName + "\" ,"
-                + "\"subject\" : \"Let's support 100% Gerrit workflow direct in browser\", "
+                + "\"subject\" : \"Let's support 100% Gerrit workflow direct in browser "
+                + UUID.randomUUID() + "\", "
                 + "\"topic\" : \"create-change-in-browser\", " + "\"status\" : \"NEW\", "
                 + "\"branch\":\"master\"}";
 
