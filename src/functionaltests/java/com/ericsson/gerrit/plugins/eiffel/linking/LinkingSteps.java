@@ -100,7 +100,7 @@ public class LinkingSteps {
         listeners.add(injector.getInstance(ChangeMergedEventListener.class));
         listeners.add(injector.getInstance(PatchsetCreatedEventListener.class));
 
-        //Logging is turned of in log4j.properties
+        //Logging for mock server is turned of in log4j.properties
         server = ClientAndServer.startClientAndServer(PORT);
         remRemMock = new MockServerClient(BASE_URL, PORT);
 
@@ -170,7 +170,9 @@ public class LinkingSteps {
     @When("^user \"([^\"]*)\" rebases the change for \"([^\"]*)\"$")
     public void userRebasesTheChangeFor(String user, String branch) throws Throwable {
         String changeId = gerritMock.getChangeId(user, branch);
-        gerritMock.rebase(changeId);
+        GitCommit commit = gerritMock.rebase(changeId);
+        gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
+        eventToSend = buildPatchSetCreatedEvent(PROJECT_NAME, changeId, branch, commit.sha);
     }
 
     @Then("^a \"([^\"]*)\" event with id \"([^\"]*)\" is sent$")

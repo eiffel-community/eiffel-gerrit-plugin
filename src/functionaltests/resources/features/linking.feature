@@ -45,7 +45,6 @@ Feature: Test Event Sending Flow
     And CHANGE links to event "SCC2"
     And PREVIOUS_VERSION links to event "SCS1"
 
-  @Test1
   Scenario: Multiple patch sets created simultaneously
     Given a SCS event with id "SCS1" was sent on "refs/for/master"
 
@@ -72,15 +71,23 @@ Feature: Test Event Sending Flow
     And PREVIOUS_VERSION links to event "SCC1"
 
     When user "3" rebases the change for "refs/for/master"
-    And user "3" submits the change to "refs/for/master"
+    Then a "SCC" event with id "SCC5" is sent
+    And BASE links to event "SCS2"
+    And PREVIOUS_VERSION links to event "SCC3"
+
+    When user "3" submits the change to "refs/for/master"
     Then a "SCS" event with id "SCS3" is sent
-    And CHANGE links to event "SCC3"
+    And CHANGE links to event "SCC5"
     And PREVIOUS_VERSION links to event "SCS2"
 
     When user "1" rebases the change for "refs/for/master"
-    And user "1" submits the change to "refs/for/master"
+    Then a "SCC" event with id "SCC6" is sent
+    And BASE links to event "SCS3"
+    And PREVIOUS_VERSION links to event "SCC4"
+
+    When user "1" submits the change to "refs/for/master"
     Then a "SCS" event with id "SCS4" is sent
-    And CHANGE links to event "SCC4"
+    And CHANGE links to event "SCC6"
     And PREVIOUS_VERSION links to event "SCS3"
 
   Scenario: Normal scenario submitting refs/for/other-branch than refs/for/master
@@ -91,7 +98,16 @@ Feature: Test Event Sending Flow
     Then a "SCC" event with id "SCC1" is sent
     And BASE links to event "SCS2"
 
+    When user "1" creates a new change on "refs/for/master"
+    Then a "SCC" event with id "SCC2" is sent
+    And BASE links to event "SCS1"
+
     When user "1" submits the change to "refs/for/other-branch"
     Then a "SCS" event with id "SCS3" is sent
     And CHANGE links to event "SCC1"
     And PREVIOUS_VERSION links to event "SCS2"
+
+    When user "1" submits the change to "refs/for/master"
+    Then a "SCS" event with id "SCS4" is sent
+    And CHANGE links to event "SCC2"
+    And PREVIOUS_VERSION links to event "SCS1"
