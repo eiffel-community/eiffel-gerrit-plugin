@@ -100,6 +100,7 @@ public class LinkingSteps {
         listeners.add(injector.getInstance(ChangeMergedEventListener.class));
         listeners.add(injector.getInstance(PatchsetCreatedEventListener.class));
 
+        //Logging is turned of in log4j.properties
         server = ClientAndServer.startClientAndServer(PORT);
         remRemMock = new MockServerClient(BASE_URL, PORT);
 
