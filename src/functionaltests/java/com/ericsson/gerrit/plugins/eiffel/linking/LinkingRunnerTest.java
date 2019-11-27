@@ -9,7 +9,6 @@ import cucumber.api.junit.Cucumber;
 @CucumberOptions(features = "src/functionaltests/resources/features/linking.feature", glue = {
         "com.ericsson.gerrit.plugins.eiffel.linking" }, plugin = { "pretty",
                 "html:target/cucumber-reports/LinkingRunner" })
-//                "html:target/cucumber-reports/LinkingRunner" },tags={"@Test1"})
-public class LinkingRunner {
-
+public class LinkingRunnerTest {
+// This class needs to have test in the name to be picked up by the test runner
 }
