@@ -119,8 +119,8 @@ public class LinkingSteps {
                 !Files.exists(tempDirPath), is(true));
     }
 
-    @Given("^a SCS event with id \"([^\"]*)\" was sent on \"([^\"]*)\"$")
-    public void aSCSEventWithIdWasSentOn(String id, String branch) throws Throwable {
+    @Given("^a SCS event with id \"([^\"]*)\" was sent, branch: \"([^\"]*)\"$")
+    public void aSCSEventWithIdWasSent(String id, String branch) throws Throwable {
         gerritMock.createBranch(branch);
         String changeId = gerritMock.createNewChange("someUser", branch);
         GitCommit commit = gerritMock.submit(changeId);
@@ -133,15 +133,15 @@ public class LinkingSteps {
 
     }
 
-    @Given("^no SCS event was sent on \"([^\"]*)\"$")
-    public void noSCSEventWasSentOn(String branch) throws Throwable {
+    @Given("^no SCS event was sent, branch: \"([^\"]*)\"$")
+    public void noSCSEventWasSent(String branch) throws Throwable {
         gerritMock.createBranch(branch);
         server.verifyZeroInteractions();
         remRemMock.verifyZeroInteractions();
     }
 
-    @When("^user \"([^\"]*)\" creates a new change on \"([^\"]*)\"$")
-    public void userCreatesANewChangeOn(String user, String branch) throws Throwable {
+    @When("^user \"([^\"]*)\" creates a new change, branch: \"([^\"]*)\"$")
+    public void userCreatesANewChange(String user, String branch) throws Throwable {
         clearTestStates();
         String changeId = gerritMock.createNewChange(user, branch);
         GitCommit commit = gerritMock.getCommit(changeId);
@@ -149,8 +149,8 @@ public class LinkingSteps {
         eventToSend = buildPatchSetCreatedEvent(PROJECT_NAME, changeId, branch, commit.sha);
     }
 
-    @When("^user \"([^\"]*)\" submits the change to \"([^\"]*)\"$")
-    public void userSubmitsTheChangeTo(String user, String branch) throws Throwable {
+    @When("^user \"([^\"]*)\" submits the change, branch: \"([^\"]*)\"$")
+    public void userSubmitsTheChange(String user, String branch) throws Throwable {
         clearTestStates();
         String changeId = gerritMock.getChangeId(user, branch);
         GitCommit commit = gerritMock.submit(changeId);
@@ -158,7 +158,7 @@ public class LinkingSteps {
         eventToSend = buildChangeMergedEvent(PROJECT_NAME, changeId, branch, commit.sha);
     }
 
-    @When("^user \"([^\"]*)\" uploads a new patchset to \"([^\"]*)\"$$")
+    @When("^user \"([^\"]*)\" uploads a new patchset, branch: \"([^\"]*)\"$$")
     public void userUploadsANewPatchset(String user, String branch) throws Throwable {
         clearTestStates();
         String changeId = gerritMock.getChangeId(user, branch);
@@ -167,8 +167,8 @@ public class LinkingSteps {
         eventToSend = buildPatchSetCreatedEvent(PROJECT_NAME, changeId, branch, newCommit.sha);
     }
 
-    @When("^user \"([^\"]*)\" rebases the change for \"([^\"]*)\"$")
-    public void userRebasesTheChangeFor(String user, String branch) throws Throwable {
+    @When("^user \"([^\"]*)\" rebases the change, branch: \"([^\"]*)\"$")
+    public void userRebasesTheChange(String user, String branch) throws Throwable {
         String changeId = gerritMock.getChangeId(user, branch);
         GitCommit commit = gerritMock.rebase(changeId);
         gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
