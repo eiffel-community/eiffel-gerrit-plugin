@@ -31,7 +31,7 @@ import com.google.gerrit.server.project.ProjectsCollection;
 @PrepareForTest({ RevCommit.class })
 public class CommitInformationTest {
 
-    private LogHelper logHelper = new LogHelper();
+    private final LogHelper logHelper = new LogHelper();
 
 
     @Before
@@ -47,21 +47,21 @@ public class CommitInformationTest {
 
     @Test
     public void testFetchingParentsShas() throws Exception {
-        String parent1Sha = "Parent1 sha";
-        String parent2Sha = "Parent2 sha";
+        final String parent1Sha = "Parent1 sha";
+        final String parent2Sha = "Parent2 sha";
 
-        CommitsCollection commitsCollection = mock(CommitsCollection.class);
-        ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
-        ProjectResource projectResource = mock(ProjectResource.class);
+        final CommitsCollection commitsCollection = mock(CommitsCollection.class);
+        final ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
+        final ProjectResource projectResource = mock(ProjectResource.class);
 
-        CommitResource commitResource = mock(CommitResource.class);
-        RevCommit revCommit = mock(RevCommit.class);
-        RevCommit parent1 = mock(RevCommit.class);
-        RevCommit parent2 = mock(RevCommit.class);
+        final CommitResource commitResource = mock(CommitResource.class);
+        final RevCommit revCommit = mock(RevCommit.class);
+        final RevCommit parent1 = mock(RevCommit.class);
+        final RevCommit parent2 = mock(RevCommit.class);
 
         when(parent1.getName()).thenReturn(parent1Sha);
         when(parent2.getName()).thenReturn(parent2Sha);
-        RevCommit[] parents = (RevCommit[]) Arrays.asList(parent1, parent2).toArray();
+        final RevCommit[] parents = (RevCommit[]) Arrays.asList(parent1, parent2).toArray();
         when(revCommit.getParents()).thenReturn(parents);
 
         when(commitResource.getCommit()).thenReturn(revCommit);
@@ -70,13 +70,13 @@ public class CommitInformationTest {
 
         when(projectsCollection.parse(any(String.class), anyBoolean())).thenReturn(projectResource);
 
-        CommitInformation commitInformation = new CommitInformation(commitsCollection,
+        final CommitInformation commitInformation = new CommitInformation(commitsCollection,
                 projectsCollection);
-        String commitId = "sha hash";
-        String projectName = "projectName";
-        List<String> expectedParentsSha = Arrays.asList(parent1Sha, parent2Sha);
+        final String commitId = "sha hash";
+        final String projectName = "projectName";
+        final List<String> expectedParentsSha = Arrays.asList(parent1Sha, parent2Sha);
 
-        List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
+        final List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
 
         assertEquals(expectedParentsSha, actualParentSha);
 
@@ -89,21 +89,21 @@ public class CommitInformationTest {
     public void testFetchingCommitNotFound() throws Exception {
         logHelper.removeStdoutAppenders();
 
-        CommitsCollection commitsCollection = mock(CommitsCollection.class);
-        ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
-        ProjectResource projectResource = mock(ProjectResource.class);
+        final CommitsCollection commitsCollection = mock(CommitsCollection.class);
+        final ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
+        final ProjectResource projectResource = mock(ProjectResource.class);
 
         when(commitsCollection.parse(any(ProjectResource.class), any(IdString.class))).thenThrow(
                 ResourceNotFoundException.class);
         when(projectsCollection.parse(any(String.class), anyBoolean())).thenReturn(projectResource);
 
-        CommitInformation commitInformation = new CommitInformation(commitsCollection,
+        final CommitInformation commitInformation = new CommitInformation(commitsCollection,
                 projectsCollection);
-        List<String> expectedParentsSha = Arrays.asList();
-        String commitId = "not found hash";
-        String projectName = "projectName";
+        final List<String> expectedParentsSha = Arrays.asList();
+        final String commitId = "not found hash";
+        final String projectName = "projectName";
 
-        List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
+        final List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
 
         assertEquals(expectedParentsSha, actualParentSha);
         logHelper.verifyLoggerCalledTimes(1);
@@ -114,21 +114,21 @@ public class CommitInformationTest {
     public void testFetchingIOException() throws Exception {
         logHelper.removeStdoutAppenders();
 
-        CommitsCollection commitsCollection = mock(CommitsCollection.class);
-        ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
-        ProjectResource projectResource = mock(ProjectResource.class);
+        final CommitsCollection commitsCollection = mock(CommitsCollection.class);
+        final ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
+        final ProjectResource projectResource = mock(ProjectResource.class);
 
         when(commitsCollection.parse(any(ProjectResource.class), any(IdString.class))).thenThrow(
                 IOException.class);
         when(projectsCollection.parse(any(String.class), anyBoolean())).thenReturn(projectResource);
 
-        CommitInformation commitInformation = new CommitInformation(commitsCollection,
+        final CommitInformation commitInformation = new CommitInformation(commitsCollection,
                 projectsCollection);
-        List<String> expectedParentsSha = Arrays.asList();
-        String commitId = "sha hash";
-        String projectName = "projectName";
+        final List<String> expectedParentsSha = Arrays.asList();
+        final String commitId = "sha hash";
+        final String projectName = "projectName";
 
-        List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
+        final List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
 
         assertEquals(expectedParentsSha, actualParentSha);
         logHelper.verifyLoggerCalledTimes(1);
@@ -139,19 +139,19 @@ public class CommitInformationTest {
     public void testFetchingProjectNotFound() throws Exception {
         logHelper.removeStdoutAppenders();
 
-        CommitsCollection commitsCollection = mock(CommitsCollection.class);
-        ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
+        final CommitsCollection commitsCollection = mock(CommitsCollection.class);
+        final ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
 
         when(projectsCollection.parse(any(String.class), anyBoolean())).thenThrow(
                 UnprocessableEntityException.class);
 
-        CommitInformation commitInformation = new CommitInformation(commitsCollection,
+        final CommitInformation commitInformation = new CommitInformation(commitsCollection,
                 projectsCollection);
-        String commitId = "sha hash";
-        String projectName = "notFoundProject";
-        List<String> expectedParentsSha = Arrays.asList();
+        final String commitId = "sha hash";
+        final String projectName = "notFoundProject";
+        final List<String> expectedParentsSha = Arrays.asList();
 
-        List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
+        final List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
 
         assertEquals(expectedParentsSha, actualParentSha);
         logHelper.verifyLoggerCalledTimes(1);

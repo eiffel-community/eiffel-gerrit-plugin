@@ -28,15 +28,15 @@ import com.google.inject.Inject;
  */
 public class CommitInformation {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommitInformation.class);
-    private CommitsCollection commitsCollection;
-    private ProjectsCollection projectsCollection;
+    private final CommitsCollection commitsCollection;
+    private final ProjectsCollection projectsCollection;
 
     /**
      * Package private constructor with injection for testing reasons. Injecting directly as field
      * variables makes it harder to test
      */
     @Inject
-    CommitInformation(CommitsCollection commitsCollection, ProjectsCollection projectsCollection) {
+    CommitInformation(final CommitsCollection commitsCollection, final ProjectsCollection projectsCollection) {
         this.commitsCollection = commitsCollection;
         this.projectsCollection = projectsCollection;
     }
@@ -50,8 +50,8 @@ public class CommitInformation {
      * @return A list of parents SHAs
      */
     public List<String> getParentsSHAs(final String commitId, final String projectName) {
-        List<RevCommit> parents = getParents(commitId, projectName);
-        List<String> parentsSHAs = getSHAs(parents);
+        final List<RevCommit> parents = getParents(commitId, projectName);
+        final List<String> parentsSHAs = getSHAs(parents);
         return parentsSHAs;
     }
 
@@ -64,14 +64,14 @@ public class CommitInformation {
 
         try {
             parents = getParentsFromCommit(commitId, projectName);
-        } catch (UnprocessableEntityException e) {
-            String message = String.format("Cannot find or load the project %s", projectName);
+        } catch (final UnprocessableEntityException e) {
+            final String message = String.format("Cannot find or load the project %s", projectName);
             LOGGER.error(message, e);
-        } catch (ResourceNotFoundException e) {
-            String message = String.format("Cannot find the commit %s", commitId);
+        } catch (final ResourceNotFoundException e) {
+            final String message = String.format("Cannot find the commit %s", commitId);
             LOGGER.error(message, e);
-        } catch (IOException e) {
-            String message = String.format("Error finding the commit for %s in %s", commitId,
+        } catch (final IOException e) {
+            final String message = String.format("Error finding the commit for %s in %s", commitId,
                     projectName);
             LOGGER.error(message, e);
         }
@@ -81,17 +81,17 @@ public class CommitInformation {
     private List<RevCommit> getParentsFromCommit(final String commitId, final String projectName)
             throws UnprocessableEntityException, IOException, ResourceNotFoundException {
 
-        ProjectResource projectResource = projectsCollection.parse(projectName, true);
-        CommitResource commitResource = commitsCollection.parse(projectResource,
+        final ProjectResource projectResource = projectsCollection.parse(projectName, true);
+        final CommitResource commitResource = commitsCollection.parse(projectResource,
                 IdString.fromDecoded(commitId));
-        RevCommit commit = commitResource.getCommit();
-        RevCommit[] parents = commit.getParents();
+        final RevCommit commit = commitResource.getCommit();
+        final RevCommit[] parents = commit.getParents();
 
         return Arrays.asList(parents);
     }
 
-    private List<String> getSHAs(List<RevCommit> parents) {
-        List<String> parentsSha = parents.stream()
+    private List<String> getSHAs(final List<RevCommit> parents) {
+        final List<String> parentsSha = parents.stream()
                                          .map(parent -> parent.getName())
                                          .collect(Collectors.toList());
         return parentsSha;

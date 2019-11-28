@@ -16,16 +16,16 @@ import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
  */
 public class GerritMock {
 
-    private Map<String, GitCommit> branches;
-    private Map<String, String> changeIdsLookup;
-    private Map<String, GitCommit> commits;
-    private Map<String, ChangeInfo> changeInfos;
+    private final Map<String, GitCommit> branches;
+    private final Map<String, String> changeIdsLookup;
+    private final Map<String, GitCommit> commits;
+    private final Map<String, ChangeInfo> changeInfos;
 
     public GerritMock() {
-        branches = new HashMap<String, GitCommit>();
-        changeIdsLookup = new HashMap<String, String>();
-        commits = new HashMap<String, GitCommit>();
-        changeInfos = new HashMap<String, ChangeInfo>();
+        branches = new HashMap<>();
+        changeIdsLookup = new HashMap<>();
+        commits = new HashMap<>();
+        changeInfos = new HashMap<>();
     }
 
     /**
@@ -33,7 +33,7 @@ public class GerritMock {
      *
      * @param branch a branch name to use during test
      */
-    public void createBranch(String branch) {
+    public void createBranch(final String branch) {
         branches.put(branch, getNewCommit());
     }
 
@@ -43,7 +43,7 @@ public class GerritMock {
      * @param branch name of branch to get commit for
      * @return the commit the branch points to
      */
-    public GitCommit getHead(String branch) {
+    public GitCommit getHead(final String branch) {
         assert branches.containsKey(branch);
         return branches.get(branch);
     }
@@ -54,7 +54,7 @@ public class GerritMock {
      * @param changeId the change id to fetch the commit for
      * @return the current commit of the changeId
      */
-    public GitCommit getCommit(String changeId) {
+    public GitCommit getCommit(final String changeId) {
         return commits.get(changeId);
     }
 
@@ -73,20 +73,20 @@ public class GerritMock {
      * @param branch Name of branch this will
      * @return a changeId
      */
-    public String createNewChange(String user, String branch) {
-        String lookupKey = getLookupKey(user, branch);
-        String changeId = "change-id-" + changeIdsLookup.size();
+    public String createNewChange(final String user, final String branch) {
+        final String lookupKey = getLookupKey(user, branch);
+        final String changeId = "change-id-" + changeIdsLookup.size();
 
         assert !changeIdsLookup.containsKey(lookupKey) : lookupKey
                 + " already exists. Forgot to submit it?";
         changeIdsLookup.put(lookupKey, changeId);
-        ChangeInfo changeInfo = new ChangeInfo();
+        final ChangeInfo changeInfo = new ChangeInfo();
         changeInfo.user = user;
         changeInfo.branch = branch;
         changeInfos.put(changeId, changeInfo);
 
-        GitCommit branchHead = getHead(branch);
-        GitCommit changeCommit = getNewCommit(branchHead);
+        final GitCommit branchHead = getHead(branch);
+        final GitCommit changeCommit = getNewCommit(branchHead);
         commits.put(changeId, changeCommit);
         return changeId;
     }
@@ -98,9 +98,9 @@ public class GerritMock {
      * @param changeId The changeId for the change to be updated
      * @return the new commit
      */
-    public GitCommit createNewPatchSet(String changeId) {
-        GitCommit oldCommit = commits.get(changeId);
-        GitCommit newCommit = getNewCommit();
+    public GitCommit createNewPatchSet(final String changeId) {
+        final GitCommit oldCommit = commits.get(changeId);
+        final GitCommit newCommit = getNewCommit();
 
         // As we have not rebased the change the startig point has not changed.
         newCommit.parentSha = oldCommit.parentSha;
@@ -115,8 +115,8 @@ public class GerritMock {
      * @param branch Name of branch
      * @return the changeId
      */
-    public String getChangeId(String user, String branch) {
-        String lookupKey = getLookupKey(user, branch);
+    public String getChangeId(final String user, final String branch) {
+        final String lookupKey = getLookupKey(user, branch);
         return changeIdsLookup.get(lookupKey);
     }
 
@@ -127,10 +127,10 @@ public class GerritMock {
      * @param changeId the changeId of the change
      * @return the new commit
      */
-    public GitCommit rebase(String changeId) {
-        String branch = changeInfos.get(changeId).branch;
-        GitCommit head = getHead(branch);
-        GitCommit rebased = getNewCommit(head);
+    public GitCommit rebase(final String changeId) {
+        final String branch = changeInfos.get(changeId).branch;
+        final GitCommit head = getHead(branch);
+        final GitCommit rebased = getNewCommit(head);
         commits.put(changeId, rebased);
         return rebased;
 
@@ -144,9 +144,9 @@ public class GerritMock {
      * @param changeId
      * @return
      */
-    public GitCommit submit(String changeId) {
-        GitCommit submittedCommit = getCommit(changeId);
-        String branch = changeInfos.get(changeId).branch;
+    public GitCommit submit(final String changeId) {
+        final GitCommit submittedCommit = getCommit(changeId);
+        final String branch = changeInfos.get(changeId).branch;
 
         // Ensure its rebased
         assert submittedCommit.parentSha.equals(getHead(branch).sha) : changeId
@@ -154,8 +154,8 @@ public class GerritMock {
 
         branches.put(branch, submittedCommit);
 
-        ChangeInfo changeInfo = changeInfos.get(changeId);
-        String lookupKey = getLookupKey(changeInfo.user, changeInfo.branch);
+        final ChangeInfo changeInfo = changeInfos.get(changeId);
+        final String lookupKey = getLookupKey(changeInfo.user, changeInfo.branch);
         changeIdsLookup.remove(lookupKey);
         return submittedCommit;
     }
@@ -171,27 +171,27 @@ public class GerritMock {
      * @throws ResourceNotFoundException
      * @throws IOException
      */
-    public void setExpectionsFor(CommitInformation commitInformation, String changeId,
-            String projectName)
+    public void setExpectionsFor(final CommitInformation commitInformation, final String changeId,
+            final String projectName)
             throws ResourceNotFoundException, IOException {
-        GitCommit commit = getCommit(changeId);
+        final GitCommit commit = getCommit(changeId);
         when(commitInformation.getParentsSHAs(commit.sha, projectName)).thenReturn(
                 Arrays.asList(commit.parentSha));
     }
 
     private GitCommit getNewCommit() {
-        GitCommit commit = new GitCommit();
+        final GitCommit commit = new GitCommit();
         commit.sha = UUID.randomUUID().toString();
         return commit;
     }
 
-    private GitCommit getNewCommit(GitCommit parentCommit) {
-        GitCommit commit = getNewCommit();
+    private GitCommit getNewCommit(final GitCommit parentCommit) {
+        final GitCommit commit = getNewCommit();
         commit.parentSha = parentCommit.sha;
         return commit;
     }
 
-    private String getLookupKey(String user, String branch) {
+    private String getLookupKey(final String user, final String branch) {
         return user + branch;
     }
 

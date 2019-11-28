@@ -76,7 +76,7 @@ public class LinkingSteps {
     private ArrayList<AbstractEventListener> listeners;
     private PatchSetEvent eventToSend;
     private Path tempDirPath;
-    private Map<String, String> eventTypes = getEventMap();
+    private final Map<String, String> eventTypes = getEventMap();
     private GerritMock gerritMock;
     private CommitInformation commitInformation;
 
@@ -88,13 +88,13 @@ public class LinkingSteps {
          * with cucumber
          */
         tempDirPath = Files.createTempDirectory("pluginFetureTest");
-        File tempDirLocation = tempDirPath.toFile();
+        final File tempDirLocation = tempDirPath.toFile();
         commitInformation = mock(CommitInformation.class);
-        Injector injector = Guice.createInjector(
+        final Injector injector = Guice.createInjector(
                 new ModuleDependencis(tempDirLocation, commitInformation),
                 new GerritModule());
 
-        listeners = new ArrayList<AbstractEventListener>();
+        listeners = new ArrayList<>();
         listeners.add(injector.getInstance(ChangeMergedEventListener.class));
         listeners.add(injector.getInstance(PatchsetCreatedEventListener.class));
 
@@ -110,7 +110,7 @@ public class LinkingSteps {
         server.stop();
         remRemMock.close();
 
-        Path dbPath = tempDirPath.resolve(PROJECT_NAME + ".db");
+        final Path dbPath = tempDirPath.resolve(PROJECT_NAME + ".db");
         Files.delete(dbPath);
         Files.delete(tempDirPath);
         assertThat(String.format("Tempfolder %s is removed", tempDirPath.toString()),
@@ -118,10 +118,10 @@ public class LinkingSteps {
     }
 
     @Given("^a SCS event with id \"([^\"]*)\" was sent, branch: \"([^\"]*)\"$")
-    public void aSCSEventWithIdWasSent(String id, String branch) throws Throwable {
+    public void aSCSEventWithIdWasSent(final String id, final String branch) throws Throwable {
         gerritMock.createBranch(branch);
-        String changeId = gerritMock.createNewChange("someUser", branch);
-        GitCommit commit = gerritMock.submit(changeId);
+        final String changeId = gerritMock.createNewChange("someUser", branch);
+        final GitCommit commit = gerritMock.submit(changeId);
         gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
 
         eventToSend = buildChangeMergedEvent(PROJECT_NAME, changeId, branch, commit.sha);
@@ -132,82 +132,82 @@ public class LinkingSteps {
     }
 
     @Given("^no SCS event was sent, branch: \"([^\"]*)\"$")
-    public void noSCSEventWasSent(String branch) throws Throwable {
+    public void noSCSEventWasSent(final String branch) throws Throwable {
         gerritMock.createBranch(branch);
         server.verifyZeroInteractions();
         remRemMock.verifyZeroInteractions();
     }
 
     @When("^user \"([^\"]*)\" creates a new change, branch: \"([^\"]*)\"$")
-    public void userCreatesANewChange(String user, String branch) throws Throwable {
+    public void userCreatesANewChange(final String user, final String branch) throws Throwable {
         clearTestStates();
-        String changeId = gerritMock.createNewChange(user, branch);
-        GitCommit commit = gerritMock.getCommit(changeId);
+        final String changeId = gerritMock.createNewChange(user, branch);
+        final GitCommit commit = gerritMock.getCommit(changeId);
         gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
         eventToSend = buildPatchSetCreatedEvent(PROJECT_NAME, changeId, branch, commit.sha);
     }
 
     @When("^user \"([^\"]*)\" submits the change, branch: \"([^\"]*)\"$")
-    public void userSubmitsTheChange(String user, String branch) throws Throwable {
+    public void userSubmitsTheChange(final String user, final String branch) throws Throwable {
         clearTestStates();
-        String changeId = gerritMock.getChangeId(user, branch);
-        GitCommit commit = gerritMock.submit(changeId);
+        final String changeId = gerritMock.getChangeId(user, branch);
+        final GitCommit commit = gerritMock.submit(changeId);
         gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
         eventToSend = buildChangeMergedEvent(PROJECT_NAME, changeId, branch, commit.sha);
     }
 
     @When("^user \"([^\"]*)\" uploads a new patchset, branch: \"([^\"]*)\"$$")
-    public void userUploadsANewPatchset(String user, String branch) throws Throwable {
+    public void userUploadsANewPatchset(final String user, final String branch) throws Throwable {
         clearTestStates();
-        String changeId = gerritMock.getChangeId(user, branch);
-        GitCommit newCommit = gerritMock.createNewPatchSet(changeId);
+        final String changeId = gerritMock.getChangeId(user, branch);
+        final GitCommit newCommit = gerritMock.createNewPatchSet(changeId);
         gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
         eventToSend = buildPatchSetCreatedEvent(PROJECT_NAME, changeId, branch, newCommit.sha);
     }
 
     @When("^user \"([^\"]*)\" rebases the change, branch: \"([^\"]*)\"$")
-    public void userRebasesTheChange(String user, String branch) throws Throwable {
-        String changeId = gerritMock.getChangeId(user, branch);
-        GitCommit commit = gerritMock.rebase(changeId);
+    public void userRebasesTheChange(final String user, final String branch) throws Throwable {
+        final String changeId = gerritMock.getChangeId(user, branch);
+        final GitCommit commit = gerritMock.rebase(changeId);
         gerritMock.setExpectionsFor(commitInformation, changeId, PROJECT_NAME);
         eventToSend = buildPatchSetCreatedEvent(PROJECT_NAME, changeId, branch, commit.sha);
     }
 
     @Then("^a \"([^\"]*)\" event with id \"([^\"]*)\" is sent$")
-    public void aEventWithIdIsSent(String eventType, String id) throws Throwable {
+    public void aEventWithIdIsSent(final String eventType, final String id) throws Throwable {
         prepareremRemMockResponse(id);
         callListenersOnEvent(eventToSend);
         linksFromLastEvent = getLinksFromRequest(eventType);
     }
 
     @Then("^BASE links to event \"([^\"]*)\"$")
-    public void baseLinksToEvent(String id) throws Throwable {
+    public void baseLinksToEvent(final String id) throws Throwable {
         assertLinksHasTypeWithId("BASE", id, linksFromLastEvent);
     }
 
     @Then("^CHANGE links to event \"([^\"]*)\"$")
-    public void changeLinksToEvent(String id) throws Throwable {
+    public void changeLinksToEvent(final String id) throws Throwable {
         assertLinksHasTypeWithId("CHANGE", id, linksFromLastEvent);
     }
 
     @Then("^PREVIOUS_VERSION links to event \"([^\"]*)\"$")
-    public void previousVersionLinksToEvent(String id) throws Throwable {
+    public void previousVersionLinksToEvent(final String id) throws Throwable {
         assertLinksHasTypeWithId("PREVIOUS_VERSION", id, linksFromLastEvent);
     }
 
     @Then("^no BASE link set$")
     public void noBASELinkSet() throws Throwable {
-        JsonObject link = getLink("BASE", linksFromLastEvent);
+        final JsonObject link = getLink("BASE", linksFromLastEvent);
         assertThat("No BASE link found", link.size(), is(0));
     }
 
-    private PatchSetCreatedEvent buildPatchSetCreatedEvent(String projectName, String changeId,
-            String branch, String commitSha) {
-        Supplier<ChangeAttribute> changeAttributeSupplier = getChangeAttribute(projectName, branch);
-        Supplier<PatchSetAttribute> patchSetAttributeSupplier = getPatSetAttribute(commitSha);
-        Key changeKey = getChangeKey(changeId);
+    private PatchSetCreatedEvent buildPatchSetCreatedEvent(final String projectName, final String changeId,
+            final String branch, final String commitSha) {
+        final Supplier<ChangeAttribute> changeAttributeSupplier = getChangeAttribute(projectName, branch);
+        final Supplier<PatchSetAttribute> patchSetAttributeSupplier = getPatSetAttribute(commitSha);
+        final Key changeKey = getChangeKey(changeId);
 
-        PatchSetCreatedEvent patchSetCreatedEvent = mock(PatchSetCreatedEvent.class);
+        final PatchSetCreatedEvent patchSetCreatedEvent = mock(PatchSetCreatedEvent.class);
         patchSetCreatedEvent.change = changeAttributeSupplier;
         patchSetCreatedEvent.patchSet = patchSetAttributeSupplier;
         patchSetCreatedEvent.changeKey = changeKey;
@@ -216,13 +216,13 @@ public class LinkingSteps {
         return patchSetCreatedEvent;
     }
 
-    private ChangeMergedEvent buildChangeMergedEvent(String projectName, String changeId,
-            String branch, String commitId) {
-        Supplier<ChangeAttribute> changeAttributeSupplier = getChangeAttribute(projectName, branch);
-        Supplier<PatchSetAttribute> patchSetAttributeSupplier = getPatSetAttribute();
-        Key changeKey = getChangeKey(changeId);
+    private ChangeMergedEvent buildChangeMergedEvent(final String projectName, final String changeId,
+            final String branch, final String commitId) {
+        final Supplier<ChangeAttribute> changeAttributeSupplier = getChangeAttribute(projectName, branch);
+        final Supplier<PatchSetAttribute> patchSetAttributeSupplier = getPatSetAttribute();
+        final Key changeKey = getChangeKey(changeId);
 
-        ChangeMergedEvent changeMergedEvent = mock(ChangeMergedEvent.class);
+        final ChangeMergedEvent changeMergedEvent = mock(ChangeMergedEvent.class);
         changeMergedEvent.change = changeAttributeSupplier;
         changeMergedEvent.patchSet = patchSetAttributeSupplier;
         changeMergedEvent.changeKey = changeKey;
@@ -232,27 +232,27 @@ public class LinkingSteps {
         return changeMergedEvent;
     }
 
-    private Key getChangeKey(String changeId) {
-        Key changeKey = mock(Key.class);
+    private Key getChangeKey(final String changeId) {
+        final Key changeKey = mock(Key.class);
         when(changeKey.toString()).thenReturn(changeId);
         return changeKey;
     }
 
-    private void assertLinksHasTypeWithId(String type, String id, JsonArray links) {
-        JsonObject link = getLink(type, links);
+    private void assertLinksHasTypeWithId(final String type, final String id, final JsonArray links) {
+        final JsonObject link = getLink(type, links);
 
         assertThat(String.format("The event has a %s link", type), link.has("target"), is(true));
         assertThat("We are linking to correct event", link.get("target").getAsString(),
                 is(equalTo(id)));
     }
 
-    private JsonObject getLink(String type, JsonArray links) {
+    private JsonObject getLink(final String type, final JsonArray links) {
         /*
          * Links look like this: [{\"type\":\"BASE\",\"target\":\"SCS1\"}]
          */
         JsonObject link = new JsonObject();
-        for (JsonElement jsonElement : links) {
-            JsonObject possibleLink = jsonElement.getAsJsonObject();
+        for (final JsonElement jsonElement : links) {
+            final JsonObject possibleLink = jsonElement.getAsJsonObject();
             if (possibleLink.get("type").getAsString().equals(type)) {
                 link = possibleLink;
                 break;
@@ -266,15 +266,15 @@ public class LinkingSteps {
         linksFromLastEvent = new JsonArray();
     }
 
-    private JsonArray getLinksFromRequest(String eventTypeShort)
+    private JsonArray getLinksFromRequest(final String eventTypeShort)
             throws InterruptedException, AssertionError {
         remRemMock.verify(request().withPath("/generateAndPublish/"));
-        String retrieveRecordedRequests = remRemMock.retrieveRecordedRequests(ALL_REQUESTS,
+        final String retrieveRecordedRequests = remRemMock.retrieveRecordedRequests(ALL_REQUESTS,
                 Format.JSON);
         return parseLinksFor(retrieveRecordedRequests, eventTypes.get(eventTypeShort));
     }
 
-    private JsonArray parseLinksFor(String retrieveRecordedRequests, String eventType) {
+    private JsonArray parseLinksFor(final String retrieveRecordedRequests, final String eventType) {
         /**
          * Recorded Request looks like this
          *
@@ -296,36 +296,36 @@ public class LinkingSteps {
          *]
          * </pre>
          */
-        JsonArray requests = new JsonParser().parse(retrieveRecordedRequests).getAsJsonArray();
+        final JsonArray requests = new JsonParser().parse(retrieveRecordedRequests).getAsJsonArray();
         assertThat(requests.size(), is(not(0)));
 
-        JsonObject request = requests.get(0).getAsJsonObject();
-        JsonObject requestBody = request.get("body").getAsJsonObject();
-        String requestString = requestBody.get("string").getAsString();
-        JsonObject parsedBody = new JsonParser().parse(requestString).getAsJsonObject();
+        final JsonObject request = requests.get(0).getAsJsonObject();
+        final JsonObject requestBody = request.get("body").getAsJsonObject();
+        final String requestString = requestBody.get("string").getAsString();
+        final JsonObject parsedBody = new JsonParser().parse(requestString).getAsJsonObject();
 
-        JsonObject msgParams = parsedBody.get("msgParams").getAsJsonObject();
-        JsonObject meta = msgParams.get("meta").getAsJsonObject();
-        String type = meta.get("type").getAsString();
+        final JsonObject msgParams = parsedBody.get("msgParams").getAsJsonObject();
+        final JsonObject meta = msgParams.get("meta").getAsJsonObject();
+        final String type = meta.get("type").getAsString();
         assertThat("We got the expected message type", type, is(equalTo(eventType)));
 
-        JsonObject eventParams = parsedBody.get("eventParams").getAsJsonObject();
+        final JsonObject eventParams = parsedBody.get("eventParams").getAsJsonObject();
         return eventParams.get("links").getAsJsonArray();
     }
 
-    private void prepareremRemMockResponse(String id) {
-        JSONObject body = buildResponseBody(id);
+    private void prepareremRemMockResponse(final String id) {
+        final JSONObject body = buildResponseBody(id);
         remRemMock.clear(ALL_REQUESTS);
         remRemMock.when(request().withMethod("POST"))
                   .respond(response().withBody(body.toString()).withStatusCode(200));
     }
 
-    private JSONObject buildResponseBody(String id) {
-        JSONObject event = new JSONObject();
+    private JSONObject buildResponseBody(final String id) {
+        final JSONObject event = new JSONObject();
         event.put("id", id);
-        JSONArray events = new JSONArray();
+        final JSONArray events = new JSONArray();
         events.put(event);
-        JSONObject body = new JSONObject();
+        final JSONObject body = new JSONObject();
         body.put("events", events);
         return body;
     }
@@ -334,25 +334,27 @@ public class LinkingSteps {
         return getPatSetAttribute(NOT_USED);
     }
 
-    private Supplier<PatchSetAttribute> getPatSetAttribute(String commitSha) {
-        PatchSetAttribute patchSetAttribute = mock(PatchSetAttribute.class);
+    private Supplier<PatchSetAttribute> getPatSetAttribute(final String commitSha) {
+        final PatchSetAttribute patchSetAttribute = mock(PatchSetAttribute.class);
         patchSetAttribute.author = new AccountAttribute();
-        boolean shouldHaveRevision = !commitSha.equals(NOT_USED);
+        final boolean shouldHaveRevision = !commitSha.equals(NOT_USED);
         if (shouldHaveRevision) {
             patchSetAttribute.revision = commitSha;
         }
 
         @SuppressWarnings("unchecked")
+        final
         Supplier<PatchSetAttribute> patchSetAttributeSupplier = mock(Supplier.class);
         when(patchSetAttributeSupplier.get()).thenReturn(patchSetAttribute);
         return patchSetAttributeSupplier;
     }
 
-    private Supplier<ChangeAttribute> getChangeAttribute(String projectName, String branch) {
-        ChangeAttribute changeAttribute = new ChangeAttribute();
+    private Supplier<ChangeAttribute> getChangeAttribute(final String projectName, final String branch) {
+        final ChangeAttribute changeAttribute = new ChangeAttribute();
         changeAttribute.project = projectName;
         changeAttribute.branch = branch;
         @SuppressWarnings("unchecked")
+        final
         Supplier<ChangeAttribute> changeAttributeSupplier = mock(Supplier.class);
         when(changeAttributeSupplier.get()).thenReturn(changeAttribute);
         return changeAttributeSupplier;
@@ -364,23 +366,23 @@ public class LinkingSteps {
      *
      * @param patchSetEvent The event to be sent to the listeners
      */
-    private void callListenersOnEvent(PatchSetEvent patchSetEvent) {
-        for (AbstractEventListener abstractEventListener : listeners) {
+    private void callListenersOnEvent(final PatchSetEvent patchSetEvent) {
+        for (final AbstractEventListener abstractEventListener : listeners) {
             abstractEventListener.onEvent(patchSetEvent);
         }
 
         // As the call to RemRem is threaded we need to wait until the call is received
         try {
             waitForRemRemToReceiveMessage(SECOND_10);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             throw new FunctionalTestException("Could not wait for events to be sent", e);
         }
     }
 
-    private void waitForRemRemToReceiveMessage(int maxWaitTimeMillis) throws InterruptedException {
-        long stopTime = System.currentTimeMillis() + maxWaitTimeMillis;
+    private void waitForRemRemToReceiveMessage(final int maxWaitTimeMillis) throws InterruptedException {
+        final long stopTime = System.currentTimeMillis() + maxWaitTimeMillis;
         while (stopTime > System.currentTimeMillis()) {
-            HttpRequest[] retrieveRecordedRequests = remRemMock.retrieveRecordedRequests(
+            final HttpRequest[] retrieveRecordedRequests = remRemMock.retrieveRecordedRequests(
                     ALL_REQUESTS);
             if (retrieveRecordedRequests.length > 0) {
                 break;
@@ -390,7 +392,7 @@ public class LinkingSteps {
     }
 
     private static Map<String, String> getEventMap() {
-        Map<String, String> myMap = new HashMap<String, String>();
+        final Map<String, String> myMap = new HashMap<>();
         myMap.put("SCC", "EiffelSourceChangeCreatedEvent");
         myMap.put("SCS", "EiffelSourceChangeSubmittedEvent");
         return myMap;
@@ -404,23 +406,23 @@ public class LinkingSteps {
         private final String REMREM_PUBLISH_URL = "http://" + BASE_URL + ":" + PORT;
         private final String REMREM_USERNAME = "dummyUser";
         private final String REMREM_PASSWORD = "dummypassword";
-        private File pluginData;
-        private CommitInformation commitInformation;
+        private final File pluginData;
+        private final CommitInformation commitInformation;
 
-        public ModuleDependencis(File pluginData, CommitInformation commitInformation) {
+        public ModuleDependencis(final File pluginData, final CommitInformation commitInformation) {
             this.pluginData = pluginData;
             this.commitInformation = commitInformation;
         }
 
         @Override
         protected void configure() {
-            String pluginName = "Eiffel-Gerrit-Plugin";
+            final String pluginName = "Eiffel-Gerrit-Plugin";
 
             bind(String.class).annotatedWith(PluginName.class).toInstance(pluginName);
             bind(File.class).annotatedWith(PluginData.class).toInstance(pluginData);
 
-            PluginConfigFactory pluginConfigFactory = mock(PluginConfigFactory.class);
-            PluginConfig pluginConfig = mock(PluginConfig.class);
+            final PluginConfigFactory pluginConfigFactory = mock(PluginConfigFactory.class);
+            final PluginConfig pluginConfig = mock(PluginConfig.class);
 
             when(pluginConfig.getBoolean(EiffelPluginConfiguration.ENABLED, false)).thenReturn(
                     ENABLED_TRUE);
@@ -437,7 +439,7 @@ public class LinkingSteps {
             try {
                 when(pluginConfigFactory.getFromProjectConfig(Mockito.any(NameKey.class),
                         Mockito.any(String.class))).thenReturn(pluginConfig);
-            } catch (NoSuchProjectException e) {
+            } catch (final NoSuchProjectException e) {
                 throw new FunctionalTestException("Could not setup project configuration mock", e);
             }
             bind(PluginConfigFactory.class).toInstance(pluginConfigFactory);

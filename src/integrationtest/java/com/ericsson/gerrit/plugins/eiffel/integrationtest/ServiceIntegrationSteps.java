@@ -76,37 +76,37 @@ public class ServiceIntegrationSteps {
     public void aProjectIsCreated()
             throws ClientProtocolException, URISyntaxException, IOException {
         this.projectName = UUID.randomUUID().toString();
-        ResponseEntity response = createProject(projectName);
+        final ResponseEntity response = createProject(projectName);
 
-        int expected = 201;
-        int actual = response.getStatusCode();
+        final int expected = 201;
+        final int actual = response.getStatusCode();
         assertEquals("Failed to create project", expected, actual);
     }
 
     @And("^the project is configured to send eiffel events and submit type is \"([^\"]*)\" and publish url \"([^\"]*)\"$")
-    public void theProjectIsConfiguredToSendEiffelEventsWithPublishUrl(String submitType,
-            String publishUrl)
+    public void theProjectIsConfiguredToSendEiffelEventsWithPublishUrl(final String submitType,
+            final String publishUrl)
             throws ClientProtocolException, URISyntaxException, IOException {
-        ResponseEntity response = updateProjectConfig(submitType, publishUrl);
-        JsonObject responseBody = new JsonParser().parse(response.getBody()).getAsJsonObject();
-        String actualSubmitTtype = responseBody.get("submit_type").getAsString();
+        final ResponseEntity response = updateProjectConfig(submitType, publishUrl);
+        final JsonObject responseBody = new JsonParser().parse(response.getBody()).getAsJsonObject();
+        final String actualSubmitTtype = responseBody.get("submit_type").getAsString();
         assertEquals("Could not set the submit type", submitType, actualSubmitTtype);
 
-        int expected = 200;
-        int actual = response.getStatusCode();
+        final int expected = 200;
+        final int actual = response.getStatusCode();
         assertEquals("Failed to configure project", expected, actual);
     }
 
     @When("^a change is created$")
     public void aChangeIsCreated()
             throws ClientProtocolException, URISyntaxException, IOException {
-        ResponseEntity response = createChange();
-        int expected = 201;
-        int actual = response.getStatusCode();
+        final ResponseEntity response = createChange();
+        final int expected = 201;
+        final int actual = response.getStatusCode();
 
         assertEquals("Change is created", expected, actual);
-        JsonParser jsonParser = new JsonParser();
-        JsonObject body = jsonParser.parse(response.getBody()).getAsJsonObject();
+        final JsonParser jsonParser = new JsonParser();
+        final JsonObject body = jsonParser.parse(response.getBody()).getAsJsonObject();
         uniqueChangeId = body.get("id").getAsString();
         assertNotEquals("Did not get a change id", "", uniqueChangeId);
 
@@ -114,7 +114,7 @@ public class ServiceIntegrationSteps {
 
     @When("^a change is submitted$")
     public void aChangeIsSubmitted() throws Throwable {
-        int expected = 200;
+        final int expected = 200;
 
         ResponseEntity response = reviewChange();
         int actual = response.getStatusCode();
@@ -132,25 +132,25 @@ public class ServiceIntegrationSteps {
         httpMethod = HttpMethod.POST;
         endPoint = "/changes/" + uniqueChangeId + "/revisions/current/review";
 
-        ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString,
+        final ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString,
                 httpMethod);
         return response;
     }
 
     @Then("^I should find an eiffel event in rabbitmq$")
     public void iShouldFindAnEiffelEventInRabbitmq() throws IOException, TimeoutException {
-        int minMessageCount = 1;
-        long responseWaitTimeoutInMillis = 10000;
+        final int minMessageCount = 1;
+        final long responseWaitTimeoutInMillis = 10000;
         messages = consumeMessages(minMessageCount, responseWaitTimeoutInMillis);
         assertEquals("Expecting one message in queue but found" + messages.size(), 1,
                 messages.size());
     }
 
     @And("\"([^\"]*)\" links are found in the event")
-    public void linksAreFoundInTheEvent(int numberOfLinks) {
+    public void linksAreFoundInTheEvent(final int numberOfLinks) {
         assertEquals("Found more/less messages than expected ", 1, messages.size());
-        String firstMessage = messages.get(0);
-        JsonArray links = parseLinksFor(firstMessage);
+        final String firstMessage = messages.get(0);
+        final JsonArray links = parseLinksFor(firstMessage);
 
         assertEquals("Number of links did not match", numberOfLinks, links.size());
     }
@@ -165,7 +165,7 @@ public class ServiceIntegrationSteps {
      */
     private void generateGerritXAuthToken() throws Exception {
         try {
-            HttpRequest request = new HttpRequest(HttpMethod.GET);
+            final HttpRequest request = new HttpRequest(HttpMethod.GET);
             ResponseEntity response;
             response = request.setBaseUrl(GERRIT_BASE_URL)
                               .setHeader("Cookie", gerritAccountCookie)
@@ -173,16 +173,16 @@ public class ServiceIntegrationSteps {
                               .setEndpoint("/")
                               .performRequest();
 
-            Header[] headers = response.getHeaders();
-            Header gerritAccountHeader = headers[1];
+            final Header[] headers = response.getHeaders();
+            final Header gerritAccountHeader = headers[1];
 
-            String gerritXAuthHeader = gerritAccountHeader.getValue();
-            String regexp = "XSRF_TOKEN=(.+);";
+            final String gerritXAuthHeader = gerritAccountHeader.getValue();
+            final String regexp = "XSRF_TOKEN=(.+);";
             this.gerritXAuthToken = getFirstMatchGroupFromText(gerritXAuthHeader, regexp);
-        } catch (URISyntaxException e) {
-            String stacktrace = ExceptionUtils.getStackTrace(e);
+        } catch (final URISyntaxException e) {
+            final String stacktrace = ExceptionUtils.getStackTrace(e);
             throw new URISyntaxException("Failed to generate gerritXAuthToken", stacktrace);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new IOException("Failed to generate gerritXAuthToken", e);
         }
     }
@@ -197,36 +197,36 @@ public class ServiceIntegrationSteps {
      */
     private void generateGerritAccountCookie() throws Exception {
         try {
-            CloseableHttpClient httpClientNoRedirect = HttpClientBuilder.create()
+            final CloseableHttpClient httpClientNoRedirect = HttpClientBuilder.create()
                                                                         .disableRedirectHandling()
                                                                         .build();
-            HttpExecutor httpExecutor = new HttpExecutor(httpClientNoRedirect);
-            HttpRequest requestLogin = new HttpRequest(HttpMethod.GET, httpExecutor);
+            final HttpExecutor httpExecutor = new HttpExecutor(httpClientNoRedirect);
+            final HttpRequest requestLogin = new HttpRequest(HttpMethod.GET, httpExecutor);
 
             // Account ID 1000000 is the default value for the admin account in gerrit.
-            ResponseEntity response = requestLogin.setBaseUrl(GERRIT_BASE_URL)
+            final ResponseEntity response = requestLogin.setBaseUrl(GERRIT_BASE_URL)
                                                   .setEndpoint("/login/?account_id=1000000")
                                                   .addParameter("http.protocol.handle-redirects",
                                                           "false")
                                                   .performRequest();
 
-            Header[] headers = response.getHeaders();
-            Header gerritAccountHeader = headers[4];
+            final Header[] headers = response.getHeaders();
+            final Header gerritAccountHeader = headers[4];
             this.gerritAccountCookie = gerritAccountHeader.getValue();
-        } catch (URISyntaxException e) {
-            String stacktrace = ExceptionUtils.getStackTrace(e);
+        } catch (final URISyntaxException e) {
+            final String stacktrace = ExceptionUtils.getStackTrace(e);
             throw new URISyntaxException("Failed to generate Gerrit account cookie", stacktrace);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new IOException("Failed to generate Gerrit account cokkie", e);
         }
     }
 
-    private String getFirstMatchGroupFromText(String text, String regexp) throws Exception {
-        Pattern pattern = Pattern.compile(regexp);
-        Matcher matcher = pattern.matcher(text);
+    private String getFirstMatchGroupFromText(final String text, final String regexp) throws Exception {
+        final Pattern pattern = Pattern.compile(regexp);
+        final Matcher matcher = pattern.matcher(text);
 
         matcher.find();
-        String matchedGroup = matcher.group(1);
+        final String matchedGroup = matcher.group(1);
 
         if (matchedGroup == null) {
             throw new RegexMatchFailedException(
@@ -236,9 +236,9 @@ public class ServiceIntegrationSteps {
         return matchedGroup;
     }
 
-    private ResponseEntity createProject(String projectName)
+    private ResponseEntity createProject(final String projectName)
             throws URISyntaxException, ClientProtocolException, IOException {
-        JsonObject generateBody = new JsonObject();
+        final JsonObject generateBody = new JsonObject();
         generateBody.addProperty("description", "Auto generated project");
         generateBody.addProperty("submit_type", "INHERIT");
         generateBody.addProperty("create_empty_commit", true);
@@ -247,15 +247,15 @@ public class ServiceIntegrationSteps {
         endPoint = "/projects/" + projectName;
         httpMethod = HttpMethod.PUT;
 
-        ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString,
+        final ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString,
                 httpMethod);
 
         return response;
     }
 
-    private ResponseEntity updateProjectConfig(String submitType, String publishUrl)
+    private ResponseEntity updateProjectConfig(final String submitType, final String publishUrl)
             throws URISyntaxException, ClientProtocolException, IOException {
-        String jsonBodyString = "{\"description\":\"Auto generated project\","
+        final String jsonBodyString = "{\"description\":\"Auto generated project\","
                 + "\"use_contributor_agreements\":\"INHERIT\",\"use_content_merge\":\"INHERIT\","
                 + "\"use_signed_off_by\":\"INHERIT\",\"require_change_id\":\"INHERIT\","
                 + "\"create_new_change_for_all_not_in_target\":\"INHERIT\","
@@ -279,7 +279,7 @@ public class ServiceIntegrationSteps {
         endPoint = "/projects/" + projectName + "/config";
         httpMethod = HttpMethod.PUT;
 
-        ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString,
+        final ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString,
                 httpMethod);
 
         return response;
@@ -287,7 +287,7 @@ public class ServiceIntegrationSteps {
 
     private ResponseEntity createChange()
             throws URISyntaxException, ClientProtocolException, IOException {
-        String jsonBodyString = "{\"project\":\"" + projectName + "\" ,"
+        final String jsonBodyString = "{\"project\":\"" + projectName + "\" ,"
                 + "\"subject\" : \"Let's support 100% Gerrit workflow direct in browser "
                 + UUID.randomUUID() + "\", "
                 + "\"topic\" : \"create-change-in-browser\", " + "\"status\" : \"NEW\", "
@@ -297,7 +297,7 @@ public class ServiceIntegrationSteps {
         endPoint = "/changes/";
         httpMethod = HttpMethod.POST;
 
-        ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString,
+        final ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString,
                 httpMethod);
 
         return response;
@@ -309,24 +309,24 @@ public class ServiceIntegrationSteps {
         endPoint = "/changes/" + uniqueChangeId + "/submit";
         httpMethod = HttpMethod.POST;
 
-        ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString,
+        final ResponseEntity response = setHeaderAndPerformRequest(endPoint, requestBodyString,
                 httpMethod);
 
         return response;
     }
 
-    protected List<String> consumeMessages(int messageCount, long timeout)
+    protected List<String> consumeMessages(final int messageCount, final long timeout)
             throws IOException, TimeoutException {
-        List<String> messages = new ArrayList<String>();
-        ConnectionFactory factory = createAndSetConnectionFactory();
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
+        final List<String> messages = new ArrayList<>();
+        final ConnectionFactory factory = createAndSetConnectionFactory();
+        final Connection connection = factory.newConnection();
+        final Channel channel = connection.createChannel();
 
-        long stopTime = System.currentTimeMillis() + timeout;
+        final long stopTime = System.currentTimeMillis() + timeout;
 
         while (System.currentTimeMillis() < stopTime) {
             try {
-                GetResponse response = channel.basicGet(RABBITMQ_QUEUENAME, true);
+                final GetResponse response = channel.basicGet(RABBITMQ_QUEUENAME, true);
                 if (response != null) {
                     messages.add(new String(response.getBody(), "UTF-8"));
                 }
@@ -334,7 +334,7 @@ public class ServiceIntegrationSteps {
                 if (messages.size() == messageCount) {
                     return messages;
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 LOGGER.error("RabbitMQ failed to get from queue", e);
             }
         }
@@ -343,9 +343,9 @@ public class ServiceIntegrationSteps {
     }
 
     protected void declareQueues() throws IOException, TimeoutException {
-        ConnectionFactory factory = createAndSetConnectionFactory();
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
+        final ConnectionFactory factory = createAndSetConnectionFactory();
+        final Connection connection = factory.newConnection();
+        final Channel channel = connection.createChannel();
 
         final AMQP.Exchange.DeclareOk exchangeOK = channel.exchangeDeclare(RABBITMQ_EXCHANGE_NAME,
                 "topic", true);
@@ -360,10 +360,10 @@ public class ServiceIntegrationSteps {
                 bindOK != null);
     }
 
-    private ResponseEntity setHeaderAndPerformRequest(String endPoint, String setBodyString,
-            HttpMethod httpMethod)
+    private ResponseEntity setHeaderAndPerformRequest(final String endPoint, final String setBodyString,
+            final HttpMethod httpMethod)
             throws URISyntaxException, ClientProtocolException, IOException {
-        HttpRequest request = new HttpRequest(httpMethod);
+        final HttpRequest request = new HttpRequest(httpMethod);
         ResponseEntity response;
         response = request.setHeader("Cookie", gerritAccountCookie)
                           .setHeader("Content-Type", "application/json; charset=UTF-8")
@@ -378,7 +378,7 @@ public class ServiceIntegrationSteps {
     }
 
     private ConnectionFactory createAndSetConnectionFactory() {
-        ConnectionFactory factory = new ConnectionFactory();
+        final ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(RABBITMQ_HOSTNAME);
         factory.setPort(RABBITMQ_PORT);
         factory.setUsername(RABBITMQ_USERNAME);
@@ -386,7 +386,7 @@ public class ServiceIntegrationSteps {
         return factory;
     }
 
-    private JsonArray parseLinksFor(String responseBody) {
+    private JsonArray parseLinksFor(final String responseBody) {
         /**
          * Recorded Request looks like this
          *
@@ -432,7 +432,7 @@ public class ServiceIntegrationSteps {
             }
          * </pre>
          */
-        JsonObject reponse = new JsonParser().parse(responseBody).getAsJsonObject();
+        final JsonObject reponse = new JsonParser().parse(responseBody).getAsJsonObject();
         return reponse.get("links").getAsJsonArray();
 
     }
