@@ -22,14 +22,16 @@ public class GerritMockTest {
 
         String changeId = gerritMock.createNewChange(user1, branch);
         GitCommit update = gerritMock.getCommit(changeId);
-        assertEquals(base.sha, update.parentSha);
+        assertEquals("Not correct parrent", base.sha, update.parentSha);
 
         GitCommit newPatchSet = gerritMock.createNewPatchSet(changeId);
-        assertEquals(base.sha, newPatchSet.parentSha);
+        assertEquals("Parent changed when creating new patchset", base.sha, newPatchSet.parentSha);
 
         GitCommit merged = gerritMock.submit(changeId);
-        assertEquals(base.sha, merged.parentSha);
-        assertEquals(merged.sha, gerritMock.getHead(branch).sha);
+        assertEquals("The submitted commit does not have correct parent", base.sha,
+                merged.parentSha);
+        assertEquals("The branch is not updated correctly", merged.sha,
+                gerritMock.getHead(branch).sha);
     }
 
     @Test
@@ -44,30 +46,37 @@ public class GerritMockTest {
         GitCommit base2 = gerritMock.getHead(branch2);
 
         String changeId = gerritMock.createNewChange(user1, branch1);
-        assertEquals(changeId, gerritMock.getChangeId(user1, branch1));
+        assertEquals("Lookup did not return correct changId", changeId,
+                gerritMock.getChangeId(user1, branch1));
 
         GitCommit update = gerritMock.getCommit(changeId);
-        assertEquals(base.sha, update.parentSha);
+        assertEquals("Not correct parrent", base.sha, update.parentSha);
 
         String changeId2 = gerritMock.createNewChange(user1, branch2);
-        assertEquals(changeId2, gerritMock.getChangeId(user1, branch2));
+        assertEquals("Lookup did not return correct changId", changeId2,
+                gerritMock.getChangeId(user1, branch2));
 
         GitCommit update2 = gerritMock.getCommit(changeId2);
-        assertEquals(base2.sha, update2.parentSha);
+        assertEquals("Not correct parrent", base2.sha, update2.parentSha);
 
         GitCommit newPatchSet = gerritMock.createNewPatchSet(changeId);
-        assertEquals(base.sha, newPatchSet.parentSha);
+        assertEquals("Parent changed when creating new patchset", base.sha, newPatchSet.parentSha);
 
         GitCommit newPatchSet2 = gerritMock.createNewPatchSet(changeId2);
-        assertEquals(base2.sha, newPatchSet2.parentSha);
+        assertEquals("Parent changed when creating new patchset", base2.sha,
+                newPatchSet2.parentSha);
 
         GitCommit merged = gerritMock.submit(changeId);
-        assertEquals(base.sha, merged.parentSha);
-        assertEquals(merged.sha, gerritMock.getHead(branch1).sha);
+        assertEquals("The submitted commit does not have correct parent", base.sha,
+                merged.parentSha);
+        assertEquals("The branch is not updated correctly", merged.sha,
+                gerritMock.getHead(branch1).sha);
 
         GitCommit merged2 = gerritMock.submit(changeId2);
-        assertEquals(base2.sha, merged2.parentSha);
-        assertEquals(merged2.sha, gerritMock.getHead(branch2).sha);
+        assertEquals("The submitted commit does not have correct parent", base2.sha,
+                merged2.parentSha);
+        assertEquals("The branch is not updated correctly", merged2.sha,
+                gerritMock.getHead(branch2).sha);
     }
 
     @Test
@@ -81,29 +90,37 @@ public class GerritMockTest {
 
         String changeId = gerritMock.createNewChange(user1, branch);
         GitCommit update = gerritMock.getCommit(changeId);
-        assertEquals(base.sha, update.parentSha);
+        assertEquals("Not correct parrent", base.sha, update.parentSha);
 
         String changeId2 = gerritMock.createNewChange(user2, branch);
-        assertEquals(changeId2, gerritMock.getChangeId(user2, branch));
+        assertEquals("Lookup did not return correct changId", changeId2,
+                gerritMock.getChangeId(user2, branch));
 
         GitCommit update2 = gerritMock.getCommit(changeId2);
-        assertEquals(base.sha, update2.parentSha);
+        assertEquals("Not correct parrent", base.sha, update2.parentSha);
 
         GitCommit merged2 = gerritMock.submit(changeId2);
-        assertEquals(base.sha, merged2.parentSha);
-        assertEquals(merged2.sha, gerritMock.getHead(branch).sha);
+        assertEquals("The submitted commit does not have correct parent", base.sha,
+                merged2.parentSha);
+        assertEquals("The branch is not updated correctly", merged2.sha,
+                gerritMock.getHead(branch).sha);
 
         GitCommit newPatchSet = gerritMock.createNewPatchSet(changeId);
-        assertEquals(base.sha, newPatchSet.parentSha);
+        assertEquals("Parent changed when creating new patchset", base.sha, newPatchSet.parentSha);
 
         GitCommit rebase = gerritMock.rebase(changeId);
-        assertEquals(rebase.parentSha, merged2.sha);
+        assertEquals("Rebase did not return the correct commit", rebase.parentSha, merged2.sha);
 
         GitCommit merged = gerritMock.submit(changeId);
-        assertEquals(merged2.sha, merged.parentSha);
-        assertEquals(merged.sha, gerritMock.getHead(branch).sha);
+        assertEquals("The submitted commit does not have correct parent", merged2.sha,
+                merged.parentSha);
+        assertEquals("The branch is not updated correctly", merged.sha,
+                gerritMock.getHead(branch).sha);
     }
 
+    /**
+     * Test that you cannot create a second change with a user and branch without submit first
+     */
     @Test(expected = AssertionError.class)
     public void createWithoutSubmitFail() {
         GerritMock gerritMock = new GerritMock();
@@ -115,6 +132,9 @@ public class GerritMockTest {
         gerritMock.createNewChange("user", branch);
     }
 
+    /**
+     * Test that submitting before rebaseing causes an error
+     */
     @Test(expected = AssertionError.class)
     public void submitBeforeRebaseFail() {
         GerritMock gerritMock = new GerritMock();
@@ -137,10 +157,12 @@ public class GerritMockTest {
 
         String user = "user";
         String change1 = gerritMock.createNewChange(user, branch);
-        assertEquals(change1, gerritMock.getChangeId(user, branch));
+        assertEquals("Lookup did not return correct changId", change1,
+                gerritMock.getChangeId(user, branch));
         gerritMock.submit(change1);
         String change2 = gerritMock.createNewChange(user, branch);
-        assertEquals(change2, gerritMock.getChangeId(user, branch));
+        assertEquals("Lookup did not return correct changId", change2,
+                gerritMock.getChangeId(user, branch));
 
     }
 
@@ -159,6 +181,7 @@ public class GerritMockTest {
 
         String actualParent = commitInformation.getParentsSHAs(commit.sha, "some-project").get(0);
         String expectedParent = commit.parentSha;
-        assertEquals(expectedParent, actualParent);
+        assertEquals("The expectation did not return the correct parent", expectedParent,
+                actualParent);
     }
 }
