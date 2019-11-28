@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,7 +24,6 @@ import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Format;
 import org.mockserver.model.HttpRequest;
-import org.powermock.reflect.Whitebox;
 
 import com.ericsson.gerrit.plugins.eiffel.GerritModule;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
@@ -65,7 +63,7 @@ import cucumber.api.java.en.When;
 public class LinkingSteps {
 
     private static final int SECOND_10 = 10000;
-    private static final int SECOND_1 = 1000;
+    private static final int MILLISECOND_100 = 100;
     private static final String NOT_USED = "not used";
     private static final String PROJECT_NAME = "Test-project";
     private static final int PORT = 7777;
@@ -100,7 +98,7 @@ public class LinkingSteps {
         listeners.add(injector.getInstance(ChangeMergedEventListener.class));
         listeners.add(injector.getInstance(PatchsetCreatedEventListener.class));
 
-        //Logging for mock server is turned of in log4j.properties
+        // Logging for mock server is turned of in log4j.properties
         server = ClientAndServer.startClientAndServer(PORT);
         remRemMock = new MockServerClient(BASE_URL, PORT);
 
@@ -360,33 +358,34 @@ public class LinkingSteps {
         return changeAttributeSupplier;
     }
 
+    /**
+     * This method simulates gerrit calling our plugin. It will call the onEvent method for all the
+     * listeners and then wait for the threaded remrem calling to finish.
+     *
+     * @param patchSetEvent The event to be sent to the listeners
+     */
     private void callListenersOnEvent(PatchSetEvent patchSetEvent) {
         for (AbstractEventListener abstractEventListener : listeners) {
             abstractEventListener.onEvent(patchSetEvent);
         }
+
+        // As the call to RemRem is threaded we need to wait until the call is received
         try {
-            waitFor(SECOND_10);
+            waitForRemRemToReceiveMessage(SECOND_10);
         } catch (InterruptedException e) {
             throw new FunctionalTestException("Could not wait for events to be sent", e);
         }
     }
 
-    private void waitFor(int maxWaitTimeMillis) throws InterruptedException {
-        ThreadPoolExecutor executor = Whitebox.<ThreadPoolExecutor>getInternalState(
-                AbstractEventListener.class, "executor");
-
-        /*
-         * There is a small possibility that we can reach this place before the executor has started
-         * a thread
-         */
-        boolean finished = false;
+    private void waitForRemRemToReceiveMessage(int maxWaitTimeMillis) throws InterruptedException {
         long stopTime = System.currentTimeMillis() + maxWaitTimeMillis;
-        while (!finished && stopTime > System.currentTimeMillis()) {
-            if (executor.getActiveCount() > 0) {
-                Thread.sleep(SECOND_1);
-            } else {
-                finished = true;
+        while (stopTime > System.currentTimeMillis()) {
+            HttpRequest[] retrieveRecordedRequests = remRemMock.retrieveRecordedRequests(
+                    ALL_REQUESTS);
+            if (retrieveRecordedRequests.length > 0) {
+                break;
             }
+            Thread.sleep(MILLISECOND_100);
         }
     }
 
