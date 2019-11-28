@@ -65,13 +65,15 @@ public class CommitInformation {
         try {
             parents = getParentsFromCommit(commitId, projectName);
         } catch (UnprocessableEntityException e) {
-            LOGGER.error(String.format("Cannot find or load the project %s", projectName), e);
+            String message = String.format("Cannot find or load the project %s", projectName);
+            LOGGER.error(message, e);
         } catch (ResourceNotFoundException e) {
-            LOGGER.error(String.format("Cannot find the commit %s", commitId), e);
+            String message = String.format("Cannot find the commit %s", commitId);
+            LOGGER.error(message, e);
         } catch (IOException e) {
-            LOGGER.error(
-                    String.format("Error finding the commit for %s in %s", commitId, projectName),
-                    e);
+            String message = String.format("Error finding the commit for %s in %s", commitId,
+                    projectName);
+            LOGGER.error(message, e);
         }
         return parents;
     }

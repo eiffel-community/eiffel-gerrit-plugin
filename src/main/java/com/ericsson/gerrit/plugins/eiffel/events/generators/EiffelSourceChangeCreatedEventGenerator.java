@@ -79,7 +79,7 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
         eiffelEvent.eventParams.data.gitIdentifier.branch = branch;
         eiffelEvent.eventParams.data.gitIdentifier.repoName = projectName;
 
-        String previousSourceChangeCreatedEvent = getPreviousEiffelEvent(EventType.SCC_EVENT,
+        String previousSourceChangeCreatedEvent = getPreviousEiffelEventId(EventType.SCC_EVENT,
                 projectName, changeId, pluginDirectoryPath);
         final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION,
                 previousSourceChangeCreatedEvent);
@@ -88,9 +88,9 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
         }
 
         List<String> parentsSHAs = commitInformation.getParentsSHAs(commitId, projectName);
-        String previousSourceChangeSubmittedEvent = getPreviousEiffelEvent(EventType.SCS_EVENT,
+        String previousSourceChangeSubmittedEventId = getPreviousEiffelEventId(EventType.SCS_EVENT,
                 projectName, parentsSHAs, pluginDirectoryPath);
-        final Link baseLink = createLink(LINK_TYPE_BASE, previousSourceChangeSubmittedEvent);
+        final Link baseLink = createLink(LINK_TYPE_BASE, previousSourceChangeSubmittedEventId);
         if (baseLink != null) {
             eiffelEvent.eventParams.links.add(baseLink);
         }

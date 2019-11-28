@@ -67,24 +67,29 @@ public class EiffelEventGenerator {
     /**
      * Will for a given list of search criteria return the first found event
      */
-    protected static String getPreviousEiffelEvent(final String linkedEiffelEventType, final String projectName,
+    protected static String getPreviousEiffelEventId(final String linkedEiffelEventType,
+            final String projectName,
             final List<String> searchCriterias, final File pluginDirectoryPath) {
         for (String searchCriteria : searchCriterias) {
-            String eiffelEventId = getPreviousEiffelEvent(linkedEiffelEventType, projectName, searchCriteria, pluginDirectoryPath);
+            String eiffelEventId = getPreviousEiffelEventId(linkedEiffelEventType, projectName,
+                    searchCriteria, pluginDirectoryPath);
             if (!StringUtils.isEmpty(eiffelEventId)) {
                 return eiffelEventId;
             }
         }
-        return null;
+        return "";
     }
 
-    protected static String getPreviousEiffelEvent(final String linkedEiffelEventType, final String projectName,
+    protected static String getPreviousEiffelEventId(final String linkedEiffelEventType,
+            final String projectName,
             final String searchCriteria, final File pluginDirectoryPath) {
         try {
-            EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDirectoryPath, linkedEiffelEventType);
-            String lastEiffelEvent = getEiffelEventIdFromStorage(eventStorage, projectName, searchCriteria);
-            return lastEiffelEvent;
-        } catch(IllegalArgumentException e) {
+            EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDirectoryPath,
+                    linkedEiffelEventType);
+            String lastEiffelEventId = getEiffelEventIdFromStorage(eventStorage, projectName,
+                    searchCriteria);
+            return lastEiffelEventId;
+        } catch (IllegalArgumentException e) {
             LOGGER.error("Could not get previous Eiffel event.", e);
             return "";
         }

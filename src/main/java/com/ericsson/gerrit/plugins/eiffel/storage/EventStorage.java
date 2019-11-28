@@ -49,25 +49,22 @@ public abstract class EventStorage {
         return getEventId(project, searchCriteria, tableName);
     }
 
-    protected void saveEiffelEventId(String project, String searchCriteria, String eiffelEvent, Table tableName)
+    protected void saveEiffelEventId(String project, String searchCriteria, String eiffelEventId,
+            Table tableName)
             throws NoSuchElementException, ConnectException, SQLException {
         DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
         String oldEventId = getOldEventId(dBHandler, tableName, searchCriteria);
-        saveOrUpdate(project, searchCriteria, eiffelEvent, tableName, dBHandler, oldEventId);
-    }
 
-    private void saveOrUpdate(String project, String searchCriteria, String eiffelEvent,
-            Table tableName, DatabaseHandler dBHandler, String oldEventId)
-            throws ConnectException, SQLException {
         if (!oldEventId.isEmpty()) {
-            dBHandler.updateInto(tableName, searchCriteria, eiffelEvent);
-            LOGGER.info("Replaced old event id '{}' with new event if '{}', for project '{}', and searchCriteria '{}'.",
-                    oldEventId, eiffelEvent, project, searchCriteria);
+            dBHandler.updateInto(tableName, searchCriteria, eiffelEventId);
+            LOGGER.info(
+                    "Replaced old event id '{}' with new event if '{}', for project '{}', and searchCriteria '{}'.",
+                    oldEventId, eiffelEventId, project, searchCriteria);
         } else {
-            dBHandler.insertInto(tableName, searchCriteria, eiffelEvent);
+            dBHandler.insertInto(tableName, searchCriteria, eiffelEventId);
             LOGGER.info(
                     "Saved eiffel event with id '{}', for project '{}', and searchCriteria '{}'.",
-                    eiffelEvent, project,
+                    eiffelEventId, project,
                     searchCriteria);
         }
     }
@@ -87,7 +84,8 @@ public abstract class EventStorage {
             throws NoSuchElementException, ConnectException {
         DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
         String eventId = dBHandler.getEventID(tableName, searchCriteria);
-        LOGGER.info("Fetched old event with id '{}', for project '{}', and searchCritera '{}'", eventId, project,
+        LOGGER.info("Fetched old event with id '{}', for project '{}', and searchCritera '{}'",
+                eventId, project,
                 searchCriteria);
         return eventId;
     }
