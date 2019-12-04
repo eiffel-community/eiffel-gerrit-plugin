@@ -16,7 +16,6 @@
 */
 package com.ericsson.gerrit.plugins.eiffel.messaging;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
@@ -56,19 +55,16 @@ public class EiffelEventSender {
     private final Gson gson = new Gson();
     private EiffelEvent eiffelEvent;
     private String eiffelType;
-    private EiffelPluginConfiguration pluginConfig;
-    private HttpRequest httpRequest;
-    private File pluginDir;
+    private final EiffelPluginConfiguration pluginConfig;
+    private final HttpRequest httpRequest;
 
-    public EiffelEventSender(File pluginDir, EiffelPluginConfiguration pluginConfig) {
-        this(pluginDir, pluginConfig, new HttpRequest(HttpMethod.POST));
+    public EiffelEventSender(final EiffelPluginConfiguration pluginConfig) {
+        this(pluginConfig, new HttpRequest(HttpMethod.POST));
     }
 
-    public EiffelEventSender(File pluginDir, EiffelPluginConfiguration pluginConfig,
-            HttpRequest httpRequest) {
+    public EiffelEventSender(final EiffelPluginConfiguration pluginConfig, final HttpRequest httpRequest) {
         this.httpRequest = httpRequest;
         this.pluginConfig = pluginConfig;
-        this.pluginDir = pluginDir;
     }
 
     /**
@@ -79,18 +75,19 @@ public class EiffelEventSender {
     public void send() {
         try {
             verifyConfiguration();
-            String generatedEventId = generateAndPublish();
-            EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDir, eiffelEvent.msgParams.meta.type);
+            final String generatedEventId = generateAndPublish();
+            final EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginConfig,
+                    eiffelEvent.msgParams.meta.type);
             eventStorage.saveEventId(generatedEventId, eiffelEvent);
 
         } catch (URISyntaxException | MissingConfigurationException | NoSuchElementException e) {
             LOGGER.error("Failed to send eiffel message.", e);
         } catch (SQLException | ConnectException e) {
             LOGGER.error("Failed to save the internal state after sending event.", e);
-        } catch (HttpRequestFailedException e) {
+        } catch (final HttpRequestFailedException e) {
             LOGGER.error("Failed to send eiffel message.", e);
             throw e;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.error("Failed to send eiffel message.", e);
             throw new HttpRequestFailedException(e);
         }
@@ -113,7 +110,7 @@ public class EiffelEventSender {
         final ResponseEntity response = httpRequest.performRequest();
         verifyResponse(response);
 
-        String generatedEventId = getGeneratedEventId(response);
+        final String generatedEventId = getGeneratedEventId(response);
         return generatedEventId;
     }
 
@@ -125,7 +122,7 @@ public class EiffelEventSender {
         return generatedEventId;
     }
 
-    private void verifyResponse(ResponseEntity response) throws HttpRequestFailedException {
+    private void verifyResponse(final ResponseEntity response) throws HttpRequestFailedException {
         final int statusCode = response.getStatusCode();
         final String result = response.getBody();
 
@@ -151,7 +148,7 @@ public class EiffelEventSender {
     }
 
     private boolean isConfigurationSet() {
-        boolean isConfigurationSet = eiffelEvent != null
+        final boolean isConfigurationSet = eiffelEvent != null
                 && !StringUtils.isEmpty(eiffelType);
         return isConfigurationSet;
     }

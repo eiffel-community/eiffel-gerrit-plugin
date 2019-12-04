@@ -17,7 +17,6 @@
 
 package com.ericsson.gerrit.plugins.eiffel.storage;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.sql.SQLException;
@@ -25,6 +24,7 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
 import com.ericsson.gerrit.plugins.eiffel.handlers.DatabaseHandler;
@@ -32,10 +32,10 @@ import com.ericsson.gerrit.plugins.eiffel.handlers.Table;
 
 public abstract class EventStorage {
     protected static final Logger LOGGER = LoggerFactory.getLogger(EventStorage.class);
-    protected File pluginDir;
+    protected EiffelPluginConfiguration pluginConfig;
 
-    public EventStorage(File pluginDir) {
-        this.pluginDir = pluginDir;
+    public EventStorage(final EiffelPluginConfiguration pluginConfig) {
+        this.pluginConfig = pluginConfig;
     }
 
     public abstract String getEventId(String project, String searchCriteria)
@@ -44,16 +44,17 @@ public abstract class EventStorage {
     public abstract void saveEventId(String eiffelEventId, EiffelEvent eiffelEvent)
             throws NoSuchElementException, SQLException, ConnectException;
 
-    protected String getLastSavedEiffelEvent(String project, String searchCriteria, Table tableName)
+    protected String getLastSavedEiffelEvent(final String project, final String searchCriteria, final Table tableName)
             throws NoSuchElementException, FileNotFoundException, ConnectException {
         return getEventId(project, searchCriteria, tableName);
     }
 
-    protected void saveEiffelEventId(String project, String searchCriteria, String eiffelEventId,
-            Table tableName)
+    protected void saveEiffelEventId(final String searchCriteria, final String eiffelEventId,
+            final Table tableName)
             throws NoSuchElementException, ConnectException, SQLException {
-        DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
-        String oldEventId = getOldEventId(dBHandler, tableName, searchCriteria);
+        final String project = pluginConfig.getProject();
+        final DatabaseHandler dBHandler = new DatabaseHandler(pluginConfig.getPluginDirectoryPath(), project);
+        final String oldEventId = getOldEventId(dBHandler, tableName, searchCriteria);
 
         if (!oldEventId.isEmpty()) {
             dBHandler.updateInto(tableName, searchCriteria, eiffelEventId);
@@ -69,21 +70,21 @@ public abstract class EventStorage {
         }
     }
 
-    private String getOldEventId(DatabaseHandler dBHandler, Table tableName, String searchCriteria)
+    private String getOldEventId(final DatabaseHandler dBHandler, final Table tableName, final String searchCriteria)
             throws ConnectException {
         try {
-            String oldEvent = dBHandler.getEventID(tableName, searchCriteria);
+            final String oldEvent = dBHandler.getEventID(tableName, searchCriteria);
             return oldEvent;
-        } catch (NoSuchElementException e) {
+        } catch (final NoSuchElementException e) {
             LOGGER.debug("No old event found");
             return "";
         }
     }
 
-    private String getEventId(String project, String searchCriteria, Table tableName)
+    private String getEventId(final String project, final String searchCriteria, final Table tableName)
             throws NoSuchElementException, ConnectException {
-        DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
-        String eventId = dBHandler.getEventID(tableName, searchCriteria);
+        final DatabaseHandler dBHandler = new DatabaseHandler(pluginConfig.getPluginDirectoryPath(), project);
+        final String eventId = dBHandler.getEventID(tableName, searchCriteria);
         LOGGER.info("Fetched old event with id '{}', for project '{}', and searchCritera '{}'",
                 eventId, project,
                 searchCriteria);

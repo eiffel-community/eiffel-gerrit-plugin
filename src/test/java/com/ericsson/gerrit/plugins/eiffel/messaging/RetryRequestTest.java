@@ -44,8 +44,8 @@ public class RetryRequestTest {
     private HttpRequest httpRequest;
     private ResponseEntity response;
     private ChangeMergedEvent changeMergedEvent;
-    private MutableInt counter = new MutableInt();
-    private EiffelSourceChangeSubmittedEvent eiffelEvent = new EiffelSourceChangeSubmittedEvent();
+    private final MutableInt counter = new MutableInt();
+    private final EiffelSourceChangeSubmittedEvent eiffelEvent = new EiffelSourceChangeSubmittedEvent();
 
     private static final String EIFFEL_TYPE = "EiffelSourceChangeCreatedEvent";
     private static final int STATUS_ERROR = HttpStatus.SC_INTERNAL_SERVER_ERROR;
@@ -53,7 +53,7 @@ public class RetryRequestTest {
     private static final File FILE_DIR = new File("");
     private CommitInformation commitInformation;
 
-    private LogHelper logHelper = new LogHelper();
+    private final LogHelper logHelper = new LogHelper();
 
     @Before
     public void beforeTest() throws IOException, URISyntaxException {
@@ -72,21 +72,21 @@ public class RetryRequestTest {
         setUpMockActions();
         counter.setValue(0);
 
-        RetryConfiguration retryConfiguration = new RetryConfiguration();
-        EiffelEventSender eiffelEventSender = new EiffelEventSender(FILE_DIR, pluginConfig, httpRequest);
+        final RetryConfiguration retryConfiguration = new RetryConfiguration();
+        final EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig, httpRequest);
         eiffelEventSender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
         eiffelEventSender.setEiffelEventType(EIFFEL_TYPE);
 
-        Retry policy = retryConfiguration.getRetryPolicy();
-        Runnable decoratedRunnable = Decorators.ofRunnable(() -> {
+        final Retry policy = retryConfiguration.getRetryPolicy();
+        final Runnable decoratedRunnable = Decorators.ofRunnable(() -> {
             counter.setValue(counter.getValue().intValue() + 1);
             eiffelEventSender.send();
         }).withRetry(policy).decorate();
         Try.runRunnable(decoratedRunnable);
 
-        int expectedValue = retryConfiguration.getMaxAttempts();
-        int actualValue = counter.getValue().intValue();
-        String errorMessage = String.format("Expected retry counter to be %d but was %d",
+        final int expectedValue = retryConfiguration.getMaxAttempts();
+        final int actualValue = counter.getValue().intValue();
+        final String errorMessage = String.format("Expected retry counter to be %d but was %d",
                 expectedValue, actualValue);
         assertEquals(errorMessage, expectedValue, actualValue);
 
@@ -99,13 +99,13 @@ public class RetryRequestTest {
         setUpMockActions();
         setUpMocksAndActionsForMethodInvoke();
 
-        RetryConfiguration retryConfiguration = new RetryConfiguration();
-        ChangeMergedEventListener listener = new ChangeMergedEventListener(PLUGIN_NAME, FILE_DIR);
+        final RetryConfiguration retryConfiguration = new RetryConfiguration();
+        final ChangeMergedEventListener listener = new ChangeMergedEventListener(PLUGIN_NAME, FILE_DIR);
         Whitebox.setInternalState(listener, "retryConfiguration", retryConfiguration);
         Whitebox.invokeMethod(listener, "sendEiffelEvent", eiffelEvent,
                 pluginConfig);
 
-        ThreadPoolExecutor executor = Whitebox.<ThreadPoolExecutor>getInternalState(
+        final ThreadPoolExecutor executor = Whitebox.<ThreadPoolExecutor>getInternalState(
                 AbstractEventListener.class, "executor");
         int expectedValue = 1;
         int actualValue = executor.getActiveCount();
@@ -114,7 +114,7 @@ public class RetryRequestTest {
         assertEquals(errorMessage, expectedValue, actualValue);
 
         boolean finished = false;
-        long stopTime = System.currentTimeMillis() + 30000;
+        final long stopTime = System.currentTimeMillis() + 30000;
         while (!finished && stopTime > System.currentTimeMillis()) {
             if (executor.getActiveCount() > 0) {
                 Thread.sleep(1000);
@@ -152,12 +152,12 @@ public class RetryRequestTest {
     private void setUpMocksAndActionsForMethodInvoke() throws Exception {
         PowerMockito.mockStatic(EiffelSourceChangeSubmittedEventGenerator.class);
         Mockito.when(
-                EiffelSourceChangeSubmittedEventGenerator.generate(changeMergedEvent, FILE_DIR,
+                EiffelSourceChangeSubmittedEventGenerator.generate(pluginConfig, changeMergedEvent,
                         commitInformation))
                .thenReturn(eiffelEvent);
-        EiffelEventSender sender = new EiffelEventSender(FILE_DIR, pluginConfig, httpRequest);
+        final EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
         PowerMockito.whenNew(EiffelEventSender.class)
-                    .withArguments(FILE_DIR, pluginConfig)
+                    .withArguments(pluginConfig)
                     .thenReturn(sender);
     }
 }

@@ -54,19 +54,19 @@ public class ChangeMergedEventListener extends AbstractEventListener {
     }
 
     @Override
-    protected boolean isExpectedGerritEvent(Event gerritEvent) {
+    protected boolean isExpectedGerritEvent(final Event gerritEvent) {
         return gerritEvent instanceof ChangeMergedEvent;
     }
 
     @Override
-    protected void prepareAndSendEiffelEvent(Event gerritEvent,
-            EiffelPluginConfiguration pluginConfig) {
-        ChangeMergedEvent changeMergedEvent = (ChangeMergedEvent) gerritEvent;
+    protected void prepareAndSendEiffelEvent(final Event gerritEvent,
+            final EiffelPluginConfiguration pluginConfig) {
+        final ChangeMergedEvent changeMergedEvent = (ChangeMergedEvent) gerritEvent;
         LOGGER.info("ChangeMergedEvent recieved from Gerrit, "
                 + "preparing to send a SourceChangeSubmitted eiffel event.\n{}",
                 changeMergedEvent);
-        EiffelSourceChangeSubmittedEvent eiffelEvent = EiffelSourceChangeSubmittedEventGenerator.generate(
-                changeMergedEvent, pluginDirectoryPath, commitInformation);
+        final EiffelSourceChangeSubmittedEvent eiffelEvent = EiffelSourceChangeSubmittedEventGenerator.generate(
+                pluginConfig, changeMergedEvent, commitInformation);
         sendEiffelEvent(eiffelEvent, pluginConfig);
     }
 }

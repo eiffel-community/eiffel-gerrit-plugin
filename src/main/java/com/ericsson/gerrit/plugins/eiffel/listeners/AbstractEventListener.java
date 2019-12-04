@@ -61,7 +61,7 @@ public abstract class AbstractEventListener implements EventListener {
     private static AtomicBoolean initialized = new AtomicBoolean();
     private static ThreadPoolExecutor executor;
 
-    private final BlockingQueue<Runnable> queue = new ArrayBlockingQueue<Runnable>(QUEUE_SIZE);
+    private final BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(QUEUE_SIZE);
 
     @Inject
     private com.google.gerrit.server.config.PluginConfigFactory pluginConfigFactory;
@@ -104,7 +104,7 @@ public abstract class AbstractEventListener implements EventListener {
      * @return EiffelPluginConfiguration
      */
     public EiffelPluginConfiguration createPluginConfig(final Event gerritEvent) {
-        ChangeEvent changeEvent = (ChangeEvent) gerritEvent;
+        final ChangeEvent changeEvent = (ChangeEvent) gerritEvent;
         final Project.NameKey projectNameKey = changeEvent.getProjectNameKey();
         final EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(pluginName,
                 projectNameKey, pluginConfigFactory);
@@ -119,13 +119,13 @@ public abstract class AbstractEventListener implements EventListener {
      * @param eiffelEvent
      * @param pluginConfig
      */
-    public void sendEiffelEvent(EiffelEvent eiffelEvent, EiffelPluginConfiguration pluginConfig) {
-        EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginDirectoryPath, pluginConfig);
+    public void sendEiffelEvent(final EiffelEvent eiffelEvent, final EiffelPluginConfiguration pluginConfig) {
+        final EiffelEventSender eiffelEventSender = new EiffelEventSender(pluginConfig);
         eiffelEventSender.setEiffelEventType(eiffelEvent.getClass().getSimpleName());
         eiffelEventSender.setEiffelEventMessage(eiffelEvent);
 
-        Retry policy = retryConfiguration.getRetryPolicy();
-        Runnable decoratedRunnable = Decorators.ofRunnable(() -> eiffelEventSender.send())
+        final Retry policy = retryConfiguration.getRetryPolicy();
+        final Runnable decoratedRunnable = Decorators.ofRunnable(() -> eiffelEventSender.send())
                                                .withRetry(policy)
                                                .decorate();
         executor.submit(() -> {
@@ -142,20 +142,18 @@ public abstract class AbstractEventListener implements EventListener {
      */
     protected boolean isEiffelEventSendingEnabled(final Event gerritEvent,
             final EiffelPluginConfiguration pluginConfig) {
-
-        final ChangeEvent changeEvent = (ChangeEvent) gerritEvent;
-        final String project = changeEvent.change.get().project;
-        if (!isPluginEnabled(pluginConfig, project)) {
+        if (!isPluginEnabled(pluginConfig)) {
             return false;
         }
 
+        final ChangeEvent changeEvent = (ChangeEvent) gerritEvent;
         final String branch = changeEvent.change.get().branch;
         final String filter = pluginConfig.getFilter();
-        boolean isFilterSet = !StringUtils.isEmpty(filter);
-        boolean isBranchNameInConfiguredFilter = isFilterSet
-                && isBranchNameInConfiguredFilter(branch, filter, project);
+        final boolean isFilterSet = !StringUtils.isEmpty(filter);
+        final boolean isBranchNameInConfiguredFilter = isFilterSet
+                && isBranchNameInConfiguredFilter(branch, filter, pluginConfig.getProject());
 
-        boolean isEiffelEventSendingEnabled = !isFilterSet || isBranchNameInConfiguredFilter;
+        final boolean isEiffelEventSendingEnabled = !isFilterSet || isBranchNameInConfiguredFilter;
         return isEiffelEventSendingEnabled;
     }
 
@@ -171,12 +169,11 @@ public abstract class AbstractEventListener implements EventListener {
         }
     }
 
-    private boolean isPluginEnabled(final EiffelPluginConfiguration pluginConfig,
-            final String project) {
+    private boolean isPluginEnabled(final EiffelPluginConfiguration pluginConfig) {
         if (!pluginConfig.isEnabled()) {
             LOGGER.debug("Eiffel plugin is disabled for project '{}'.\n"
                     + "Please refer to Eiffel plugin documentation to find out how to configure and enable plugin\n"
-                    + "{}plugins/{}/Documentation/index.html", project, gerritUrl, pluginName);
+                    + "{}plugins/{}/Documentation/index.html", pluginConfig.getProject(), gerritUrl, pluginName);
             return false;
         }
 

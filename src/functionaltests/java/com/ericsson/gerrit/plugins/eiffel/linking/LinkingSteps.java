@@ -212,7 +212,7 @@ public class LinkingSteps {
         patchSetCreatedEvent.patchSet = patchSetAttributeSupplier;
         patchSetCreatedEvent.changeKey = changeKey;
 
-        when(patchSetCreatedEvent.getProjectNameKey()).thenReturn(mock(NameKey.class));
+        when(patchSetCreatedEvent.getProjectNameKey()).thenReturn(new NameKey(PROJECT_NAME));
         return patchSetCreatedEvent;
     }
 
@@ -228,7 +228,7 @@ public class LinkingSteps {
         changeMergedEvent.changeKey = changeKey;
         changeMergedEvent.newRev = commitId;
 
-        when(changeMergedEvent.getProjectNameKey()).thenReturn(mock(NameKey.class));
+        when(changeMergedEvent.getProjectNameKey()).thenReturn(new NameKey(PROJECT_NAME));
         return changeMergedEvent;
     }
 

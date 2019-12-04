@@ -17,11 +17,11 @@
 
 package com.ericsson.gerrit.plugins.eiffel.storage;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.sql.SQLException;
 
+import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
@@ -29,22 +29,21 @@ import com.ericsson.gerrit.plugins.eiffel.handlers.Table;
 
 public class SourceChangeCreatedStorage extends EventStorage {
 
-    public SourceChangeCreatedStorage(File pluginDir) {
-        super(pluginDir);
+    public SourceChangeCreatedStorage(final EiffelPluginConfiguration pluginConfig) {
+        super(pluginConfig);
     }
 
     @Override
-    public String getEventId(String project, String changeId) throws NoSuchElementException, ConnectException, FileNotFoundException {
+    public String getEventId(final String project, final String changeId) throws NoSuchElementException, ConnectException, FileNotFoundException {
         return getLastSavedEiffelEvent(project, changeId, Table.SCC_TABLE);
     }
 
     @Override
-    public void saveEventId(String eiffelEventId, EiffelEvent eiffelEvent)
+    public void saveEventId(final String eiffelEventId, final EiffelEvent eiffelEvent)
             throws NoSuchElementException, SQLException, ConnectException {
-        EiffelSourceChangeCreatedEvent eiffelSourceChangeCreatedEvent = (EiffelSourceChangeCreatedEvent) eiffelEvent;
-        String projectName = eiffelSourceChangeCreatedEvent.eventParams.data.gitIdentifier.repoName;
-        String searchCriteria = eiffelSourceChangeCreatedEvent.eventParams.data.change.id;
+        final EiffelSourceChangeCreatedEvent eiffelSourceChangeCreatedEvent = (EiffelSourceChangeCreatedEvent) eiffelEvent;
+        final String searchCriteria = eiffelSourceChangeCreatedEvent.eventParams.data.change.id;
 
-        saveEiffelEventId(projectName, searchCriteria, eiffelEventId, Table.SCC_TABLE);
+        saveEiffelEventId(searchCriteria, eiffelEventId, Table.SCC_TABLE);
     }
 }
