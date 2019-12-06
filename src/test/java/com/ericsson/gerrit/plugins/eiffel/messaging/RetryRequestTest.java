@@ -9,6 +9,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.http.HttpStatus;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,8 +26,10 @@ import com.ericsson.gerrit.plugins.eiffel.configuration.RetryConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.generators.EiffelSourceChangeSubmittedEventGenerator;
+import com.ericsson.gerrit.plugins.eiffel.git.CommitInformation;
 import com.ericsson.gerrit.plugins.eiffel.listeners.AbstractEventListener;
 import com.ericsson.gerrit.plugins.eiffel.listeners.ChangeMergedEventListener;
+import com.ericsson.gerrit.plugins.eiffel.loghelper.LogHelper;
 import com.google.gerrit.server.events.ChangeMergedEvent;
 
 import io.github.resilience4j.decorators.Decorators;
@@ -48,14 +51,24 @@ public class RetryRequestTest {
     private static final int STATUS_ERROR = HttpStatus.SC_INTERNAL_SERVER_ERROR;
     private static final String PLUGIN_NAME = "Eiffel-Integration";
     private static final File FILE_DIR = new File("");
+    private CommitInformation commitInformation;
+
+    private LogHelper logHelper = new LogHelper();
 
     @Before
     public void beforeTest() throws IOException, URISyntaxException {
         setUpMockObjects();
+        logHelper.setup();
+    }
+
+    @After
+    public void tearDown() {
+        logHelper.tearDown();
     }
 
     @Test
     public void testRetryLogic() throws URISyntaxException, IOException {
+        logHelper.removeStdoutAppenders();
         setUpMockActions();
         counter.setValue(0);
 
@@ -76,10 +89,13 @@ public class RetryRequestTest {
         String errorMessage = String.format("Expected retry counter to be %d but was %d",
                 expectedValue, actualValue);
         assertEquals(errorMessage, expectedValue, actualValue);
+
+        logHelper.verifyLoggerCalledTimes(3);
     }
 
     @Test(expected = Test.None.class)
     public void testPrepareAndSendEiffelEvent() throws Exception {
+        logHelper.removeStdoutAppenders();
         setUpMockActions();
         setUpMocksAndActionsForMethodInvoke();
 
@@ -112,6 +128,8 @@ public class RetryRequestTest {
         errorMessage = String.format("Expected active jobs to be %d but was %d",
                 expectedValue, actualValue);
         assertEquals(errorMessage, expectedValue, actualValue);
+
+        logHelper.verifyLoggerCalledTimes(3);
     }
 
     private void setUpMockObjects() throws URISyntaxException, IOException {
@@ -119,6 +137,7 @@ public class RetryRequestTest {
         pluginConfig = Mockito.mock(EiffelPluginConfiguration.class);
         response = Mockito.mock(ResponseEntity.class);
         changeMergedEvent = Mockito.mock(ChangeMergedEvent.class);
+        commitInformation = Mockito.mock(CommitInformation.class);
     }
 
     private void setUpMockActions() throws URISyntaxException, IOException {
@@ -133,7 +152,8 @@ public class RetryRequestTest {
     private void setUpMocksAndActionsForMethodInvoke() throws Exception {
         PowerMockito.mockStatic(EiffelSourceChangeSubmittedEventGenerator.class);
         Mockito.when(
-                EiffelSourceChangeSubmittedEventGenerator.generate(changeMergedEvent, pluginConfig, FILE_DIR))
+                EiffelSourceChangeSubmittedEventGenerator.generate(changeMergedEvent, FILE_DIR,
+                        commitInformation))
                .thenReturn(eiffelEvent);
         EiffelEventSender sender = new EiffelEventSender(FILE_DIR, pluginConfig, httpRequest);
         PowerMockito.whenNew(EiffelEventSender.class)

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.generators.EiffelSourceChangeSubmittedEventGenerator;
+import com.ericsson.gerrit.plugins.eiffel.git.CommitInformation;
 import com.google.gerrit.extensions.annotations.PluginData;
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.server.events.ChangeMergedEvent;
@@ -39,6 +40,12 @@ import com.google.inject.Inject;
 public class ChangeMergedEventListener extends AbstractEventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChangeMergedEventListener.class);
+
+    /**
+     * Injecting here as the injection framework will go through this class
+     */
+    @Inject
+    private CommitInformation commitInformation;
 
     @Inject
     public ChangeMergedEventListener(@PluginName final String pluginName,
@@ -58,7 +65,8 @@ public class ChangeMergedEventListener extends AbstractEventListener {
         LOGGER.info("ChangeMergedEvent recieved from Gerrit, "
                 + "preparing to send a SourceChangeSubmitted eiffel event.\n{}",
                 changeMergedEvent);
-        EiffelSourceChangeSubmittedEvent eiffelEvent = EiffelSourceChangeSubmittedEventGenerator.generate(changeMergedEvent, pluginConfig, pluginDirectoryPath);
+        EiffelSourceChangeSubmittedEvent eiffelEvent = EiffelSourceChangeSubmittedEventGenerator.generate(
+                changeMergedEvent, pluginDirectoryPath, commitInformation);
         sendEiffelEvent(eiffelEvent, pluginConfig);
     }
 }

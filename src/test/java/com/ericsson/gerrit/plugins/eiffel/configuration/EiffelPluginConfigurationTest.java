@@ -47,7 +47,6 @@ public class EiffelPluginConfigurationTest {
         when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_PASSWORD)).thenReturn(REMREM_PASSWORD);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testEiffelPluginConfigurationException1() throws NoSuchProjectException {
         when(pluginConfigFactory.getFromProjectConfig(nameKey, PLUGIN_NAME)).thenThrow(NoSuchProjectException.class);

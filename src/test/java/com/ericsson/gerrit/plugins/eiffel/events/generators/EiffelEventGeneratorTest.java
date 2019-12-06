@@ -14,6 +14,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -27,10 +28,10 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.git.CommitInformation;
 import com.ericsson.gerrit.plugins.eiffel.storage.EventStorageFactory;
 import com.ericsson.gerrit.plugins.eiffel.storage.SourceChangeCreatedStorage;
 import com.ericsson.gerrit.plugins.eiffel.storage.SourceChangeSubmittedStorage;
@@ -48,6 +49,8 @@ import com.google.gson.JsonObject;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ EiffelEventGenerator.class, InetAddress.class, EventStorageFactory.class })
 public class EiffelEventGeneratorTest {
+
+    private static final String PARENT_SHA = "parent-sha";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EiffelEventGeneratorTest.class);
 
@@ -71,13 +74,14 @@ public class EiffelEventGeneratorTest {
 
     private PatchSetCreatedEvent patchSetCreatedEvent;
     private ChangeMergedEvent changeMergedEvent;
-    private EiffelPluginConfiguration pluginConfig;
     private Supplier<ChangeAttribute> supplierChangeAttribute;
     private Supplier<PatchSetAttribute> supplierPatchSetAttribute;
     private ChangeAttribute changeAttribute;
     private PatchSetAttribute patchSetAttribute;
     private AccountAttribute accountAttribute;
     private Key changeKey;
+
+    private CommitInformation commitInformation;
 
     private File pluginDirectory;
 
@@ -96,8 +100,8 @@ public class EiffelEventGeneratorTest {
         populateChangeMergedEvent();
 
         EiffelSourceChangeSubmittedEvent eiffelEvent =
-        EiffelSourceChangeSubmittedEventGenerator.generate(
-        changeMergedEvent, pluginConfig, pluginDirectory);
+                EiffelSourceChangeSubmittedEventGenerator.generate(
+                        changeMergedEvent, pluginDirectory, commitInformation);
 
         verifyEiffelSourceChangeSubmittedEvent(eiffelEvent);
     }
@@ -106,8 +110,8 @@ public class EiffelEventGeneratorTest {
      public void testEiffelSourceChangeCreatedEventGenerator() {
      populatePatchSetCreatedEvent();
 
-     EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator.generate(
-     patchSetCreatedEvent, pluginConfig, pluginDirectory);
+        EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator.generate(
+                patchSetCreatedEvent, pluginDirectory, commitInformation);
 
      verifyEiffelSourceChangeCreatedEvent(eiffelEvent);
      }
@@ -151,14 +155,15 @@ public class EiffelEventGeneratorTest {
         SourceChangeCreatedStorage sourceChangeCreatedState = mock(SourceChangeCreatedStorage.class);
         when(EventStorageFactory.getEventStorage(Mockito.any(), Mockito.any())).thenReturn(sourceChangeCreatedState);
 
-        EiffelSourceChangeCreatedEventGenerator.generate(patchSetCreatedEvent, pluginConfig, pluginDirectory);
+        EiffelSourceChangeCreatedEventGenerator.generate(patchSetCreatedEvent, pluginDirectory,
+                commitInformation);
 
         Mockito.verify(sourceChangeCreatedState, Mockito.times(2)).getEventId(keyCaptor.capture(),
                 valueCaptor.capture());
 
         List<String> parametersCalledWith = valueCaptor.getAllValues();
         assertEquals("Incorrect parameter, should have been a changeID", CHANGE_ID, parametersCalledWith.get(0));
-        assertEquals("Incorrect parameter, should have been a branch.", BRANCH, parametersCalledWith.get(1));
+        assertEquals("Incorrect parameter, should have been a branch.", PARENT_SHA, parametersCalledWith.get(1));
     }
 
     @Test
@@ -169,14 +174,15 @@ public class EiffelEventGeneratorTest {
         SourceChangeSubmittedStorage sourceChangeSubmittedState = mock(SourceChangeSubmittedStorage.class);
         when(EventStorageFactory.getEventStorage(Mockito.any(), Mockito.any())).thenReturn(sourceChangeSubmittedState);
 
-        EiffelSourceChangeSubmittedEventGenerator.generate(changeMergedEvent, pluginConfig, pluginDirectory);
+        EiffelSourceChangeSubmittedEventGenerator.generate(changeMergedEvent, pluginDirectory,
+                commitInformation);
 
         Mockito.verify(sourceChangeSubmittedState, Mockito.times(2)).getEventId(keyCaptor.capture(),
                 valueCaptor.capture());
 
         List<String> parametersCalledWith = valueCaptor.getAllValues();
         assertEquals("Incorrect parameter, should have been a changeID", CHANGE_ID, parametersCalledWith.get(0));
-        assertEquals("Incorrect parameter, should have been a branch.", BRANCH, parametersCalledWith.get(1));
+        assertEquals("Incorrect parameter, should have been a branch.", PARENT_SHA, parametersCalledWith.get(1));
     }
 
     @Test
@@ -190,7 +196,7 @@ public class EiffelEventGeneratorTest {
                 .thenThrow(new NoSuchElementException("exception"));
 
         EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator
-                .generate(patchSetCreatedEvent, pluginConfig, pluginDirectory);
+                .generate(patchSetCreatedEvent, pluginDirectory, commitInformation);
         assertEquals("No links should have been created.", 0, eiffelEvent.eventParams.links.size());
     }
 
@@ -205,7 +211,7 @@ public class EiffelEventGeneratorTest {
                 .thenThrow(new NoSuchElementException("exception"));
 
         EiffelSourceChangeSubmittedEvent eiffelEvent = EiffelSourceChangeSubmittedEventGenerator
-                .generate(changeMergedEvent, pluginConfig, pluginDirectory);
+                .generate(changeMergedEvent, pluginDirectory, commitInformation);
         assertEquals("No links should have been created.", 0, eiffelEvent.eventParams.links.size());
     }
 
@@ -219,7 +225,7 @@ public class EiffelEventGeneratorTest {
         when(sourceChangeCreatedState.getEventId(Mockito.any(), Mockito.any())).thenReturn("previous-event-id");
 
         EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator
-                .generate(patchSetCreatedEvent, pluginConfig, pluginDirectory);
+                .generate(patchSetCreatedEvent, pluginDirectory, commitInformation);
 
         String expectedTypePreviousVersion = "PREVIOUS_VERSION";
         String expectedTypeBase = "BASE";
@@ -239,7 +245,7 @@ public class EiffelEventGeneratorTest {
         when(sourceChangeSubmittedState.getEventId(Mockito.any(), Mockito.any())).thenReturn("previous-event-id");
 
         EiffelSourceChangeSubmittedEvent eiffelEvent = EiffelSourceChangeSubmittedEventGenerator
-                .generate(changeMergedEvent, pluginConfig, pluginDirectory);
+                .generate(changeMergedEvent, pluginDirectory, commitInformation);
 
         String expectedTypeChange = "CHANGE";
         String expectedTypePreviousVersion = "PREVIOUS_VERSION";
@@ -251,7 +257,6 @@ public class EiffelEventGeneratorTest {
 
     @SuppressWarnings("unchecked")
     private void setUpMocks() throws ConnectException, FileNotFoundException, NoSuchElementException {
-        pluginConfig = mock(EiffelPluginConfiguration.class);
         changeMergedEvent = mock(ChangeMergedEvent.class);
         patchSetCreatedEvent = mock(PatchSetCreatedEvent.class);
         supplierChangeAttribute = mock(Supplier.class);
@@ -262,6 +267,7 @@ public class EiffelEventGeneratorTest {
         changeKey = mock(Key.class);
         changeMergedEvent.changeKey = changeKey;
         pluginDirectory = mock(File.class);
+        commitInformation = mock(CommitInformation.class);
 
         mockStatic(EventStorageFactory.class);
         SourceChangeSubmittedStorage sourceChangeSubmittedState = mock(SourceChangeSubmittedStorage.class);
@@ -272,6 +278,9 @@ public class EiffelEventGeneratorTest {
 
         when(EventStorageFactory.getEventStorage(Mockito.any(), Mockito.any())).thenReturn(sourceChangeSubmittedState);
         when(sourceChangeSubmittedState.getEventId(Mockito.any(), Mockito.any())).thenReturn("my_event_id");
+
+        when(commitInformation.getParentsSHAs(COMMIT_ID, PROJECT)).thenReturn(Arrays.asList(PARENT_SHA));
+
     }
 
     private void setUpHostNameExceptionMock() {

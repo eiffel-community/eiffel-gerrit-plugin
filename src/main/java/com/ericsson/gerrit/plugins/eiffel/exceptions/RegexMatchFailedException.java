@@ -18,7 +18,9 @@
 package com.ericsson.gerrit.plugins.eiffel.exceptions;
 
 public class RegexMatchFailedException extends Exception {
-    public RegexMatchFailedException(String message) {
+    private static final long serialVersionUID = -7700813120226544858L;
+
+    public RegexMatchFailedException(final String message) {
         super(message);
     }
 

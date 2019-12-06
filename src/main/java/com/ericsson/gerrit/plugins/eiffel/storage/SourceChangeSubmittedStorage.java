@@ -43,8 +43,8 @@ public class SourceChangeSubmittedStorage extends EventStorage {
             throws NoSuchElementException, ConnectException, SQLException {
         EiffelSourceChangeSubmittedEvent eiffelSourceChangeSubmittedEvent = (EiffelSourceChangeSubmittedEvent) eiffelEvent;
         String projectName = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.repoName;
-        String searchCriteria = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.branch;
+        String searchCriteria = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.commitId;
 
-        findAndUpdateEiffelEvent(projectName, searchCriteria, eiffelEventId, Table.SCS_TABLE);
+        saveEiffelEventId(projectName, searchCriteria, eiffelEventId, Table.SCS_TABLE);
     }
 }

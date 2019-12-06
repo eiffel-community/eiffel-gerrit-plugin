@@ -21,6 +21,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -51,25 +52,44 @@ public class EiffelEventGenerator {
 
     protected static String createRepoURI(final String url, final String projectName) {
         try {
-            URI changeUri = new URI(url);
-            String hostName = changeUri.getHost();
+            final URI changeUri = new URI(url);
+            final String hostName = changeUri.getHost();
             if (hostName == null) {
                 return null;
             }
-            String sshBaseUrl = getSshBaseUrl(changeUri.getHost());
+            final String sshBaseUrl = getSshBaseUrl(changeUri.getHost());
             return sshBaseUrl;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             return null;
         }
     }
 
-    protected static String getPreviousEiffelEvent(final String linkedEiffelEventType, final String projectName,
+    /**
+     * Will for a given list of search criteria return the first found event
+     */
+    protected static String getPreviousEiffelEventId(final String linkedEiffelEventType,
+            final String projectName,
+            final List<String> searchCriterias, final File pluginDirectoryPath) {
+        for (final String searchCriteria : searchCriterias) {
+            final String eiffelEventId = getPreviousEiffelEventId(linkedEiffelEventType, projectName,
+                    searchCriteria, pluginDirectoryPath);
+            if (!StringUtils.isEmpty(eiffelEventId)) {
+                return eiffelEventId;
+            }
+        }
+        return "";
+    }
+
+    protected static String getPreviousEiffelEventId(final String linkedEiffelEventType,
+            final String projectName,
             final String searchCriteria, final File pluginDirectoryPath) {
         try {
-            EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDirectoryPath, linkedEiffelEventType);
-            String lastEiffelEvent = getEiffelEventIdFromStorage(eventStorage, projectName, searchCriteria);
-            return lastEiffelEvent;
-        } catch(IllegalArgumentException e) {
+            final EventStorage eventStorage = EventStorageFactory.getEventStorage(pluginDirectoryPath,
+                    linkedEiffelEventType);
+            final String lastEiffelEventId = getEiffelEventIdFromStorage(eventStorage, projectName,
+                    searchCriteria);
+            return lastEiffelEventId;
+        } catch (final IllegalArgumentException e) {
             LOGGER.error("Could not get previous Eiffel event.", e);
             return "";
         }
@@ -77,7 +97,7 @@ public class EiffelEventGenerator {
 
     protected static Link createLink(final String linkType, final String lastEiffelEvent) {
         if (!StringUtils.isEmpty(lastEiffelEvent)) {
-            Link link = new Link();
+            final Link link = new Link();
             link.type = linkType;
             link.target = lastEiffelEvent;
 
@@ -95,12 +115,12 @@ public class EiffelEventGenerator {
     private static String getEiffelEventIdFromStorage(final EventStorage eventStorage, final String projectName,
             final String searchCriteria) {
         try {
-            String eventId = eventStorage.getEventId(projectName, searchCriteria);
+            final String eventId = eventStorage.getEventId(projectName, searchCriteria);
             return eventId;
-        } catch (NoSuchElementException e) {
+        } catch (final NoSuchElementException e) {
             LOGGER.debug("Event Storage did not return any value for this query.", e);
             return null;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("Could not get last submitted eiffel event id.", e);
             return null;
         }

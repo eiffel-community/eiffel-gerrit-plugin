@@ -5,6 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,6 +17,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,6 +32,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
+import com.ericsson.gerrit.plugins.eiffel.loghelper.LogHelper;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(fullyQualifiedNames = "com.ericsson.gerrit.plugins.eiffel.*")
@@ -44,11 +49,27 @@ public class DataBaseHandlerTest {
 
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
+    private File tmpFolderPath;
+
+    private LogHelper logHelper = new LogHelper();
 
     @Before
     public void init() throws Exception {
-        File tmpFolderPath = testFolder.newFolder();
+        tmpFolderPath = testFolder.newFolder();
         dbHandler = new DatabaseHandler(tmpFolderPath, "project_name");
+        logHelper.setup();
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        logHelper.tearDown();
+
+        // By trying to delete the file we know if we have any open connections
+        Path dbfile = tmpFolderPath.toPath().resolve("project_name.db");
+        Files.delete(dbfile);
+
+        // By trying to delete the folder we know that we only have one file there
+        Files.delete(tmpFolderPath.toPath());
     }
 
     /**
@@ -71,6 +92,7 @@ public class DataBaseHandlerTest {
         String expectedFilePath = tmpFolderPath.getPath().replace("\\", "/") + "/parent_project";
         String actualFilePath = arguments.get(0).replace("\\", "/");
         assertEquals("Incorrect parent file path.", expectedFilePath, actualFilePath);
+        logHelper.verifyLoggerCalledTimes(0);
     }
 
     /**
@@ -85,6 +107,7 @@ public class DataBaseHandlerTest {
         dbHandler.insertInto(Table.SCS_TABLE, BRANCH, eiffelEventId);
         String eventId = dbHandler.getEventID(Table.SCS_TABLE, BRANCH);
         assertEquals("Expect fetched event ID", eiffelEventId, eventId);
+        logHelper.verifyLoggerCalledTimes(0);
     }
 
     /**
@@ -103,6 +126,7 @@ public class DataBaseHandlerTest {
         String eventId = dbHandler.getEventID(Table.SCS_TABLE, BRANCH);
         assertFalse(firstEiffelEventId.equals(eventId));
         assertEquals("Expect fetched event ID", secondEiffelEventId, eventId);
+        logHelper.verifyLoggerCalledTimes(0);
     }
 
     /**
@@ -112,6 +136,8 @@ public class DataBaseHandlerTest {
      */
     @Test(expected = SQLException.class)
     public void testNoneUpdatedRows() throws Exception {
+        logHelper.removeStdoutAppenders();
+
         Connection connection = mock(Connection.class);
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
         PowerMockito.mockStatic(DriverManager.class);
@@ -121,6 +147,7 @@ public class DataBaseHandlerTest {
         Mockito.when(preparedStatement.executeUpdate()).thenReturn(0);
 
         dbHandler.updateInto(Table.SCS_TABLE, BRANCH, "my-eiffel-event");
+        logHelper.verifyLoggerCalledTimes(1);
     }
 
     /**
@@ -130,6 +157,8 @@ public class DataBaseHandlerTest {
      */
     @Test
     public void testInsertIntoExistingFails() throws Exception {
+        logHelper.removeStdoutAppenders();
+
         String firstEiffelEventId = generateEiffelEventId();
         String secondEiffelEventId = generateEiffelEventId();
         dbHandler.insertInto(Table.SCS_TABLE, BRANCH, firstEiffelEventId);
@@ -140,7 +169,7 @@ public class DataBaseHandlerTest {
         } catch (SQLException e) {
             // test passed!
         }
-
+        logHelper.verifyLoggerCalledTimes(1);
     }
 
     /**
@@ -150,6 +179,7 @@ public class DataBaseHandlerTest {
      */
     @Test(expected = NoSuchElementException.class)
     public void testGetNoneExistingEventIdReturnsEmpty() throws Exception {
+        logHelper.expectLoggerCalledTimes(0);
         dbHandler.getEventID(Table.SCS_TABLE, FAULTY_BRANCH);
     }
 
@@ -160,12 +190,14 @@ public class DataBaseHandlerTest {
      */
     @Test(expected = NoSuchElementException.class)
     public void testGetEventIdSqlError() throws Exception {
+        logHelper.removeStdoutAppenders();
         Connection connection = mock(Connection.class);
 
         PowerMockito.mockStatic(DriverManager.class);
         BDDMockito.given(DriverManager.getConnection(Mockito.any())).willReturn(connection);
         Mockito.when(connection.prepareStatement(Mockito.any())).thenThrow(new SQLException());
 
+        logHelper.expectLoggerCalledTimes(1);
         dbHandler.getEventID(Table.SCS_TABLE, FAULTY_BRANCH);
     }
 
@@ -180,7 +212,7 @@ public class DataBaseHandlerTest {
 
         assertEquals("Table.SCS_TABLE tabler key should be", SCS_TABLE_KEY, scsTable.getKeyName());
         assertEquals("Table.SCC_TABLE tabler key should be", SCC_TABLE_KEY, sccTable.getKeyName());
-
+        logHelper.verifyLoggerCalledTimes(0);
     }
     /**
      * Test throwing several exceptions and ensure they cause the class to return
@@ -191,6 +223,8 @@ public class DataBaseHandlerTest {
      */
     @Test
     public void testExceptionsIsThrown() throws Exception {
+        logHelper.removeStdoutAppenders();
+
         // Prepare mocks
         Connection connection = mock(Connection.class);
         PreparedStatement preparedStatement = mock(PreparedStatement.class);
@@ -250,7 +284,7 @@ public class DataBaseHandlerTest {
         } catch (SQLException e) {
             // test passed!
         }
-
+        logHelper.verifyLoggerCalledTimes(4);
     }
 
     private static String generateEiffelEventId() {

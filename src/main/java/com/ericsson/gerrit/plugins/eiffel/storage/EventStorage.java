@@ -49,24 +49,22 @@ public abstract class EventStorage {
         return getEventId(project, searchCriteria, tableName);
     }
 
-    protected void findAndUpdateEiffelEvent(String project, String searchCriteria, String eiffelEvent, Table tableName)
+    protected void saveEiffelEventId(String project, String searchCriteria, String eiffelEventId,
+            Table tableName)
             throws NoSuchElementException, ConnectException, SQLException {
         DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
+        String oldEventId = getOldEventId(dBHandler, tableName, searchCriteria);
 
-        saveEventToDatabase(project, searchCriteria, eiffelEvent, tableName, dBHandler);
-    }
-
-    private void saveEventToDatabase(String project, String searchCriteria, String eiffelEvent, Table tableName,
-            DatabaseHandler dBHandler) throws ConnectException, SQLException {
-        String oldEvent = getOldEventId(dBHandler, tableName, searchCriteria);
-
-        if (!oldEvent.isEmpty()) {
-            dBHandler.updateInto(tableName, searchCriteria, eiffelEvent);
-            LOGGER.info("Replaced old event id '{}' with new event if '{}', for project '{}', and branch '{}'.",
-                    oldEvent, eiffelEvent, project, searchCriteria);
+        if (!oldEventId.isEmpty()) {
+            dBHandler.updateInto(tableName, searchCriteria, eiffelEventId);
+            LOGGER.info(
+                    "Replaced old event id '{}' with new event if '{}', for project '{}', and searchCriteria '{}'.",
+                    oldEventId, eiffelEventId, project, searchCriteria);
         } else {
-            dBHandler.insertInto(tableName, searchCriteria, eiffelEvent);
-            LOGGER.info("Saved eiffel event with id '{}', for project '{}', and branch '{}'.", eiffelEvent, project,
+            dBHandler.insertInto(tableName, searchCriteria, eiffelEventId);
+            LOGGER.info(
+                    "Saved eiffel event with id '{}', for project '{}', and searchCriteria '{}'.",
+                    eiffelEventId, project,
                     searchCriteria);
         }
     }
@@ -86,7 +84,8 @@ public abstract class EventStorage {
             throws NoSuchElementException, ConnectException {
         DatabaseHandler dBHandler = new DatabaseHandler(pluginDir, project);
         String eventId = dBHandler.getEventID(tableName, searchCriteria);
-        LOGGER.info("Fetched old event with id '{}', for project '{}', and branch '{}'", eventId, project,
+        LOGGER.info("Fetched old event with id '{}', for project '{}', and searchCritera '{}'",
+                eventId, project,
                 searchCriteria);
         return eventId;
     }

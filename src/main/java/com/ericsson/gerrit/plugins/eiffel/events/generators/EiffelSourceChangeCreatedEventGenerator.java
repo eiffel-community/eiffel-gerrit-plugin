@@ -17,11 +17,12 @@
 package com.ericsson.gerrit.plugins.eiffel.events.generators;
 
 import java.io.File;
+import java.util.List;
 
-import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeCreatedEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EventType;
 import com.ericsson.gerrit.plugins.eiffel.events.models.Link;
+import com.ericsson.gerrit.plugins.eiffel.git.CommitInformation;
 import com.google.gerrit.server.data.ChangeAttribute;
 import com.google.gerrit.server.data.PatchSetAttribute;
 import com.google.gerrit.server.events.PatchSetCreatedEvent;
@@ -38,12 +39,12 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
      * EiffelSourceChangeCreatedEvent
      *
      * @param patchSetCreatedEvent
-     * @param pluginConfig
      * @param pluginDirectoryPath
+     * @param commitInformation
      * @return EiffelSourceChangeCreatedEvent
      */
     public static EiffelSourceChangeCreatedEvent generate(PatchSetCreatedEvent patchSetCreatedEvent,
-            EiffelPluginConfiguration pluginConfig, File pluginDirectoryPath) {
+            File pluginDirectoryPath, CommitInformation commitInformation) {
         final ChangeAttribute changeAttribute = patchSetCreatedEvent.change.get();
         final PatchSetAttribute patchSetAttribute = patchSetCreatedEvent.patchSet.get();
         final String projectName = changeAttribute.project;
@@ -78,18 +79,22 @@ public final class EiffelSourceChangeCreatedEventGenerator extends EiffelEventGe
         eiffelEvent.eventParams.data.gitIdentifier.branch = branch;
         eiffelEvent.eventParams.data.gitIdentifier.repoName = projectName;
 
-        String previousSourceChangeCreatedEvent = getPreviousEiffelEvent(EventType.SCC_EVENT, projectName, changeId, pluginDirectoryPath);
-        final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION, previousSourceChangeCreatedEvent);
+        String previousSourceChangeCreatedEvent = getPreviousEiffelEventId(EventType.SCC_EVENT,
+                projectName, changeId, pluginDirectoryPath);
+        final Link previousVersionLink = createLink(LINK_TYPE_PREVIOUS_VERSION,
+                previousSourceChangeCreatedEvent);
         if (previousVersionLink != null) {
             eiffelEvent.eventParams.links.add(previousVersionLink);
         }
 
-        String previousSourceChangeSubmittedEvent = getPreviousEiffelEvent(EventType.SCS_EVENT, projectName, branch,
-                pluginDirectoryPath);
-        final Link baseLink = createLink(LINK_TYPE_BASE, previousSourceChangeSubmittedEvent);
+        List<String> parentsSHAs = commitInformation.getParentsSHAs(commitId, projectName);
+        String previousSourceChangeSubmittedEventId = getPreviousEiffelEventId(EventType.SCS_EVENT,
+                projectName, parentsSHAs, pluginDirectoryPath);
+        final Link baseLink = createLink(LINK_TYPE_BASE, previousSourceChangeSubmittedEventId);
         if (baseLink != null) {
             eiffelEvent.eventParams.links.add(baseLink);
         }
+
         return eiffelEvent;
     }
 }

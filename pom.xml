@@ -54,7 +54,7 @@
             <version>1.7.26</version>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
@@ -127,8 +127,9 @@
             <version>2.0.4</version>
             <scope>test</scope>
         </dependency>
-        
+
         <!-- Cucumber -->
+
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-junit</artifactId>
@@ -141,12 +142,28 @@
             <version>2.4.0</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.mock-server/mockserver-client-java -->
+        <dependency>
+            <groupId>org.mock-server</groupId>
+            <artifactId>mockserver-client-java</artifactId>
+            <version>5.7.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.mock-server/mockserver-netty -->
+        <dependency>
+            <groupId>org.mock-server</groupId>
+            <artifactId>mockserver-netty</artifactId>
+            <version>5.7.0</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
             <version>5.7.3</version>
+            <scope>test</scope>
          </dependency>
-        
     </dependencies>
 
     <build>
@@ -166,6 +183,8 @@
                             <sources>
                                 <source>src/test/java</source>
                                 <source>src/test/resources</source>
+                                <source>src/functionaltests/java</source>
+                                <source>src/functionaltests/resources</source>
                                 <source>src/integrationtest/java</source>
                                 <source>src/integrationtest/resources</source>
                             </sources>

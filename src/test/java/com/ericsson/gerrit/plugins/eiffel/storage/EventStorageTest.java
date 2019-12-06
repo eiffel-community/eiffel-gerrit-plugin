@@ -54,7 +54,7 @@ public class EventStorageTest {
         String expectedParentPath = tmpFolderPath.toString();
 
         Mockito.when(dbHandler.getEventID(Table.SCC_TABLE, BRANCH)).thenReturn("");
-        sourceChangeCreatedState.findAndUpdateEiffelEvent(PROJECT, BRANCH, "{eiffel_event}", Table.SCC_TABLE);
+        sourceChangeCreatedState.saveEiffelEventId(PROJECT, BRANCH, "{eiffel_event}", Table.SCC_TABLE);
 
         File parentDirectory = new File(expectedParentPath);
         assertTrue(parentDirectory.exists());
@@ -78,7 +78,7 @@ public class EventStorageTest {
         Mockito.when(dbHandler.getEventID(Table.SCS_TABLE, BRANCH)).thenReturn("old-event-id");
 
         String eventId = "event-id";
-        sourceChangeSubmittedState.findAndUpdateEiffelEvent(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
+        sourceChangeSubmittedState.saveEiffelEventId(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
         Mockito.verify(dbHandler).updateInto(Table.SCS_TABLE, BRANCH, eventId);
         Mockito.verify(dbHandler, Mockito.never()).insertInto(Mockito.any(), Mockito.any(), Mockito.any());
 
@@ -89,7 +89,7 @@ public class EventStorageTest {
         Mockito.when(dbHandler.getEventID(Table.SCS_TABLE, BRANCH)).thenReturn("");
 
         String eventId = "event-id";
-        sourceChangeSubmittedState.findAndUpdateEiffelEvent(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
+        sourceChangeSubmittedState.saveEiffelEventId(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
         Mockito.verify(dbHandler, Mockito.never()).updateInto(Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.verify(dbHandler).insertInto(Table.SCS_TABLE, BRANCH, eventId);
 
@@ -102,7 +102,7 @@ public class EventStorageTest {
         String eventId = "event-id";
 
         exception.expect(ConnectException.class);
-        sourceChangeSubmittedState.findAndUpdateEiffelEvent(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
+        sourceChangeSubmittedState.saveEiffelEventId(PROJECT, BRANCH, eventId, Table.SCS_TABLE);
 
         Mockito.verify(dbHandler, Mockito.never()).updateInto(Mockito.any(), Mockito.any(), Mockito.any());
         Mockito.verify(dbHandler, Mockito.never()).insertInto(Mockito.any(), Mockito.any(), Mockito.any());
