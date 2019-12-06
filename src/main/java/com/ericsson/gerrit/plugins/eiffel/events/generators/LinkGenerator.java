@@ -15,6 +15,9 @@ import com.ericsson.gerrit.plugins.eiffel.git.CommitInformation;
 import com.ericsson.gerrit.plugins.eiffel.storage.EventStorage;
 import com.ericsson.gerrit.plugins.eiffel.storage.EventStorageFactory;
 
+/**
+ * This class is responsible for creating links to previous events
+ */
 public class LinkGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkGenerator.class);
     private final EiffelPluginConfiguration pluginConfig;
@@ -32,32 +35,59 @@ public class LinkGenerator {
         links = new ArrayList<>();
     }
 
+    /**
+     * Create a PREVIOUS_VERSION link to the last event for the changeId
+     *
+     * @param changeId for the event to link to
+     */
     public void addSccPreviousVersion(final String changeId) {
         final String previousEvent = getPreviousEiffelEventId(EventType.SCC_EVENT, changeId);
 
         addIfNotEmpty(LINK_TYPE_PREVIOUS_VERSION, previousEvent);
     }
 
+    /**
+     * Create a PREVIOUS_VERSION link to the parent of the given commit id
+     *
+     * @param commitId of the parent we should link to
+     */
     public void addScsPreviousVersion(final String commitId) {
-        final List<String> parentsSHAs = commitInformation.getParentsSHAs(commitId, pluginConfig.getProject());
+        final List<String> parentsSHAs = commitInformation.getParentsSHAs(commitId,
+                pluginConfig.getProject());
         final String previousEvent = getPreviousEiffelEventId(EventType.SCS_EVENT, parentsSHAs);
 
         addIfNotEmpty(LINK_TYPE_PREVIOUS_VERSION, previousEvent);
     }
 
+    /**
+     * Create a BASE link to the parent of the given commit id
+     *
+     * @param commitId of the parent we should link to
+     */
     public void addSccBase(final String commitId) {
-        final List<String> parentsSHAs = commitInformation.getParentsSHAs(commitId, pluginConfig.getProject());
+        final List<String> parentsSHAs = commitInformation.getParentsSHAs(commitId,
+                pluginConfig.getProject());
         final String previousEvent = getPreviousEiffelEventId(EventType.SCS_EVENT, parentsSHAs);
 
         addIfNotEmpty(LINK_TYPE_BASE, previousEvent);
     }
 
+    /**
+     * Create a CHANGE link to the last event for the given changeId
+     *
+     * @param changeId for event to link to
+     */
     public void addScsChange(final String changeId) {
         final String previousEvent = getPreviousEiffelEventId(EventType.SCC_EVENT, changeId);
 
         addIfNotEmpty(LINK_TYPE_CHANGE, previousEvent);
     }
 
+    /**
+     * Get the generated links
+     *
+     * @return the links
+     */
     public ArrayList<Link> generateLinks() {
         return links;
     }
@@ -70,7 +100,6 @@ public class LinkGenerator {
             links.add(link);
         }
     }
-
 
     /**
      * Will for a given list of search criteria return the first found event
@@ -86,6 +115,7 @@ public class LinkGenerator {
         }
         return "";
     }
+
     private String getPreviousEiffelEventId(final String linkedEiffelEventType,
             final String searchCriteria) {
         try {
