@@ -44,14 +44,14 @@ Visit [Eiffel Community](https://eiffel-community.github.io) to get started and 
 
 ### Eiffel Events
 
-Version 0.0.1:
+#### Version 0.0.1
 
 * SourceChangeCreatedEvent
 * SourceChangeSubmittedEvent
 
 ### Parameters
 
-Project Configuration:
+#### Project Configuration
 
 * eiffel-integration.enabled
 
@@ -85,7 +85,7 @@ Project Configuration:
    Required, if you have this enabled in REMReM Publish configurations. Credentials towards REMReM to authenticate a user
    More about REMReM publish configurations [here](https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html)
 
-Example:
+##### Example
 
     [plugin "eiffel-integration"]
       enabled = true
@@ -104,19 +104,19 @@ Example:
       remrem-username = dummyuser
       remrem-password = ********
 
-#### Note
+##### Note
 Manually editing the Eiffel plugin configurations will show the configurations in the GUI using comma-seperated values.
 If you are changing them back in the UI, it will only contain one pair in the project configurations.
 
 ---
 
-Global Configuration:
+#### Global Configuration:
 
 * plugin.eiffel-integration.senderThreadPoolSize
 
    Number of threads to allocate for sending messages. Defaults to 1 if not provided.  
 
-Example:
+##### Example
 
     [plugin "Eiffel-Integration"]
         senderThreadPoolSize = 2
@@ -137,8 +137,7 @@ or by editing project configuration using web ui.
 
 Plugin configuration as part of the global configuration can be edited through the gerrit.config file.
 
-Message content
-------------------------------------------
+### Message content
 
 When a patchset is pushed, the plugin will parse commit info and form a EiffelSourceChangeCreatedEvent that will contain the following fields.
 
@@ -163,8 +162,7 @@ There will also be a EiffelSourceChangeSubmittedEvent when a patchset is submitt
 * author e-mail
 * commit id
 
-Eiffel Event Linking
---------------------
+### Eiffel Event Linking
 
 When a patchset is pushed to a gerrit repository and branch the EiffelSourceChangeCreatedEvent that is created will have the
 BASE link set to the previous EiffelSourceChangeSubmittedEvent. If there is no previous EiffelSourceChangeSubmittedEvent 
@@ -174,7 +172,7 @@ When it's time to submit the patchset an EiffelSourceChangeSubmittedEvent is cre
 patchset pushed to that particular review and a PREVIOUS_VERSION link set to the last EiffelSourceChangeSubmittedEvent
 for that repository and branch. If there is no previous EiffelSourceChangeSubmittedEvent then no PREVIOUS_VERSION link will be set.
 
-#### Example
+##### Example
 
 Scenario overview:
 
