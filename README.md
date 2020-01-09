@@ -49,6 +49,8 @@ Visit [Eiffel Community](https://eiffel-community.github.io) to get started and 
 * SourceChangeCreatedEvent
 * SourceChangeSubmittedEvent
 
+---
+
 ### Parameters
 
 #### Project Configuration
@@ -108,9 +110,7 @@ Visit [Eiffel Community](https://eiffel-community.github.io) to get started and 
 Manually editing the Eiffel plugin configurations will show the configurations in the GUI using comma-seperated values.
 If you are changing them back in the UI, it will only contain one pair in the project configurations.
 
----
-
-#### Global Configuration:
+#### Global Configuration
 
 * plugin.eiffel-integration.senderThreadPoolSize
 
@@ -120,6 +120,8 @@ If you are changing them back in the UI, it will only contain one pair in the pr
 
     [plugin "Eiffel-Integration"]
         senderThreadPoolSize = 2
+
+---
 
 ### Configuration
 
@@ -136,6 +138,8 @@ project.config file:
 or by editing project configuration using web ui.
 
 Plugin configuration as part of the global configuration can be edited through the gerrit.config file.
+
+---
 
 ### Message content
 
@@ -161,6 +165,8 @@ There will also be a EiffelSourceChangeSubmittedEvent when a patchset is submitt
 * author username
 * author e-mail
 * commit id
+
+---
 
 ### Eiffel Event Linking
 
