@@ -57,8 +57,8 @@ Visit [Eiffel Community](https://eiffel-community.github.io) to get started and 
 
 * eiffel-integration.enabled
 
-   If set to `true` the plugin will send Eiffel events.   
-   Is set to `false` or not defined no Eiffel events will be sent.  
+   If set to `true` the plugin will send Eiffel events.  
+   Is set to `false` or not defined no Eiffel events will be sent.
 
 * eiffel-integration.filter
 
