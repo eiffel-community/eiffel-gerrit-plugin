@@ -54,33 +54,39 @@ Version 0.0.1:
 Project Configuration:
 
 * eiffel-integration.enabled
+
    If set to `true` the plugin will send Eiffel events.   
    Is set to `false` or not defined no Eiffel events will be sent.  
 
 * eiffel-integration.filter
-   Allow users to define a white list of branches, i.e. messages will be sent only for source change on  
-   specified branches. Source Change to any other branch will be ignored. Accepts full branch name and or  
+
+   Allow users to define a white list of branches, i.e. messages will be sent only for source change on
+   specified branches. Source Change to any other branch will be ignored. Accepts full branch name and or
    regex separated by `,`. If not defined, messages will be sent for source changes in all branches.  
-   See example configuration where release branch may be triggered on release-(Any version).  
+   See example configuration where release branch may be triggered on release-(Any version).
 
 * eiffel-integration.flow-context
-   Optional, but expects a UUID of a EiffelFlowContextDefinedEvent if provided.  
-   Can accept List of UUID's separated by `,` that tells which flow it will be part of. (More about Flow Context:  
-   <https://github.com/eiffel-community/eiffel/blob/master/eiffel-vocabulary/EiffelSourceChangeCreatedEvent.md#flow_context>)  
 
-* eiffel-integration.remrem-publish-url:  
-   URL of REMReM publish service.(More about REMReM publish here:  
-   <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)  
+   Optional, but expects a UUID of a EiffelFlowContextDefinedEvent if provided.
+   Can accept List of UUID's separated by `,` that tells which flow it will be part of. (More about Flow Context:
+   <https://github.com/eiffel-community/eiffel/blob/master/eiffel-vocabulary/EiffelSourceChangeCreatedEvent.md#flow_context>)
+
+* eiffel-integration.remrem-publish-url
+
+   URL of REMReM publish service.(More about REMReM publish here:
+   <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
 
 * eiffel-integration.remrem-username
-   Required, if you have this enabled in REMReM Publish configurations. (More about REMReM publish configurations here:  
-   <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)  
-   Credentials towards REMReM to authenticate a user.  
+
+   Required, if you have this enabled in REMReM Publish configurations. (More about REMReM publish configurations here:
+   <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
+   Credentials towards REMReM to authenticate a user.
 
 * eiffel-integration.remrem-password
-   Required, if you have this enabled in REMReM Publish configurations. (More about REMReM publish configurations here:  
-   <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)  
-   Credentials towards REMReM to authenticate a user  
+
+   Required, if you have this enabled in REMReM Publish configurations. (More about REMReM publish configurations here:
+   <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
+   Credentials towards REMReM to authenticate a user
 
 Example:
 
@@ -110,6 +116,7 @@ If you are changing them back in the UI, it will only contain one pair in the pr
 Global Configuration:
 
 * plugin.eiffel-integration.senderThreadPoolSize
+
    Number of threads to allocate for sending messages. Defaults to 1 if not provided.  
 
 Example:
