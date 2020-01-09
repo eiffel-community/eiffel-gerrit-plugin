@@ -68,25 +68,22 @@ Project Configuration:
 * eiffel-integration.flow-context
 
    Optional, but expects a UUID of a EiffelFlowContextDefinedEvent if provided.
-   Can accept List of UUID's separated by `,` that tells which flow it will be part of. (More about Flow Context:
-   <https://github.com/eiffel-community/eiffel/blob/master/eiffel-vocabulary/EiffelSourceChangeCreatedEvent.md#flow_context>)
+   Can accept List of UUID's separated by `,` that tells which flow it will be part of.
+   More about Flow Context [here](https://github.com/eiffel-community/eiffel/blob/master/eiffel-vocabulary/EiffelSourceChangeCreatedEvent.md#flow_context)
 
 * eiffel-integration.remrem-publish-url
 
-   URL of REMReM publish service.(More about REMReM publish here:
-   <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
+   URL of REMReM publish service. More about REMReM publish configurations [here](https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html)
 
 * eiffel-integration.remrem-username
 
-   Required, if you have this enabled in REMReM Publish configurations. (More about REMReM publish configurations here:
-   <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
-   Credentials towards REMReM to authenticate a user.
+   Required, if you have this enabled in REMReM Publish configurations. Credentials towards REMReM to authenticate a user.
+   More about REMReM publish configurations [here](https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html)
 
 * eiffel-integration.remrem-password
 
-   Required, if you have this enabled in REMReM Publish configurations. (More about REMReM publish configurations here:
-   <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
-   Credentials towards REMReM to authenticate a user
+   Required, if you have this enabled in REMReM Publish configurations. Credentials towards REMReM to authenticate a user
+   More about REMReM publish configurations [here](https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html)
 
 Example:
 
