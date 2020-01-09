@@ -98,12 +98,71 @@ or by editing project configuration using web ui.
 
 Plugin configuration as part of the global configuration can be edited through the gerrit.config file.
 
-Message content and commit message parsing
+Message content
 ------------------------------------------
 
-TODO!
+When a patchset is pushed, the plugin will parse commit info and form a EiffelSourceChangeCreatedEvent that will contain the following fields.
+
+* repository name
+* branch name
+* repository url
+* author name
+* author username
+* author e-mail
+* commit id
+* change id
+* line insertions
+* lines deletions
+
+There will also be a EiffelSourceChangeSubmittedEvent when a patchset is submitted containing the following fields.
+
+* repository name
+* branch name
+* repository url
+* author name
+* author username
+* author e-mail
+* commit id
 
 Eiffel Event Linking
 --------------------
 
-TODO: Explain event linking and show examples.
+When a patchset is pushed to a gerrit repository and branch the EiffelSourceChangeCreatedEvent that is created will have the
+BASE link set to the previous EiffelSourceChangeSubmittedEvent. If there is no previous EiffelSourceChangeSubmittedEvent 
+for that particular repository and branch then no BASE link will be set. Any following patchsets pushed to the same review will
+be connected in a one way chain from newest to oldest through the PREVIOUS_VERSION link.
+When it's time to submit the patchset an EiffelSourceChangeSubmittedEvent is created with a CHANGE link set to the last
+patchset pushed to that particular review and a PREVIOUS_VERSION link set to the last EiffelSourceChangeSubmittedEvent
+for that repository and branch. If there is no previous EiffelSourceChangeSubmittedEvent then no PREVIOUS_VERSION link will be set.
+
+Example of a basic scenario can be seen below.
+
+Scenario overview:
+
+This scenario describes a standard review cycle where a user uploads a patch
+set, receives some comments, corrects the comments and submits the changes. The
+plugin can find the SCS event from the previous successful review.
+
+Preconditions:
+
+- Previous review submitted to the master with hash `C0`
+- The plugin sends SCS with id `E0`
+
+The user does the following:
+
+- Creates a branch
+- Updates the code
+- Squashes the commits to one commits (`C1`)
+- Pushes to `refs/for/[branch name]` (`P1`)
+- Receives comments from reviewer
+- Updates the code
+- Does `commit --amend` (`C2`)
+- Pushes to `refs/for/[branch name]` (`P2`)
+- Gets ok from the reviewer
+- Hits the submit button in Gerrit
+
+Eiffel events sent from the plugin:
+
+- SCC(`E1`) sent for `P1` push with `BASE` link set to `E0`
+- SCC(`E2`) sent for `P2` push with `PREVIOUS_VERSION` link set to `E1` and `BASE` link set to `E0`
+- SCS(`E3`) at submit with `CHANGE` link set `E2` and `PREVIOUS_VERSION` link set to `E0`
