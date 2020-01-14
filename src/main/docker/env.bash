@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-unamestr=`uname`
+unamestr=$(uname)
 if [[ "$unamestr" == "Linux" ]]; then
   export HOST=$(hostname -I | tr " " "\n"| head -1);
 elif [[ "$unamestr" == MINGW64_NT* ]]; then
