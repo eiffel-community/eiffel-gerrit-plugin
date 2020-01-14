@@ -39,3 +39,7 @@ scalability, flexibility and traceability. Eiffel is based on the concept of dec
 messaging, both to drive the continuous integration and delivery system and to document it.
 
 Visit [Eiffel Community](https://eiffel-community.github.io) to get started and get involved.
+
+## Documentation
+
+Information about the plugin can be found [here](./src/main/resources/Documentation/about.md)

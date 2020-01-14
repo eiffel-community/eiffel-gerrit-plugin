@@ -5,47 +5,50 @@ source code management traceability.
 For more information about Eiffel, follow this link:
 <https://github.com/eiffel-community/eiffel>
 
-##### Eiffel Events
+### Eiffel Events
 
-Version 0.0.1
-:   SourceChangeCreatedEvent
-    SourceChangeSubmittedEvent
+#### Version 0.0.1
 
-Parameters
-----------
+* SourceChangeCreatedEvent
+* SourceChangeSubmittedEvent
 
-Project Configuration:
+### Parameters
 
-eiffel-integration.enabled
-:   If set to `true` the plugin will send Eiffel events.
-    Is set to `false` or not defined no Eiffel events will be sent.
+#### Project Configuration
 
-eiffel-integration.filter
-:   Allow users to define a white list of branches, i.e. messages will be sent only for source change on
-    specified branches. Source Change to any other branch will be ignored. Accepts full branch name and or
-    regex separated by `,`. If not defined, messages will be sent for source changes in all branches.
-    See example configuration where release branch may be triggered on release-(Any version).
+* eiffel-integration.enabled
 
-eiffel-integration.flow-context
-:   Optional, but expects a UUID of a EiffelFlowContextDefinedEvent if provided.
-    Can accept List of UUID's separated by `,` that tells which flow it will be part of. (More about Flow Context:
-    <https://github.com/eiffel-community/eiffel/blob/master/eiffel-vocabulary/EiffelSourceChangeCreatedEvent.md#flow_context>)
+   If set to `true` the plugin will send Eiffel events.  
+   Is set to `false` or not defined no Eiffel events will be sent.
 
-eiffel-integration.remrem-publish-url
-:   URL of REMReM publish service.(More about REMReM publish here:
-    <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
+* eiffel-integration.filter
 
-eiffel-integration.remrem-username
-:   Required, if you have this enabled in REMReM Publish configurations. (More about REMReM publish configurations here:
-    <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
-    Credentials towards REMReM to authenticate a user.
+   Allow users to define a white list of branches, i.e. messages will be sent only for source change on
+   specified branches. Source Change to any other branch will be ignored. Accepts full branch name and or
+   regex separated by `,`. If not defined, messages will be sent for source changes in all branches.  
+   See example configuration where release branch may be triggered on release-(Any version).
 
-eiffel-integration.remrem-password
-:   Required, if you have this enabled in REMReM Publish configurations. (More about REMReM publish configurations here:
-    <https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html>)
-    Credentials towards REMReM to authenticate a user
+* eiffel-integration.flow-context
 
-Example:
+   Optional, but expects a UUID of a EiffelFlowContextDefinedEvent if provided.
+   Can accept List of UUID's separated by `,` that tells which flow it will be part of.
+   More about Flow Context [here](https://github.com/eiffel-community/eiffel/blob/master/eiffel-vocabulary/EiffelSourceChangeCreatedEvent.md#flow_context)
+
+* eiffel-integration.remrem-publish-url
+
+   URL of REMReM publish service. More about REMReM publish configurations [here](https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html)
+
+* eiffel-integration.remrem-username
+
+   Required, if you have this enabled in REMReM Publish configurations. Credentials towards REMReM to authenticate a user.
+   More about REMReM publish configurations [here](https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html)
+
+* eiffel-integration.remrem-password
+
+   Required, if you have this enabled in REMReM Publish configurations. Credentials towards REMReM to authenticate a user
+   More about REMReM publish configurations [here](https://eiffel-community.github.io/eiffel-remrem-publish/serviceUsage.html)
+
+##### Example
 
     [plugin "eiffel-integration"]
       enabled = true
@@ -64,25 +67,22 @@ Example:
       remrem-username = dummyuser
       remrem-password = ********
 
-<span style="color:red">Note</span>
------------------
+##### Note
 Manually editing the Eiffel plugin configurations will show the configurations in the GUI using comma-seperated values.
 If you are changing them back in the UI, it will only contain one pair in the project configurations.
 
------------------
+#### Global Configuration
 
-Global Configuration:
+* plugin.eiffel-integration.senderThreadPoolSize
 
-plugin.eiffel-integration.senderThreadPoolSize
-:   Number of threads to allocate for sending messages. Defaults to 1 if not provided.
+   Number of threads to allocate for sending messages. Defaults to 1 if not provided.  
 
-Example:
+##### Example
 
     [plugin "Eiffel-Integration"]
         senderThreadPoolSize = 2
 
-Configuration
--------------
+### Configuration
 
 Plugin configuration stored as part of the project configuration and can be edited/configured in two ways - by editing
 project.config file:
@@ -98,12 +98,31 @@ or by editing project configuration using web ui.
 
 Plugin configuration as part of the global configuration can be edited through the gerrit.config file.
 
-Message content and commit message parsing
-------------------------------------------
+### Message content
 
-TODO!
+When a patchset is pushed, the plugin will parse commit info and form a EiffelSourceChangeCreatedEvent that will contain the following fields.
 
-Eiffel Event Linking
---------------------
+* repository name
+* branch name
+* repository url
+* author name
+* author username
+* author e-mail
+* commit id
+* change id
+* line insertions
+* lines deletions
 
-TODO: Explain event linking and show examples.
+There will also be a EiffelSourceChangeSubmittedEvent when a patchset is submitted containing the following fields.
+
+* repository name
+* branch name
+* repository url
+* author name
+* author username
+* author e-mail
+* commit id
+
+### Eiffel Event Linking
+
+The different scenarios with linking are described [here](gerrit-scenarios.md)
