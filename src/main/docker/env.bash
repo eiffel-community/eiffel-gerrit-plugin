@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 
-export HOST=$(hostname -I | tr " " "\n"| head -1);
-echo "Docker Host IP: $HOST"
+unamestr=`uname`
+if [[ "$unamestr" == "Linux" ]]; then
+  export HOST=$(hostname -I | tr " " "\n"| head -1);
+elif [[ "$unamestr" == MINGW64_NT* ]]; then
+  export HOST=localhost
+else
+  echo "Unsupported operating system, this script currently only works in Linux and Windows!"
+  exit 1
+fi
+
+echo "Docker Host: $HOST"
 
 export RABBITMQ_IMAGE="bitnami/rabbitmq:3.7.8-debian-9"
 export REMREM_GENERATE_IMAGE="eiffelericsson/eiffel-remrem-generate:2.0.4"
