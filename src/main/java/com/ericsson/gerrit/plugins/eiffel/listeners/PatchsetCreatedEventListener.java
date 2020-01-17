@@ -55,20 +55,20 @@ public class PatchsetCreatedEventListener extends AbstractEventListener {
     }
 
     @Override
-    protected boolean isExpectedGerritEvent(Event gerritEvent) {
+    protected boolean isExpectedGerritEvent(final Event gerritEvent) {
         return gerritEvent instanceof PatchSetCreatedEvent;
     }
 
     @Override
-    protected void prepareAndSendEiffelEvent(Event gerritEvent,
-            EiffelPluginConfiguration pluginConfig) {
-        PatchSetCreatedEvent patchSetCreatedEvent = (PatchSetCreatedEvent) gerritEvent;
+    protected void prepareAndSendEiffelEvent(final Event gerritEvent,
+            final EiffelPluginConfiguration pluginConfig) {
+        final PatchSetCreatedEvent patchSetCreatedEvent = (PatchSetCreatedEvent) gerritEvent;
         LOGGER.info("PatchSetCreatedEvent recieved from Gerrit, "
                 + "preparing to send a SourceChangeCreated eiffel event.\n{}",
                 patchSetCreatedEvent);
 
-        EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator.generate(
-                patchSetCreatedEvent, pluginDirectoryPath, commitInformation);
+        final EiffelSourceChangeCreatedEvent eiffelEvent = EiffelSourceChangeCreatedEventGenerator.generate(
+                pluginConfig, patchSetCreatedEvent, commitInformation);
         sendEiffelEvent(eiffelEvent, pluginConfig);
     }
 }

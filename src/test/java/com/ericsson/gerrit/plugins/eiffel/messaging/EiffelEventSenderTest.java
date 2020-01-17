@@ -1,6 +1,5 @@
 package com.ericsson.gerrit.plugins.eiffel.messaging;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
@@ -23,7 +22,6 @@ public class EiffelEventSenderTest {
     private EiffelPluginConfiguration pluginConfig;
     private HttpRequest httpRequest;
     private ResponseEntity response;
-    private File pluginDir;
 
     private static final String EIFFEL_TYPE = "EiffelSourceChangeCreatedEvent";
     private static final int STATUS_OK = HttpStatus.SC_OK;
@@ -38,7 +36,7 @@ public class EiffelEventSenderTest {
     public void testEventSender() throws Exception {
         setUpMockActions();
 
-        EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
+        final EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
         sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
         sender.setEiffelEventType(EIFFEL_TYPE);
 
@@ -48,7 +46,7 @@ public class EiffelEventSenderTest {
 
     @Test(expected = MissingConfigurationException.class)
     public void testEventSenderWithMissingConfiguration() throws Exception {
-        EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
+        final EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
         sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
         sender.setEiffelEventType("");
 
@@ -59,7 +57,7 @@ public class EiffelEventSenderTest {
     public void testEventSenderWithBadStatus() throws Exception {
         setUpMockActionsWithBadStatus();
 
-        EiffelEventSender sender = new EiffelEventSender(pluginDir, pluginConfig, httpRequest);
+        final EiffelEventSender sender = new EiffelEventSender(pluginConfig, httpRequest);
         sender.setEiffelEventMessage(new EiffelSourceChangeCreatedEvent());
         sender.setEiffelEventType(EIFFEL_TYPE);
 
@@ -70,7 +68,6 @@ public class EiffelEventSenderTest {
         httpRequest = Mockito.mock(HttpRequest.class);
         pluginConfig = Mockito.mock(EiffelPluginConfiguration.class);
         response = Mockito.mock(ResponseEntity.class);
-        pluginDir = Mockito.mock(File.class);
     }
 
     private void setUpMockActions() throws URISyntaxException, IOException {

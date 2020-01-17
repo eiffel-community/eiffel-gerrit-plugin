@@ -17,22 +17,21 @@
 
 package com.ericsson.gerrit.plugins.eiffel.storage;
 
-import java.io.File;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EventType;
 
 public class EventStorageFactory {
     protected static final Logger LOGGER = LoggerFactory.getLogger(EventStorageFactory.class);
 
-    public static EventStorage getEventStorage(File pluginDir, String eventType) {
+    public static EventStorage getEventStorage(final EiffelPluginConfiguration pluginConfig, final String eventType) {
         switch (eventType) {
             case EventType.SCC_EVENT:
-                return new SourceChangeCreatedStorage(pluginDir);
+                return new SourceChangeCreatedStorage(pluginConfig);
             case EventType.SCS_EVENT:
-                return new SourceChangeSubmittedStorage(pluginDir);
+                return new SourceChangeSubmittedStorage(pluginConfig);
             default:
                 throw new IllegalArgumentException("The event type does not exist " + eventType + ".");
         }

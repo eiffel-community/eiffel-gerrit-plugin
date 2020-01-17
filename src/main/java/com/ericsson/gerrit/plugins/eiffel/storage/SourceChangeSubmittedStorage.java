@@ -17,11 +17,11 @@
 
 package com.ericsson.gerrit.plugins.eiffel.storage;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.sql.SQLException;
 
+import com.ericsson.gerrit.plugins.eiffel.configuration.EiffelPluginConfiguration;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelEvent;
 import com.ericsson.gerrit.plugins.eiffel.events.EiffelSourceChangeSubmittedEvent;
 import com.ericsson.gerrit.plugins.eiffel.exceptions.NoSuchElementException;
@@ -29,22 +29,21 @@ import com.ericsson.gerrit.plugins.eiffel.handlers.Table;
 
 public class SourceChangeSubmittedStorage extends EventStorage {
 
-    public SourceChangeSubmittedStorage(File pluginDir) {
-        super(pluginDir);
+    public SourceChangeSubmittedStorage(final EiffelPluginConfiguration pluginConfig) {
+        super(pluginConfig);
     }
 
     @Override
-    public String getEventId(String project, String branch) throws NoSuchElementException, ConnectException, FileNotFoundException {
+    public String getEventId(final String project, final String branch) throws NoSuchElementException, ConnectException, FileNotFoundException {
         return getLastSavedEiffelEvent(project, branch, Table.SCS_TABLE);
     }
 
     @Override
-    public void saveEventId(String eiffelEventId, EiffelEvent eiffelEvent)
+    public void saveEventId(final String eiffelEventId, final EiffelEvent eiffelEvent)
             throws NoSuchElementException, ConnectException, SQLException {
-        EiffelSourceChangeSubmittedEvent eiffelSourceChangeSubmittedEvent = (EiffelSourceChangeSubmittedEvent) eiffelEvent;
-        String projectName = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.repoName;
-        String searchCriteria = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.commitId;
+        final EiffelSourceChangeSubmittedEvent eiffelSourceChangeSubmittedEvent = (EiffelSourceChangeSubmittedEvent) eiffelEvent;
+        final String searchCriteria = eiffelSourceChangeSubmittedEvent.eventParams.data.gitIdentifier.commitId;
 
-        saveEiffelEventId(projectName, searchCriteria, eiffelEventId, Table.SCS_TABLE);
+        saveEiffelEventId(searchCriteria, eiffelEventId, Table.SCS_TABLE);
     }
 }

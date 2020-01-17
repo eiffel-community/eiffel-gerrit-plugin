@@ -53,19 +53,21 @@ public class EiffelPluginConfiguration {
     private final boolean enabled;
     private final String flowContext;
     private File pluginDirectoryPath;
+    private final NameKey project;
 
     public EiffelPluginConfiguration(final String pluginName, final NameKey project,
             final PluginConfigFactory pluginConfigFactory) {
 
+        this.project = project;
         PluginConfig pluginConfig;
 
         try {
             pluginConfig = pluginConfigFactory.getFromProjectConfig(project, pluginName);
-        } catch (NoSuchProjectException e) {
+        } catch (final NoSuchProjectException e) {
             LOGGER.error("Could not initiate, error: {} \n{}", e.getMessage(), e);
             throw new ExceptionInInitializerError(
                     String.format("Can't read %s plugin configuration for project %s: %s",
-                            pluginName, project.toString(), e.getMessage()));
+                            pluginName, getProject(), e.getMessage()));
         }
         // Read plugin configuration
         this.enabled = pluginConfig.getBoolean(ENABLED, false);
@@ -90,7 +92,7 @@ public class EiffelPluginConfiguration {
                     String.format(
                             "Can't read %s plugin configuration for project %s: REMReM Generate URL is null",
                             pluginName,
-                            project.toString()));
+                            getProject()));
         }
         LOGGER.info("Loaded plugin configuration: {}", pluginConfig.toString());
     }
@@ -133,13 +135,22 @@ public class EiffelPluginConfiguration {
      *
      * @param pluginDirectoryPath
      */
-    public void setPluginDirectoryPath(File pluginDirectoryPath) {
+    public void setPluginDirectoryPath(final File pluginDirectoryPath) {
         this.pluginDirectoryPath = pluginDirectoryPath;
+    }
+
+
+    /**
+     * Retrieves the name of the project
+     * @return project name
+     */
+    public String getProject() {
+        return project.get();
     }
 
     /**
      * This method reads multiple values set manually by editing the project configuration
-     * and then setting it in the GUI so that the person who is having the privileges to the UI is aware of the 
+     * and then setting it in the GUI so that the person who is having the privileges to the UI is aware of the
      * parameters set manually.
      * Ex:
      * [eiffel-integration]
@@ -151,7 +162,7 @@ public class EiffelPluginConfiguration {
      */
     private String getMultiValueParameters(final String property, final PluginConfig pluginConfig) {
         String propertyValue = "";
-        String[] propertyValues = pluginConfig.getStringList(property);
+        final String[] propertyValues = pluginConfig.getStringList(property);
         if (propertyValues != null && propertyValues.length > 0) {
             propertyValue = Arrays.stream(propertyValues).collect(Collectors.joining(","));
             pluginConfig.setString(property, propertyValue);

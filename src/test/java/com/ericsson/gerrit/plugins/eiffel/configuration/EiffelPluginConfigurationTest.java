@@ -1,6 +1,5 @@
 package com.ericsson.gerrit.plugins.eiffel.configuration;
 
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,6 +14,8 @@ import com.google.gerrit.server.config.PluginConfigFactory;
 import com.google.gerrit.server.project.NoSuchProjectException;
 
 public class EiffelPluginConfigurationTest {
+
+    private static final String PROJECT_NAME = "project";
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
@@ -34,22 +35,29 @@ public class EiffelPluginConfigurationTest {
 
     @Before
     public void init() throws NoSuchProjectException {
-        nameKey = mock(NameKey.class);
+        nameKey = new NameKey(PROJECT_NAME);
         pluginConfigFactory = mock(PluginConfigFactory.class);
         pluginConfig = mock(PluginConfig.class);
 
-        when(pluginConfigFactory.getFromProjectConfig(nameKey, PLUGIN_NAME)).thenReturn(pluginConfig);
-        when(pluginConfig.getBoolean(EiffelPluginConfiguration.ENABLED, false)).thenReturn(ENABLED_TRUE);
+        when(pluginConfigFactory.getFromProjectConfig(nameKey, PLUGIN_NAME)).thenReturn(
+                pluginConfig);
+        when(pluginConfig.getBoolean(EiffelPluginConfiguration.ENABLED, false)).thenReturn(
+                ENABLED_TRUE);
         when(pluginConfig.getStringList(EiffelPluginConfiguration.FILTER)).thenReturn(FILTER);
-        when(pluginConfig.getStringList(EiffelPluginConfiguration.FLOW_CONTEXT)).thenReturn(FLOW_CONTEXT);
-        when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_PUBLISH_URL)).thenReturn(REMREM_PUBLISH_URL);
-        when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_USERNAME)).thenReturn(REMREM_USERNAME);
-        when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_PASSWORD)).thenReturn(REMREM_PASSWORD);
+        when(pluginConfig.getStringList(EiffelPluginConfiguration.FLOW_CONTEXT)).thenReturn(
+                FLOW_CONTEXT);
+        when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_PUBLISH_URL)).thenReturn(
+                REMREM_PUBLISH_URL);
+        when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_USERNAME)).thenReturn(
+                REMREM_USERNAME);
+        when(pluginConfig.getString(EiffelPluginConfiguration.REMREM_PASSWORD)).thenReturn(
+                REMREM_PASSWORD);
     }
 
     @Test
     public void testEiffelPluginConfigurationException1() throws NoSuchProjectException {
-        when(pluginConfigFactory.getFromProjectConfig(nameKey, PLUGIN_NAME)).thenThrow(NoSuchProjectException.class);
+        when(pluginConfigFactory.getFromProjectConfig(nameKey, PLUGIN_NAME)).thenThrow(
+                NoSuchProjectException.class);
         exception.expect(ExceptionInInitializerError.class);
 
         new EiffelPluginConfiguration(PLUGIN_NAME, nameKey, pluginConfigFactory);
@@ -65,46 +73,61 @@ public class EiffelPluginConfigurationTest {
 
     @Test
     public void testEiffelPluginConfigurationDisabled() throws NoSuchProjectException {
-        when(pluginConfig.getBoolean(EiffelPluginConfiguration.ENABLED, false)).thenReturn(ENABLED_FALSE);
+        when(pluginConfig.getBoolean(EiffelPluginConfiguration.ENABLED, false)).thenReturn(
+                ENABLED_FALSE);
 
-        EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
+        final EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME,
+                nameKey,
                 pluginConfigFactory);
-        assertEquals(pluginConfig.isEnabled(), false);
+        assertEquals(false, pluginConfig.isEnabled());
     }
 
     @Test
     public void testEiffelPluginConfigurationRemremGenerateURL() throws NoSuchProjectException {
-        EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
+        final EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME,
+                nameKey,
                 pluginConfigFactory);
-        assertEquals(pluginConfig.getRemremPublishURL(), REMREM_PUBLISH_URL);
+        assertEquals(REMREM_PUBLISH_URL, pluginConfig.getRemremPublishURL());
     }
 
     @Test
     public void testEiffelPluginConfigurationRemremUsername() throws NoSuchProjectException {
-        EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
+        final EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME,
+                nameKey,
                 pluginConfigFactory);
-        assertEquals(pluginConfig.getRemremUsername(), REMREM_USERNAME);
+        assertEquals(REMREM_USERNAME, pluginConfig.getRemremUsername());
     }
 
     @Test
     public void testEiffelPluginConfigurationFilter() throws NoSuchProjectException {
-        EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
+        final EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME,
+                nameKey,
                 pluginConfigFactory);
-        assertEquals(pluginConfig.getFilter(), "");
+        assertEquals("", pluginConfig.getFilter());
     }
 
     @Test
     public void testEiffelPluginConfigurationtFlowContext() throws NoSuchProjectException {
-        EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
+        final EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME,
+                nameKey,
                 pluginConfigFactory);
-        assertEquals(pluginConfig.getFlowContext(), "");
+        assertEquals("", pluginConfig.getFlowContext());
     }
 
     @Test
     public void testEiffelPluginConfigurationEnabled() throws NoSuchProjectException {
-        EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME, nameKey,
+        final EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME,
+                nameKey,
                 pluginConfigFactory);
-        assertEquals(pluginConfig.isEnabled(), ENABLED_TRUE);
+        assertEquals(ENABLED_TRUE, pluginConfig.isEnabled());
+    }
+
+    @Test
+    public void testEiffelPluginConfigurationGetProject() throws NoSuchProjectException {
+        final EiffelPluginConfiguration pluginConfig = new EiffelPluginConfiguration(PLUGIN_NAME,
+                nameKey,
+                pluginConfigFactory);
+        assertEquals(PROJECT_NAME, pluginConfig.getProject());
     }
 
 }

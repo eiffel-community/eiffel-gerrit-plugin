@@ -211,15 +211,15 @@ class ListenerTestMock extends AbstractEventListener {
     private boolean isExpectedGerritEvent = false;
     private EiffelPluginConfiguration pluginConfig;
 
-    public ListenerTestMock(String pluginName, File pluginDir) {
+    public ListenerTestMock(final String pluginName, final File pluginDir) {
         super(pluginName, pluginDir);
     }
 
-    public void setPluginConfig(EiffelPluginConfiguration pluginConfig) {
+    public void setPluginConfig(final EiffelPluginConfiguration pluginConfig) {
         this.pluginConfig = pluginConfig;
     }
 
-    public void setIsExpectedGerritEvent(boolean isExpectedGerritEvent) {
+    public void setIsExpectedGerritEvent(final boolean isExpectedGerritEvent) {
         this.isExpectedGerritEvent = isExpectedGerritEvent;
     }
 
@@ -251,7 +251,7 @@ class ListenerTestMock extends AbstractEventListener {
      * @param pluginConfig
      * @return
      */
-    public boolean verifyPluginEnabled(Event gerritEvent, EiffelPluginConfiguration pluginConfig) {
+    public boolean verifyPluginEnabled(final Event gerritEvent, final EiffelPluginConfiguration pluginConfig) {
         return isEiffelEventSendingEnabled(gerritEvent, pluginConfig);
     }
 
@@ -259,7 +259,7 @@ class ListenerTestMock extends AbstractEventListener {
      * This method is enforced by the AbstractEventListener and not used in test.
      */
     @Override
-    protected boolean isExpectedGerritEvent(Event gerritEvent) {
+    protected boolean isExpectedGerritEvent(final Event gerritEvent) {
         if (isExpectedGerritEvent) {
             isExpectedGerritEvent = false;
             return true;
@@ -271,8 +271,8 @@ class ListenerTestMock extends AbstractEventListener {
      * This method is enforced by the AbstractEventListener and not used in test.
      */
     @Override
-    protected void prepareAndSendEiffelEvent(Event gerritEvent,
-            EiffelPluginConfiguration pluginConfig) {
+    protected void prepareAndSendEiffelEvent(final Event gerritEvent,
+            final EiffelPluginConfiguration pluginConfig) {
         isPrepareAndSendEiffelEventMethodCalled = true;
     }
 
