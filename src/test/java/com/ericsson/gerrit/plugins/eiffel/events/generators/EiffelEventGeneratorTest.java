@@ -150,6 +150,7 @@ public class EiffelEventGeneratorTest {
     @Test
     public void testGetPreviousEiffelEventInSourceChangeCreated()
             throws ConnectException, FileNotFoundException, NoSuchElementException {
+        //Isn't this covered by com.ericsson.gerrit.plugins.eiffel.linking.LinkingRunnerTest?
         populatePatchSetCreatedEvent();
 
         final SourceChangeCreatedStorage sourceChangeCreatedState = mock(SourceChangeCreatedStorage.class);
@@ -162,13 +163,14 @@ public class EiffelEventGeneratorTest {
                 valueCaptor.capture());
 
         final List<String> parametersCalledWith = valueCaptor.getAllValues();
-        assertEquals("Incorrect parameter, should have been a changeID", CHANGE_ID, parametersCalledWith.get(0));
-        assertEquals("Incorrect parameter, should have been a branch.", PARENT_SHA, parametersCalledWith.get(1));
+        assertEquals("Incorrect parameter, should have been a changeID", CHANGE_ID, parametersCalledWith.get(1));
+        assertEquals("Incorrect parameter, should have been a branch.", PARENT_SHA, parametersCalledWith.get(0));
     }
 
     @Test
     public void testGetPreviousEiffelEventInSourceChangeSubmitted()
             throws ConnectException, FileNotFoundException, NoSuchElementException {
+        //Isn't this covered by com.ericsson.gerrit.plugins.eiffel.linking.LinkingRunnerTest?
         populateChangeMergedEvent();
 
         final SourceChangeSubmittedStorage sourceChangeSubmittedState = mock(SourceChangeSubmittedStorage.class);
@@ -188,6 +190,7 @@ public class EiffelEventGeneratorTest {
     @Test
     public void testCreateLinksForSCCWithNoPreviousEventIdSaved()
             throws ConnectException, FileNotFoundException, NoSuchElementException {
+        //Isn't this covered by com.ericsson.gerrit.plugins.eiffel.linking.LinkingRunnerTest?
         populatePatchSetCreatedEvent();
 
         final SourceChangeCreatedStorage sourceChangeCreatedState = mock(SourceChangeCreatedStorage.class);
@@ -203,6 +206,7 @@ public class EiffelEventGeneratorTest {
     @Test
     public void testCreateLinksForSCSWithNoPreviousEventIdSaved()
             throws ConnectException, FileNotFoundException, NoSuchElementException {
+        //Isn't this covered by com.ericsson.gerrit.plugins.eiffel.linking.LinkingRunnerTest?
         populateChangeMergedEvent();
 
         final SourceChangeSubmittedStorage sourceChangeSubmittedState = mock(SourceChangeSubmittedStorage.class);
@@ -218,6 +222,7 @@ public class EiffelEventGeneratorTest {
     @Test
     public void testCreateLinksForSCCWithPreviousEventIdSaved()
             throws ConnectException, FileNotFoundException, NoSuchElementException {
+        //Isn't this covered by com.ericsson.gerrit.plugins.eiffel.linking.LinkingRunnerTest?
         populatePatchSetCreatedEvent();
 
         final SourceChangeCreatedStorage sourceChangeCreatedState = mock(SourceChangeCreatedStorage.class);
@@ -231,13 +236,14 @@ public class EiffelEventGeneratorTest {
         final String expectedTypeBase = "BASE";
 
         final String message = "Incorrect link type.";
-        assertEquals(message, expectedTypePreviousVersion, eiffelEvent.eventParams.links.get(0).type);
-        assertEquals(message, expectedTypeBase, eiffelEvent.eventParams.links.get(1).type);
+        assertEquals(message, expectedTypePreviousVersion, eiffelEvent.eventParams.links.get(1).type);
+        assertEquals(message, expectedTypeBase, eiffelEvent.eventParams.links.get(0).type);
     }
 
     @Test
     public void testCreateLinksForSCSWithPreviousEventIdSaved()
             throws ConnectException, FileNotFoundException, NoSuchElementException {
+        //Isn't this covered by com.ericsson.gerrit.plugins.eiffel.linking.LinkingRunnerTest?
         populateChangeMergedEvent();
 
         final SourceChangeSubmittedStorage sourceChangeSubmittedState = mock(SourceChangeSubmittedStorage.class);
@@ -275,6 +281,7 @@ public class EiffelEventGeneratorTest {
         when(supplierChangeAttribute.get()).thenReturn(changeAttribute);
         when(supplierPatchSetAttribute.get()).thenReturn(patchSetAttribute);
         when(changeKey.toString()).thenReturn(CHANGE_ID);
+        when(pluginConfig.getProject()).thenReturn(PROJECT);
 
         when(EventStorageFactory.getEventStorage(Mockito.any(), Mockito.any())).thenReturn(sourceChangeSubmittedState);
         when(sourceChangeSubmittedState.getEventId(Mockito.any(), Mockito.any())).thenReturn("my_event_id");
@@ -400,7 +407,7 @@ public class EiffelEventGeneratorTest {
         assertEquals(errorMessage, CHANGE_ID, change.get("id").getAsString());
         assertEquals(errorMessage, SIZE_INSERTIONS, change.get("insertions").getAsInt());
         assertEquals(errorMessage, SIZE_DELETIONS, change.get("deletions").getAsInt());
-        assertEquals(errorMessage, "PREVIOUS_VERSION", link1.get("type").getAsString());
-        assertEquals(errorMessage, "BASE", link2.get("type").getAsString());
+        assertEquals(errorMessage, "PREVIOUS_VERSION", link2.get("type").getAsString());
+        assertEquals(errorMessage, "BASE", link1.get("type").getAsString());
     }
 }
