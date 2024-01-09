@@ -11,7 +11,7 @@
 
     <properties>
         <Gerrit-ApiType>plugin</Gerrit-ApiType>
-        <Gerrit-ApiVersion>2.14.16</Gerrit-ApiVersion>
+        <Gerrit-ApiVersion>2.15.21</Gerrit-ApiVersion>
         <Gerrit-PluginName>Eiffel-Integration</Gerrit-PluginName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skipTests>false</skipTests>
