@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gerrit.extensions.restapi.IdString;
 import com.google.gerrit.extensions.restapi.ResourceNotFoundException;
 import com.google.gerrit.extensions.restapi.UnprocessableEntityException;
+import com.google.gerrit.server.permissions.PermissionBackendException;
 import com.google.gerrit.server.project.CommitResource;
 import com.google.gerrit.server.project.CommitsCollection;
 import com.google.gerrit.server.project.ProjectResource;
@@ -80,7 +81,7 @@ public class CommitInformation {
 
         try {
             parents = getParentsFromCommit(commitId, projectName);
-        } catch (final UnprocessableEntityException e) {
+        } catch (final UnprocessableEntityException | PermissionBackendException e) {
             final String message = String.format("Cannot find or load the project %s", projectName);
             LOGGER.error(message, e);
         } catch (final ResourceNotFoundException e) {
@@ -95,15 +96,21 @@ public class CommitInformation {
     }
 
     private List<RevCommit> getParentsFromCommit(final String commitId, final String projectName)
-            throws UnprocessableEntityException, IOException, ResourceNotFoundException {
-
+       throws UnprocessableEntityException, IOException, ResourceNotFoundException, PermissionBackendException {
+        RevCommit[] parents = null;
+        try{
         final ProjectResource projectResource = projectsCollection.parse(projectName, true);
         final CommitResource commitResource = commitsCollection.parse(projectResource,
                 IdString.fromDecoded(commitId));
         final RevCommit commit = commitResource.getCommit();
-        final RevCommit[] parents = commit.getParents();
-
-        return Arrays.asList(parents);
+         parents = commit.getParents();
+          }
+        catch (PermissionBackendException e) {
+           System.out.println("PermissionBackendException is occured");
+        }
+           return  Arrays.asList(parents);
+       
+        
     }
 
     private List<String> getSHAs(final List<RevCommit> parents) {

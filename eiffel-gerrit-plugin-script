@@ -30,7 +30,7 @@ function do_stop {
   echo "########################################"
 
   source target/env.bash
-  docker-compose -f target/docker-compose.yml down
+  docker compose -f target/docker-compose.yml down
   if [ $? -eq 1 ]; then
     echo "Failed to stop docker containers!"
     exit 1
@@ -62,12 +62,13 @@ function do_start {
   echo "########################################"
 
   source target/env.bash
-  docker-compose -f target/docker-compose.yml up -d
+  docker compose -f target/docker-compose.yml up -d
 
-  wait_for_service "RABBITMQ" "target_rabbitmq" "15672"
-  wait_for_service "GERRIT" "target_gerrit" "8080"
-  wait_for_service "REMREM_PUBLISH" "target_publish" "8080"
-  wait_for_service "REMREM_GENERATE" "target_generate" "8080"
+  wait_for_service "RABBITMQ" "target-rabbitmq" "15672"
+  wait_for_service "GERRIT" "target-gerrit" "8080"
+  sleep 60
+  wait_for_service "REMREM_PUBLISH" "target-publish" "8080"
+  wait_for_service "REMREM_GENERATE" "target-generate" "8080"
 }
 
 function do_test {

@@ -87,16 +87,16 @@ public class CommitInformationTest {
 
     @Test
     public void testFetchingCommitNotFound() throws Exception {
-        logHelper.removeStdoutAppenders();
-
+        logHelper.removeStdoutAppenders(); 
+        
         final CommitsCollection commitsCollection = mock(CommitsCollection.class);
         final ProjectsCollection projectsCollection = mock(ProjectsCollection.class);
         final ProjectResource projectResource = mock(ProjectResource.class);
-
+      
         when(commitsCollection.parse(any(ProjectResource.class), any(IdString.class))).thenThrow(
                 ResourceNotFoundException.class);
         when(projectsCollection.parse(any(String.class), anyBoolean())).thenReturn(projectResource);
-
+         
         final CommitInformation commitInformation = new CommitInformation(commitsCollection,
                 projectsCollection);
         final List<String> expectedParentsSha = Arrays.asList();
@@ -104,7 +104,7 @@ public class CommitInformationTest {
         final String projectName = "projectName";
 
         final List<String> actualParentSha = commitInformation.getParentsSHAs(commitId, projectName);
-
+       
         assertEquals(expectedParentsSha, actualParentSha);
         logHelper.verifyLoggerCalledTimes(1);
 

@@ -17,7 +17,7 @@
 
 package com.ericsson.gerrit.plugins.eiffel.handlers;
 
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ScheduledExecutorService;
 
 import com.google.gerrit.extensions.annotations.PluginName;
 import com.google.gerrit.extensions.events.LifecycleListener;
@@ -32,7 +32,7 @@ public class MessageQueueHandler implements LifecycleListener {
 
     private final WorkQueue workQueue;
     private final int poolSize;
-    private ScheduledThreadPoolExecutor pool;
+    private ScheduledExecutorService pool;
 
     @Inject
     public MessageQueueHandler(final WorkQueue workQueue, final PluginConfigFactory config,
@@ -54,7 +54,7 @@ public class MessageQueueHandler implements LifecycleListener {
         }
     }
 
-    public ScheduledThreadPoolExecutor getPool() {
+    public ScheduledExecutorService getPool() {
         return this.pool;
     }
 }
